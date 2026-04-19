@@ -71,17 +71,22 @@ export default function LeaAvatar({ size = 160, showName = true, showProgress = 
     return remaining > 0 ? remaining : 0;
   }
 
-  const images = STAGE_IMAGES[stage] ?? STAGE_IMAGES.puppy;
-  const currentImage = images[poseIndex];
-  const progress = getProgress();
+  const images  = STAGE_IMAGES[stage] ?? STAGE_IMAGES.puppy;
+  const progress  = getProgress();
   const remaining = getNextMilestone();
 
   return (
     <View style={styles.container}>
-      <View style={styles.imageWrapper}>
+      {/* Both images stacked; closed-eyes overlays open-eyes when blinking */}
+      <View style={[styles.imageWrapper, { width: size, height: size }]}>
         <Image
-          source={currentImage}
+          source={images[0]}
           style={[styles.image, { width: size, height: size }]}
+          resizeMode="contain"
+        />
+        <Image
+          source={images[1]}
+          style={[styles.image, styles.imageOverlay, { width: size, height: size, opacity: poseIndex === 1 ? 1 : 0 }]}
           resizeMode="contain"
         />
       </View>
@@ -130,6 +135,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   image: {},
+  imageOverlay: { position: 'absolute', top: 0, left: 0 },
   nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
