@@ -1,0 +1,1372 @@
+[
+  {
+    "id": 1,
+    "name": "Prudential Singapore",
+    "region": ["Singapore"],
+    "highlight": "24 weeks maternity leave since 2017, flexible return-to-work, wellness programmes",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["extended_maternity", "flexible_remote_work", "wellness", "mental_health"],
+    "maternity_weeks": 24,
+    "notable": "One of Singapore's earliest adopters of 24-week maternity leave"
+  },
+  {
+    "id": 2,
+    "name": "DBS Bank",
+    "region": ["Singapore"],
+    "highlight": "Extended maternity leave, flexible hybrid work, $1,000 annual wellness subsidy, women in leadership initiatives",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["extended_maternity", "flexible_remote_work", "wellness", "women_leadership", "mental_health"],
+    "notable": "$1,000 annual wellness subsidy for all employees"
+  },
+  {
+    "id": 3,
+    "name": "OCBC Bank",
+    "region": ["Singapore"],
+    "highlight": "Women in leadership programmes, mental health support, flexible work arrangements, enhanced parental leave",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": false
+    },
+    "tags": ["flexible_remote_work", "mental_health", "women_leadership", "extended_maternity"],
+    "notable": "Strong women in leadership DEI commitment"
+  },
+  {
+    "id": 4,
+    "name": "Standard Chartered",
+    "region": ["Singapore", "Global"],
+    "highlight": "Enhanced maternity benefits, women's internal network, flexible working, mental health EAP",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": false
+    },
+    "tags": ["extended_maternity", "flexible_remote_work", "mental_health", "women_leadership"],
+    "notable": "Active Women in Leadership internal network"
+  },
+  {
+    "id": 5,
+    "name": "Grab",
+    "region": ["Singapore", "SEA"],
+    "highlight": "Flexible remote work, mental health days, caregiver leave, women's employee resource groups",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": true,
+      "wellness": false
+    },
+    "tags": ["flexible_remote_work", "mental_health", "childcare_support", "women_leadership"],
+    "notable": "Women's ERG and dedicated caregiver leave"
+  },
+  {
+    "id": 6,
+    "name": "Shopee / Sea Group",
+    "region": ["Singapore", "SEA"],
+    "highlight": "Maternity leave top-up, gynaecology health insurance, mental wellness platform access",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["extended_maternity", "mental_health", "wellness"],
+    "notable": "Gynaecology included in health insurance coverage"
+  },
+  {
+    "id": 7,
+    "name": "Singtel",
+    "region": ["Singapore"],
+    "highlight": "Comprehensive medical benefits, flexible benefits plan, hybrid work, employee volunteering leave",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["flexible_remote_work", "wellness", "mental_health"],
+    "notable": "Flexible benefits plan lets employees customise coverage"
+  },
+  {
+    "id": 8,
+    "name": "GovTech Singapore",
+    "region": ["Singapore"],
+    "highlight": "Hybrid work, extended leave benefits, SkillsFuture upskilling support, inclusive policies",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": false,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": false
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "women_leadership"],
+    "notable": "Government-backed upskilling and hybrid work policy"
+  },
+  {
+    "id": 9,
+    "name": "NTUC Income",
+    "region": ["Singapore"],
+    "highlight": "Work from home and part-time options, flexible spending account for childcare and family medical expenses",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": false,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": true,
+      "wellness": true
+    },
+    "tags": ["flexible_remote_work", "childcare_support", "wellness"],
+    "notable": "Flexible spending account covers childcare and family health"
+  },
+  {
+    "id": 10,
+    "name": "Lazada",
+    "region": ["Singapore", "SEA"],
+    "highlight": "Hybrid work policy, extended maternity benefits, mental wellness access",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": false
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "mental_health"],
+    "notable": "Hybrid-first e-commerce employer in SEA"
+  },
+  {
+    "id": 11,
+    "name": "Razer",
+    "region": ["Singapore", "Global"],
+    "highlight": "Flexible work, wellness programmes, women in tech initiatives",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": false,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["flexible_remote_work", "wellness", "women_leadership"],
+    "notable": "Women in tech programme within gaming industry"
+  },
+  {
+    "id": 12,
+    "name": "CapitaLand",
+    "region": ["Singapore"],
+    "highlight": "Flexible work arrangements, enhanced parental leave, mental health support",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": false
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "mental_health"],
+    "notable": "Real estate sector leader in family-friendly policies"
+  },
+  {
+    "id": 13,
+    "name": "Diageo",
+    "region": ["Global", "Singapore"],
+    "highlight": "26 weeks parental leave, menopause policy 'Thriving Through Menopause', fertility support guidelines",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": true,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["extended_maternity", "menopause_support", "fertility_coverage", "mental_health", "flexible_remote_work"],
+    "maternity_weeks": 26,
+    "notable": "Dedicated menopause policy and 26-week parental leave"
+  },
+  {
+    "id": 14,
+    "name": "Unilever",
+    "region": ["Global", "Singapore"],
+    "highlight": "Menopause policy, gender-equal parental leave, women's leadership programme, flexible working",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": false,
+      "menopause_support": true,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": false
+    },
+    "tags": ["extended_maternity", "menopause_support", "women_leadership", "flexible_remote_work"],
+    "notable": "Gender-equal parental leave for all parents"
+  },
+  {
+    "id": 15,
+    "name": "Johnson & Johnson",
+    "region": ["Global", "Singapore"],
+    "highlight": "Additional 8 weeks parental leave beyond statutory, fertility and surrogacy benefits, women's health focus",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": false,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["extended_maternity", "fertility_coverage", "wellness", "women_leadership"],
+    "notable": "Fertility and surrogacy benefits included"
+  },
+  {
+    "id": 16,
+    "name": "Accenture",
+    "region": ["Global", "Singapore"],
+    "highlight": "50% women workforce target, fertility benefits, paid parental leave, women's mentorship networks",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": false
+    },
+    "tags": ["fertility_coverage", "extended_maternity", "women_leadership", "flexible_remote_work", "mental_health"],
+    "notable": "Committed to 50% women in workforce globally"
+  },
+  {
+    "id": 17,
+    "name": "Google",
+    "region": ["Global", "Singapore"],
+    "highlight": "Egg freezing coverage, 18-week paid maternity, fertility treatment support, on-site wellness programmes",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": true,
+      "wellness": true
+    },
+    "tags": ["fertility_coverage", "extended_maternity", "wellness", "flexible_remote_work", "mental_health"],
+    "notable": "Egg freezing and IVF fully covered"
+  },
+  {
+    "id": 18,
+    "name": "Microsoft",
+    "region": ["Global", "Singapore"],
+    "highlight": "Fertility and egg freezing benefits, generous parental leave, menopause support policy, hybrid work",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": true,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": false
+    },
+    "tags": ["fertility_coverage", "extended_maternity", "menopause_support", "flexible_remote_work", "mental_health"],
+    "notable": "One of few tech companies with a menopause support policy"
+  },
+  {
+    "id": 19,
+    "name": "Apple",
+    "region": ["Global", "Singapore"],
+    "highlight": "Egg freezing benefits, comprehensive maternity, wellness programmes, flexible arrangements",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": false,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["fertility_coverage", "extended_maternity", "wellness", "flexible_remote_work"],
+    "notable": "Pioneer in employer-covered egg freezing"
+  },
+  {
+    "id": 20,
+    "name": "Meta",
+    "region": ["Global", "Singapore"],
+    "highlight": "Comprehensive fertility and family-forming benefits, remote-friendly culture, mental health resources",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": true,
+      "wellness": false
+    },
+    "tags": ["fertility_coverage", "extended_maternity", "flexible_remote_work", "mental_health", "childcare_support"],
+    "notable": "Covers IVF, IUI, egg freezing and surrogacy"
+  },
+  {
+    "id": 21,
+    "name": "LinkedIn",
+    "region": ["Global", "Singapore"],
+    "highlight": "Fertility treatment reimbursement, adoption fee support, 24/7 counselling, educational health resources",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["fertility_coverage", "mental_health", "wellness", "flexible_remote_work"],
+    "notable": "Employees can claim back fertility and adoption expenses"
+  },
+  {
+    "id": 22,
+    "name": "Spotify",
+    "region": ["Global", "Singapore"],
+    "highlight": "Reproductive healthcare access for all employees, flexible remote work culture, mental wellness",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["fertility_coverage", "wellness", "flexible_remote_work", "mental_health"],
+    "notable": "Work from anywhere policy globally"
+  },
+  {
+    "id": 23,
+    "name": "Tesla",
+    "region": ["Global"],
+    "highlight": "IVF, IUI and egg freezing coverage, legal fee support for surrogacy and adoption",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": false,
+      "mental_health": false,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["fertility_coverage", "extended_maternity", "wellness"],
+    "notable": "Covers legal fees for adoption and surrogacy"
+  },
+  {
+    "id": 24,
+    "name": "Salesforce",
+    "region": ["Global", "Singapore"],
+    "highlight": "Fertility benefits, equal pay audits, women in tech programmes, flexible work, mental health support",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["fertility_coverage", "women_leadership", "flexible_remote_work", "mental_health", "wellness"],
+    "notable": "Conducts regular equal pay audits"
+  },
+  {
+    "id": 25,
+    "name": "Deloitte",
+    "region": ["Global", "Singapore"],
+    "highlight": "Flexible work, women's leadership initiative, mental health support, fertility benefits",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": false
+    },
+    "tags": ["flexible_remote_work", "women_leadership", "mental_health", "fertility_coverage"],
+    "notable": "Dedicated women's leadership development track"
+  },
+  {
+    "id": 26,
+    "name": "KPMG",
+    "region": ["Global", "Singapore"],
+    "highlight": "Women in leadership programmes, flexible work, mental health and wellbeing support",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["women_leadership", "flexible_remote_work", "mental_health", "wellness"],
+    "notable": "KPMG Network of Women (KNOW) programme"
+  },
+  {
+    "id": 27,
+    "name": "EY (Ernst & Young)",
+    "region": ["Global", "Singapore"],
+    "highlight": "EY Women's network, extended parental leave, flexible work, mental health EAP",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": false
+    },
+    "tags": ["women_leadership", "extended_maternity", "flexible_remote_work", "mental_health"],
+    "notable": "EY Women Athletes Business Network"
+  },
+  {
+    "id": 28,
+    "name": "PwC",
+    "region": ["Global", "Singapore"],
+    "highlight": "Women's initiatives, flexible working, enhanced parental support, mental health resources",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": false
+    },
+    "tags": ["women_leadership", "flexible_remote_work", "extended_maternity", "mental_health"],
+    "notable": "PwC WIN (Women's Inclusion Network)"
+  },
+  {
+    "id": 29,
+    "name": "SAP",
+    "region": ["Global", "Singapore"],
+    "highlight": "Menopause Matters employee network, Peppy specialist menopause support, flexible work, women in leadership",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": true,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["menopause_support", "women_leadership", "flexible_remote_work", "wellness"],
+    "notable": "Menopause Matters network and specialist clinical support"
+  },
+  {
+    "id": 30,
+    "name": "Lululemon",
+    "region": ["Global"],
+    "highlight": "Reproductive health support, menopause clinical care, monthly health Q&A sessions, flexible work",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": true,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["menopause_support", "fertility_coverage", "wellness", "flexible_remote_work", "mental_health"],
+    "notable": "Monthly reproductive health Q&A with clinical experts"
+  },
+  {
+    "id": 31,
+    "name": "Royal Mail",
+    "region": ["Global"],
+    "highlight": "Menopause policy, 'Let's Talk Menopause' campaign, Meno-mates peer support volunteers",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": false,
+      "flexible_remote_work": false,
+      "mental_health": true,
+      "menopause_support": true,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["menopause_support", "mental_health", "wellness"],
+    "notable": "Pioneering Meno-mates peer volunteer programme"
+  },
+  {
+    "id": 32,
+    "name": "BAE Systems",
+    "region": ["Global"],
+    "highlight": "Menopause Friendly Employer of the Year 2023, comprehensive women's health policies and support",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": false,
+      "menopause_support": true,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["menopause_support", "wellness", "women_leadership"],
+    "notable": "Menopause Friendly Employer of the Year 2023"
+  },
+  {
+    "id": 33,
+    "name": "ASOS",
+    "region": ["Global"],
+    "highlight": "Enhanced menopause and perimenopause policy, manager training, designated Mental Health First Aiders",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": true,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["menopause_support", "mental_health", "wellness", "flexible_remote_work"],
+    "notable": "Manager training on menopause support built into HR"
+  },
+  {
+    "id": 34,
+    "name": "Deliveroo",
+    "region": ["Global", "Singapore"],
+    "highlight": "Private GP service with specialised menopause support, flexible work arrangements",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": false,
+      "menopause_support": true,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["menopause_support", "wellness", "flexible_remote_work"],
+    "notable": "Private GP access includes menopause specialist"
+  },
+  {
+    "id": 35,
+    "name": "Adaptavist Group",
+    "region": ["Global"],
+    "highlight": "Menopause and menstruation leave (no sick leave required), fully remote-first culture",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": true,
+      "menstrual_leave": true,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": false
+    },
+    "tags": ["menstrual_leave", "menopause_support", "flexible_remote_work", "mental_health"],
+    "notable": "Menstrual and menopause leave does not use sick leave quota"
+  },
+  {
+    "id": 36,
+    "name": "Coexist",
+    "region": ["Global"],
+    "highlight": "Pioneer menstrual leave policy — 1 paid day per month for period pain, flexible working culture",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": false,
+      "menopause_support": false,
+      "menstrual_leave": true,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["menstrual_leave", "flexible_remote_work", "wellness"],
+    "notable": "One of the first companies in the world to introduce menstrual leave"
+  },
+  {
+    "id": 37,
+    "name": "Modibodi",
+    "region": ["Global"],
+    "highlight": "Paid menstrual and menopause leave, period products provided at work, flexible arrangements",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": false,
+      "menopause_support": true,
+      "menstrual_leave": true,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["menstrual_leave", "menopause_support", "flexible_remote_work", "wellness"],
+    "notable": "Period products provided and menstrual leave built into policy"
+  },
+  {
+    "id": 38,
+    "name": "Bumble",
+    "region": ["Global"],
+    "highlight": "Unlimited paid leave for menstrual health, flexible remote work, dedicated mental health days",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": true,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["menstrual_leave", "flexible_remote_work", "mental_health", "wellness"],
+    "notable": "Female-founded company with unlimited menstrual health leave"
+  },
+  {
+    "id": 39,
+    "name": "Vitality",
+    "region": ["Global"],
+    "highlight": "Menstrual health leave, menopause support, comprehensive women's health insurance coverage",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": true,
+      "flexible_remote_work": false,
+      "mental_health": false,
+      "menopause_support": true,
+      "menstrual_leave": true,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["menstrual_leave", "menopause_support", "wellness", "fertility_coverage"],
+    "notable": "Health insurer offering menstrual and menopause leave to own staff"
+  },
+  {
+    "id": 40,
+    "name": "Pfizer",
+    "region": ["Global", "Singapore"],
+    "highlight": "Women's health research investment, fertility support, generous parental leave, health benefits",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": false,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["fertility_coverage", "extended_maternity", "wellness", "women_leadership"],
+    "notable": "Invested in women's health R&D and offers fertility benefits to staff"
+  },
+  {
+    "id": 41,
+    "name": "Abbott Laboratories",
+    "region": ["Global", "Singapore"],
+    "highlight": "Flexible work, enhanced maternity and parental leave, wellness programmes, women's health focus",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": false,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["extended_maternity", "wellness", "flexible_remote_work", "women_leadership"],
+    "notable": "Women's health focus embedded in company mission"
+  },
+  {
+    "id": 42,
+    "name": "Medtronic",
+    "region": ["Global", "Singapore"],
+    "highlight": "GYN & women's health clinical solutions, parental leave, flexible work, diversity initiatives",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": false,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["extended_maternity", "wellness", "flexible_remote_work", "women_leadership"],
+    "notable": "Dedicated GYN & Women's Health division"
+  },
+  {
+    "id": 43,
+    "name": "Organon",
+    "region": ["Global"],
+    "highlight": "Company founded on women's health focus, comprehensive reproductive health benefits, flexible work",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": false,
+      "menopause_support": true,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["fertility_coverage", "extended_maternity", "menopause_support", "flexible_remote_work", "women_leadership"],
+    "notable": "Founded in 2020 with women's health as core mission"
+  },
+  {
+    "id": 44,
+    "name": "Merck (Merck for Mothers)",
+    "region": ["Global"],
+    "highlight": "Dedicated maternal health programme, fertility benefits, women's health research, parental leave",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": false,
+      "mental_health": false,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["extended_maternity", "fertility_coverage", "wellness", "women_leadership"],
+    "notable": "Merck for Mothers programme focuses on maternal health globally"
+  },
+  {
+    "id": 45,
+    "name": "Mott MacDonald",
+    "region": ["Global", "Singapore"],
+    "highlight": "Free menopause expert support via Peppy, flexible working, women in engineering initiatives",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": true,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["menopause_support", "flexible_remote_work", "women_leadership", "wellness"],
+    "notable": "Rare engineering firm with dedicated menopause support"
+  },
+  {
+    "id": 46,
+    "name": "ClearScore",
+    "region": ["Global"],
+    "highlight": "Comprehensive reproductive health support, menopause care, fertility benefits, remote-first culture",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": true,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["fertility_coverage", "menopause_support", "flexible_remote_work", "wellness"],
+    "notable": "Fintech with full reproductive health coverage"
+  },
+  {
+    "id": 47,
+    "name": "Osborne Clarke",
+    "region": ["Global"],
+    "highlight": "Unlimited 1-to-1 clinical menopause and reproductive health advice, flexible working",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": true,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": false
+    },
+    "tags": ["menopause_support", "fertility_coverage", "flexible_remote_work", "mental_health"],
+    "notable": "Law firm with unlimited menopause clinical support"
+  },
+  {
+    "id": 48,
+    "name": "Foot Anstey",
+    "region": ["Global"],
+    "highlight": "Funded menopause doctor consultations, reproductive health webinars, flexible arrangements",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": false,
+      "menopause_support": true,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["menopause_support", "wellness", "flexible_remote_work"],
+    "notable": "Funded menopause doctor consultations for all staff"
+  },
+  {
+    "id": 49,
+    "name": "Cigna",
+    "region": ["Global", "Singapore"],
+    "highlight": "International maternity insurance with short 12-month waiting period, mental health EAP, flexible health plans",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["extended_maternity", "mental_health", "wellness", "fertility_coverage"],
+    "notable": "Global health insurance covering maternity and fertility for expats"
+  },
+  {
+    "id": 50,
+    "name": "AXA",
+    "region": ["Global", "Singapore"],
+    "highlight": "Maternity coverage with midwife phone support, women's health insurance plans, parental leave",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": false,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["extended_maternity", "wellness", "fertility_coverage", "mental_health"],
+    "notable": "Phone access to team of midwives included in plan"
+  },
+  {
+    "id": 51,
+    "name": "Allianz",
+    "region": ["Global", "Singapore"],
+    "highlight": "Bloom maternity plans, fertility coverage, pregnancy yoga, breastfeeding and postnatal counselling support",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": false,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["extended_maternity", "fertility_coverage", "wellness", "mental_health"],
+    "notable": "Bloom plan includes pregnancy yoga and breastfeeding support"
+  },
+  {
+    "id": 52,
+    "name": "Buffer",
+    "region": ["Global"],
+    "highlight": "100% remote async-first company, generous parental leave, mental health stipend, transparent salary",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "mental_health", "wellness"],
+    "notable": "Fully remote since 2015, built for flexible working"
+  },
+  {
+    "id": 53,
+    "name": "Automattic (WordPress)",
+    "region": ["Global"],
+    "highlight": "Fully distributed remote company, generous parental leave, wellness budget, flexible hours",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": true,
+      "wellness": true
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "wellness", "mental_health", "childcare_support"],
+    "notable": "900+ employees across 70+ countries, no offices"
+  },
+  {
+    "id": 54,
+    "name": "GitLab",
+    "region": ["Global"],
+    "highlight": "100% remote-first, paid parental leave, fertility benefits, mental health support, async culture",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": true,
+      "wellness": false
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "fertility_coverage", "mental_health", "childcare_support"],
+    "notable": "Fully remote, all policies documented publicly in GitLab Handbook"
+  },
+  {
+    "id": 55,
+    "name": "Basecamp / 37signals",
+    "region": ["Global"],
+    "highlight": "Remote-first with no overtime culture, generous parental leave, calm work philosophy",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "mental_health", "wellness"],
+    "notable": "Anti-overwork culture built into company values"
+  },
+  {
+    "id": 56,
+    "name": "Hotjar",
+    "region": ["Global"],
+    "highlight": "Fully remote, flexible hours, parental leave, mental health support, home office stipend",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "mental_health", "wellness"],
+    "notable": "Home office stipend to support comfortable remote working"
+  },
+  {
+    "id": 57,
+    "name": "Toptal",
+    "region": ["Global"],
+    "highlight": "100% remote freelance platform, fully flexible schedules, ideal for mothers returning to work",
+    "benefits": {
+      "extended_maternity": false,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": false,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": true,
+      "wellness": false
+    },
+    "tags": ["flexible_remote_work", "childcare_support"],
+    "notable": "Fully flexible freelance model — choose your own hours"
+  },
+  {
+    "id": 58,
+    "name": "Shopify",
+    "region": ["Global", "Singapore"],
+    "highlight": "Flexible remote work, enhanced parental leave, fertility benefits, mental health days, childcare support",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": true,
+      "wellness": true
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "fertility_coverage", "mental_health", "childcare_support", "wellness"],
+    "notable": "Digital by default — remote-first across all roles"
+  },
+  {
+    "id": 59,
+    "name": "Atlassian",
+    "region": ["Global", "Singapore"],
+    "highlight": "Work from anywhere policy, extended parental leave, women in tech programmes, wellness budget",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "women_leadership", "wellness", "mental_health"],
+    "notable": "TEAM Anywhere policy — fully distributed globally"
+  },
+  {
+    "id": 60,
+    "name": "Canva",
+    "region": ["Global", "Singapore"],
+    "highlight": "Flexible remote work, extended parental leave, wellness budget, women's ERG, mental health support",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "mental_health", "wellness", "women_leadership"],
+    "notable": "Women in design ERG and wellness reimbursement"
+  },
+  {
+    "id": 61,
+    "name": "Twilio",
+    "region": ["Global"],
+    "highlight": "Distributed remote work, generous parental leave, fertility benefits, women in leadership ERG",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": false
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "fertility_coverage", "women_leadership", "mental_health"],
+    "notable": "Women's ERG and fertility benefits combined"
+  },
+  {
+    "id": 62,
+    "name": "HubSpot",
+    "region": ["Global"],
+    "highlight": "Flexible remote, extended parental leave, fertility and adoption assistance, mental health days",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": true,
+      "wellness": false
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "fertility_coverage", "mental_health", "childcare_support"],
+    "notable": "Adoption assistance alongside fertility benefits"
+  },
+  {
+    "id": 63,
+    "name": "Zendesk",
+    "region": ["Global", "Singapore"],
+    "highlight": "Remote-friendly, parental leave top-up, women's leadership programme, mental health benefits",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": false
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "women_leadership", "mental_health"],
+    "notable": "Zendesk Women in Tech leadership programme"
+  },
+  {
+    "id": 64,
+    "name": "Stripe",
+    "region": ["Global", "Singapore"],
+    "highlight": "Flexible work, generous parental leave, fertility benefits, wellness stipend, mental health support",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "fertility_coverage", "wellness", "mental_health"],
+    "notable": "Wellness stipend and fertility benefits combined"
+  },
+  {
+    "id": 65,
+    "name": "Airbnb",
+    "region": ["Global"],
+    "highlight": "Work from anywhere policy, extended parental leave, fertility benefits, mental wellness resources",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "fertility_coverage", "mental_health", "wellness"],
+    "notable": "Live and work from anywhere in the world policy"
+  },
+  {
+    "id": 66,
+    "name": "Slack (Salesforce)",
+    "region": ["Global", "Singapore"],
+    "highlight": "Flexible async-first culture, parental leave, fertility support, mental health EAP",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": false
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "fertility_coverage", "mental_health"],
+    "notable": "Async culture reduces always-on pressure for mothers"
+  },
+  {
+    "id": 67,
+    "name": "Zoom",
+    "region": ["Global", "Singapore"],
+    "highlight": "Hybrid-first company, parental leave, mental health support, wellness reimbursement",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "mental_health", "wellness"],
+    "notable": "Wellness reimbursement and flexible hybrid model"
+  },
+  {
+    "id": 68,
+    "name": "Dropbox",
+    "region": ["Global"],
+    "highlight": "Virtual-first company, extended parental leave, fertility benefits, mental health support",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": true,
+      "wellness": false
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "fertility_coverage", "mental_health", "childcare_support"],
+    "notable": "Virtual-first — offices optional, remote is the default"
+  },
+  {
+    "id": 69,
+    "name": "Asana",
+    "region": ["Global"],
+    "highlight": "Remote-friendly, paid parental leave, mental health days, women's community ERG",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": false
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "mental_health", "women_leadership"],
+    "notable": "Women's ERG and dedicated No Meeting Wednesdays"
+  },
+  {
+    "id": 70,
+    "name": "Figma",
+    "region": ["Global"],
+    "highlight": "Flexible hybrid work, parental leave, fertility benefits, wellness budget, women in design ERG",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": true,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "fertility_coverage", "wellness", "women_leadership"],
+    "notable": "Women in Design ERG and wellness reimbursement"
+  },
+  {
+    "id": 71,
+    "name": "Intercom",
+    "region": ["Global"],
+    "highlight": "Flexible remote, enhanced maternity leave, mental health support, women's ERG",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": true,
+      "childcare_support": false,
+      "wellness": false
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "mental_health", "women_leadership"],
+    "notable": "Women's ERG with active mentorship programme"
+  },
+  {
+    "id": 72,
+    "name": "Notion",
+    "region": ["Global"],
+    "highlight": "Flexible remote work, parental leave, wellness stipend, mental health support",
+    "benefits": {
+      "extended_maternity": true,
+      "fertility_coverage": false,
+      "flexible_remote_work": true,
+      "mental_health": true,
+      "menopause_support": false,
+      "menstrual_leave": false,
+      "women_leadership": false,
+      "childcare_support": false,
+      "wellness": true
+    },
+    "tags": ["flexible_remote_work", "extended_maternity", "wellness", "mental_health"],
+    "notable": "Wellness stipend and async-friendly culture"
+  }
+]
