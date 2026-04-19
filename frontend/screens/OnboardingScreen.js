@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, TouchableOpacity, TextInput,
-  ScrollView, SafeAreaView, Dimensions, Animated,
+  ScrollView, SafeAreaView, Dimensions, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { Storage } from '../utils/storage';
 
@@ -9,10 +9,8 @@ const { width } = Dimensions.get('window');
 
 // ── Breed options for Screen 1 ──────────────────────────────────────────────
 const BREEDS = [
-  { id: 'golden', label: 'Golden Retriever', emoji: '🐕' },
-  { id: 'labrador', label: 'Labrador', emoji: '🦮' },
-  { id: 'corgi', label: 'Corgi', emoji: '🐩' },
-  { id: 'beagle', label: 'Beagle', emoji: '🐶' },
+  { id: 'dog', label: 'Dog', emoji: '🐶' },
+  { id: 'cat', label: 'Cat', emoji: '🐱' },
 ];
 
 // ── Condition options for Screen 3 ──────────────────────────────────────────
@@ -42,7 +40,7 @@ const LIFE_STAGES = ['Student', 'Early career', 'Mid-career'];
 
 // ────────────────────────────────────────────────────────────────────────────
 
-export default function OnboardingScreen({ navigation }) {
+export default function OnboardingScreen({ onComplete }) {
   const [step, setStep] = useState(0); // 0–4
 
   // Screen 1
@@ -99,7 +97,7 @@ export default function OnboardingScreen({ navigation }) {
     await Storage.set(Storage.KEYS.USER_POINTS, 0);
     await Storage.set(Storage.KEYS.LEA_STAGE, 'puppy');
     await Storage.set(Storage.KEYS.ONBOARDING_COMPLETE, true);
-    navigation.replace('Main');
+    onComplete();
   }
 
   // ── Progress bar ──────────────────────────────────────────────────────────
@@ -149,7 +147,7 @@ export default function OnboardingScreen({ navigation }) {
       <TextInput
         style={styles.input}
         placeholder="e.g. Lea, Mochi, Biscuit..."
-        placeholderTextColor="#C0A0AA"
+        placeholderTextColor="#90A4AE"
         value={leaName}
         onChangeText={setLeaName}
         maxLength={20}
@@ -170,7 +168,7 @@ export default function OnboardingScreen({ navigation }) {
       <TextInput
         style={[styles.input, { width: 120 }]}
         placeholder="e.g. 23"
-        placeholderTextColor="#C0A0AA"
+        placeholderTextColor="#90A4AE"
         value={age}
         onChangeText={setAge}
         keyboardType="number-pad"
@@ -275,23 +273,27 @@ export default function OnboardingScreen({ navigation }) {
   );
 
   const screens = [Screen1, Screen2, Screen3, Screen4, Screen5];
-  const CurrentScreen = screens[step];
 
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ProgressBar />
-
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={0}
       >
-        <CurrentScreen />
-      </ScrollView>
+        <ProgressBar />
 
-      <View style={styles.footer}>
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {screens[step]()}
+        </ScrollView>
+
+        <View style={styles.footer}>
         {step > 0 && (
           <TouchableOpacity style={styles.backBtn} onPress={() => setStep(s => s - 1)}>
             <Text style={styles.backBtnText}>← Back</Text>
@@ -309,6 +311,7 @@ export default function OnboardingScreen({ navigation }) {
           </Text>
         </TouchableOpacity>
       </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -318,7 +321,7 @@ export default function OnboardingScreen({ navigation }) {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#FFF0F5',
+    backgroundColor: '#FFFFFF',
   },
   progressRow: {
     flexDirection: 'row',
@@ -331,10 +334,10 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#F0C0D0',
+    backgroundColor: '#B3E5FC',
   },
   progressDotActive: {
-    backgroundColor: '#C2185B',
+    backgroundColor: '#0288D1',
     width: 24,
   },
   scroll: {
@@ -352,20 +355,20 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 26,
     fontWeight: '700',
-    color: '#880E4F',
+    color: '#01579B',
     marginBottom: 8,
     lineHeight: 32,
   },
   subheading: {
     fontSize: 15,
-    color: '#6D4C5E',
+    color: '#546E7A',
     lineHeight: 22,
     marginBottom: 28,
   },
   label: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#880E4F',
+    color: '#01579B',
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 12,
@@ -385,12 +388,12 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: '#FFFFFF',
     borderWidth: 2,
-    borderColor: '#F0C0D0',
+    borderColor: '#B3E5FC',
     alignItems: 'center',
   },
   breedCardSelected: {
-    borderColor: '#C2185B',
-    backgroundColor: '#FCE4EC',
+    borderColor: '#0288D1',
+    backgroundColor: '#E1F5FE',
   },
   breedEmoji: {
     fontSize: 28,
@@ -398,12 +401,12 @@ const styles = StyleSheet.create({
   },
   breedLabel: {
     fontSize: 13,
-    color: '#6D4C5E',
+    color: '#546E7A',
     fontWeight: '500',
     textAlign: 'center',
   },
   breedLabelSelected: {
-    color: '#880E4F',
+    color: '#01579B',
     fontWeight: '700',
   },
 
@@ -411,12 +414,12 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: '#FFFFFF',
     borderWidth: 2,
-    borderColor: '#F0C0D0',
+    borderColor: '#B3E5FC',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: '#3D1A24',
+    color: '#263238',
     marginBottom: 28,
   },
 
@@ -437,15 +440,15 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     backgroundColor: '#FFFFFF',
     borderWidth: 2,
-    borderColor: '#F0C0D0',
+    borderColor: '#B3E5FC',
   },
   chipSelected: {
-    backgroundColor: '#C2185B',
-    borderColor: '#C2185B',
+    backgroundColor: '#0288D1',
+    borderColor: '#0288D1',
   },
   chipText: {
     fontSize: 14,
-    color: '#6D4C5E',
+    color: '#546E7A',
     fontWeight: '500',
   },
   chipTextSelected: {
@@ -460,11 +463,11 @@ const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 14,
     borderLeftWidth: 4,
-    borderLeftColor: '#C2185B',
+    borderLeftColor: '#0288D1',
   },
   dataCardText: {
     fontSize: 14,
-    color: '#4A1A2C',
+    color: '#263238',
     lineHeight: 22,
   },
   bold: {
@@ -478,28 +481,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 16,
     gap: 12,
-    backgroundColor: '#FFF0F5',
+    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#F0C0D0',
+    borderTopColor: '#B3E5FC',
   },
   backBtn: {
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
   backBtnText: {
-    color: '#C2185B',
+    color: '#0288D1',
     fontSize: 15,
     fontWeight: '600',
   },
   nextBtn: {
     flex: 1,
-    backgroundColor: '#C2185B',
+    backgroundColor: '#0288D1',
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
   },
   nextBtnDisabled: {
-    backgroundColor: '#F0C0D0',
+    backgroundColor: '#B3E5FC',
   },
   nextBtnText: {
     color: '#FFFFFF',

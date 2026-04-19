@@ -1,11 +1,16 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text } from 'react-native';
-import LearnScreen from '../screens/LearnScreen';
-import ExploreScreen from '../screens/ExploreScreen';
-import ActScreen from '../screens/ActScreen';
+import { Ionicons } from '@expo/vector-icons';
+import LearnScreen      from '../screens/LearnScreen';
+import ExploreScreen    from '../screens/ExploreScreen';
+import SimulationScreen from '../screens/SimulationScreen';
+import ActScreen        from '../screens/ActScreen';
 
 const Tab = createBottomTabNavigator();
+
+function tabIcon(focused, name, nameOutline, color, size) {
+  return <Ionicons name={focused ? name : nameOutline} size={size} color={color} />;
+}
 
 export default function TabNavigator() {
   return (
@@ -15,22 +20,40 @@ export default function TabNavigator() {
         tabBarStyle: { backgroundColor: '#FFFFFF', borderTopColor: '#B3E5FC' },
         tabBarActiveTintColor: '#0288D1',
         tabBarInactiveTintColor: '#90A4AE',
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
       }}
     >
       <Tab.Screen
-        name="Learn"
+        name="Home"
         component={LearnScreen}
-        options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>📖</Text> }}
+        options={{
+          tabBarIcon: ({ focused, color, size }) =>
+            tabIcon(focused, 'home', 'home-outline', color, size),
+        }}
       />
       <Tab.Screen
         name="Explore"
         component={ExploreScreen}
-        options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>🗺️</Text> }}
+        options={{
+          tabBarIcon: ({ focused, color, size }) =>
+            tabIcon(focused, 'search', 'search-outline', color, size),
+        }}
       />
       <Tab.Screen
-        name="Act"
+        name="Simulation"
+        component={SimulationScreen}
+        options={{
+          tabBarIcon: ({ focused, color, size }) =>
+            tabIcon(focused, 'desktop', 'desktop-outline', color, size),
+        }}
+      />
+      <Tab.Screen
+        name="Planning"
         component={ActScreen}
-        options={{ tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>⚡</Text> }}
+        options={{
+          tabBarIcon: ({ focused, color, size }) =>
+            tabIcon(focused, 'stats-chart', 'stats-chart-outline', color, size),
+        }}
       />
     </Tab.Navigator>
   );

@@ -39,7 +39,12 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {!onboardingDone ? (
-          <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+          <Stack.Screen
+            name="Onboarding"
+            children={(props) => (
+              <OnboardingScreen {...props} onComplete={() => setOnboardingDone(true)} />
+            )}
+          />
         ) : (
           <Stack.Screen name="Main" component={TabNavigator} />
         )}

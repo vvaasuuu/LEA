@@ -137,9 +137,9 @@ const styles = StyleSheet.create({
   image: {},
   imageOverlay: { position: 'absolute', top: 0, left: 0 },
   nameRow: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
     marginTop: 10,
   },
   name: {

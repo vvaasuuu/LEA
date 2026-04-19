@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, SafeAreaView,
-  TouchableOpacity, Modal, LayoutAnimation, Platform, UIManager,
+  TouchableOpacity, Modal, LayoutAnimation, Platform, UIManager, Alert,
+  Animated, PanResponder, DevSettings,
 } from 'react-native';
 import LeaAvatar from '../components/LeaAvatar';
 import { Storage } from '../utils/storage';
@@ -143,6 +144,55 @@ function FertilityWidget({ lastPeriodDate }) {
   );
 }
 
+// ── Swipe-left to delete widget ──────────────────────────────────────────────
+const DELETE_WIDTH = 80;
+
+function SwipeableWidget({ id, label, onDelete, children }) {
+  const translateX = useRef(new Animated.Value(0)).current;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, g) =>
+        Math.abs(g.dx) > Math.abs(g.dy) * 1.5 && Math.abs(g.dx) > 8,
+      onPanResponderMove: (_, g) => {
+        translateX.setValue(Math.min(0, Math.max(g.dx, -DELETE_WIDTH)));
+      },
+      onPanResponderRelease: (_, g) => {
+        Animated.spring(translateX, {
+          toValue: g.dx < -40 ? -DELETE_WIDTH : 0,
+          useNativeDriver: true,
+          bounciness: 4,
+        }).start();
+      },
+    })
+  ).current;
+
+  function confirmDelete() {
+    Alert.alert(
+      'Remove Widget',
+      `Remove "${label}" from your dashboard?`,
+      [
+        {
+          text: 'Cancel', style: 'cancel',
+          onPress: () => Animated.spring(translateX, { toValue: 0, useNativeDriver: true }).start(),
+        },
+        { text: 'Remove', style: 'destructive', onPress: () => onDelete(id) },
+      ]
+    );
+  }
+
+  return (
+    <View style={styles.swipeWrapper}>
+      <TouchableOpacity style={styles.deleteAction} onPress={confirmDelete} activeOpacity={0.85}>
+        <Text style={styles.deleteText}>Remove</Text>
+      </TouchableOpacity>
+      <Animated.View style={{ transform: [{ translateX }] }} {...panResponder.panHandlers}>
+        {children}
+      </Animated.View>
+    </View>
+  );
+}
+
 // ── Available widgets catalogue ──────────────────────────────────────────────
 const WIDGET_CATALOGUE = [
   { id: 'period_tracker',   emoji: '🩸', label: 'Period Tracker',   desc: 'Predicted dates for your next 5 cycles' },
@@ -175,6 +225,12 @@ export default function LearnScreen() {
     setActiveWidgets(next);
     await Storage.set('active_widgets', next);
     setShowAddModal(false);
+  }
+
+  async function removeWidget(id) {
+    const next = activeWidgets.filter(w => w !== id);
+    setActiveWidgets(next);
+    await Storage.set('active_widgets', next);
   }
 
   const available = WIDGET_CATALOGUE.filter(w => !activeWidgets.includes(w.id));
@@ -218,8 +274,16 @@ export default function LearnScreen() {
             </View>
           )}
 
-          {activeWidgets.includes('period_tracker')   && <PeriodWidget    lastPeriodDate={lastPeriod} />}
-          {activeWidgets.includes('fertility_window') && <FertilityWidget lastPeriodDate={lastPeriod} />}
+          {activeWidgets.includes('period_tracker') && (
+            <SwipeableWidget id="period_tracker" label="Period Tracker" onDelete={removeWidget}>
+              <PeriodWidget lastPeriodDate={lastPeriod} />
+            </SwipeableWidget>
+          )}
+          {activeWidgets.includes('fertility_window') && (
+            <SwipeableWidget id="fertility_window" label="Fertility Window" onDelete={removeWidget}>
+              <FertilityWidget lastPeriodDate={lastPeriod} />
+            </SwipeableWidget>
+          )}
         </View>
 
         {/* Dev stage buttons */}
@@ -243,6 +307,16 @@ export default function LearnScreen() {
             </TouchableOpacity>
           ))}
         </View>
+
+        <TouchableOpacity
+          style={styles.resetBtn}
+          onPress={async () => {
+            await Storage.clearAll();
+            DevSettings.reload();
+          }}
+        >
+          <Text style={styles.resetBtnText}>↺ Reset onboarding</Text>
+        </TouchableOpacity>
 
       </ScrollView>
 
@@ -309,9 +383,18 @@ const styles = StyleSheet.create({
   emptyTitle: { fontSize: 15, fontWeight: '600', color: '#546E7A', marginBottom: 4 },
   emptyHint:  { fontSize: 13, color: '#90A4AE', textAlign: 'center' },
 
+  // Swipe-to-delete wrapper
+  swipeWrapper: { marginBottom: 12 },
+  deleteAction: {
+    position: 'absolute', right: 0, top: 0, bottom: 0, width: DELETE_WIDTH,
+    backgroundColor: '#EF5350', borderRadius: 18,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  deleteText: { fontSize: 13, color: '#FFFFFF', fontWeight: '700' },
+
   // Widget card
   widget: {
-    backgroundColor: '#FFFFFF', borderRadius: 18, padding: 16, marginBottom: 12,
+    backgroundColor: '#FFFFFF', borderRadius: 18, padding: 16,
     borderWidth: 1.5, borderColor: '#B3E5FC',
     shadowColor: '#0288D1', shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 2 },
     elevation: 2,
@@ -347,6 +430,8 @@ const styles = StyleSheet.create({
   devRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', marginTop: 8 },
   devBtn: { backgroundColor: '#E1F5FE', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
   devBtnText: { fontWeight: '700', fontSize: 12, color: '#01579B' },
+  resetBtn: { alignSelf: 'center', marginTop: 12, paddingVertical: 8, paddingHorizontal: 16 },
+  resetBtnText: { fontSize: 12, color: '#90A4AE', fontWeight: '600' },
 
   // Bottom sheet
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
