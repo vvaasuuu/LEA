@@ -1,0 +1,84 @@
+[
+  {
+    "id": "pelvic_checkup_general",
+    "title": "Pelvic Health Checkup",
+    "age_min": 22,
+    "age_max": 45,
+    "conditions": [],
+    "who_sees_this": "All users, age 22+",
+    "nudge": "A routine gynaecology checkup can screen for fibroids, ovarian cysts, and signs of pelvic inflammatory disease (PID) — most of which cause no symptoms until they've been present for a while. An ultrasound scan is the standard first step and is non-invasive. If you haven't had a pelvic exam in the last year, it's worth scheduling one.",
+    "source": "NHS, ACOG"
+  },
+  {
+    "id": "ovarian_health_awareness",
+    "title": "Ovarian Health Awareness",
+    "age_min": 22,
+    "age_max": 45,
+    "conditions": [],
+    "who_sees_this": "All users, age 22+",
+    "nudge": "Ovarian cysts and benign tumours are common and most resolve on their own — but some require monitoring. A pelvic ultrasound during a routine checkup can detect these early. You don't need symptoms to ask for one.",
+    "source": "NHS, ACOG"
+  },
+  {
+    "id": "poi_awareness",
+    "title": "Know the Signs of Premature Ovarian Insufficiency",
+    "age_min": 18,
+    "age_max": 39,
+    "conditions": ["irregular_cycles", "pcos", "general"],
+    "who_sees_this": "Users aged 18–39, especially those with irregular cycles or flagged conditions",
+    "nudge": "Premature ovarian insufficiency (sometimes called premature ovarian failure) is when the ovaries stop functioning normally before age 40. It affects roughly 1 in 100 women under 40. Symptoms include irregular or absent periods, hot flushes, night sweats, and difficulty conceiving — symptoms that are easy to dismiss as stress or lifestyle. If your periods have become significantly irregular or have stopped and you're under 40, this is worth raising with a GP. A blood test measuring FSH (follicle-stimulating hormone) and estrogen levels can indicate whether the ovaries are functioning normally.",
+    "source": "NHS"
+  },
+  {
+    "id": "bmi_hormonal_health",
+    "title": "BMI and Hormonal Health",
+    "age_min": 18,
+    "age_max": 45,
+    "conditions": [],
+    "who_sees_this": "All users",
+    "nudge": "Both significantly low and significantly high body weight can disrupt the hormonal signals that regulate your cycle and ovulation. A healthy BMI supports consistent hormonal function — but more importantly, it's a proxy for overall metabolic health, not a measure of worth. If your periods have become irregular alongside significant weight changes in either direction, it's worth mentioning to a GP. This is a clinical connection, not a judgement.",
+    "source": "NHS, ACOG"
+  },
+  {
+    "id": "sti_screening",
+    "title": "Annual STI Screening",
+    "age_min": 18,
+    "age_max": 45,
+    "conditions": [],
+    "who_sees_this": "Sexually active users, age 18+",
+    "nudge": "Chlamydia is the most common bacterial STI and causes no symptoms in most people — which is why it frequently goes undetected and untreated. Left untreated, chlamydia can cause pelvic inflammatory disease (PID), which scars the fallopian tubes silently over time. Annual screening if you are sexually active is straightforward, confidential, and takes minutes. In Singapore, DSC Clinic and polyclinics offer testing without requiring a referral.",
+    "source": "NHS, Singapore DSC Clinic"
+  },
+  {
+    "id": "fallopian_tube_screening",
+    "title": "Understanding Fallopian Tube Screening",
+    "age_min": 25,
+    "age_max": 45,
+    "conditions": ["endometriosis", "pid_history", "irregular_cycles"],
+    "who_sees_this": "Users who flagged endometriosis, PID history, or irregular cycles; age 25+",
+    "nudge": "The fallopian tubes connect the ovaries to the womb — if they're blocked or scarred, eggs can't travel through them. Blockages often cause no symptoms and are only discovered during investigation. If you have a history of PID, endometriosis, or recurrent pelvic pain, your doctor may recommend one of the following procedures.",
+    "procedures": [
+      {
+        "name": "HyCoSy (Hysterosalpingo-Contrast Ultrasonography)",
+        "description": "A small amount of fluid is injected through the cervix into the womb, and ultrasound is used to watch how it moves through the fallopian tubes. Blockages show up as interruptions in that flow. It is an outpatient procedure."
+      },
+      {
+        "name": "X-ray (HSG — Hysterosalpingography)",
+        "description": "A contrast dye is used instead of fluid, and an X-ray tracks its movement through the tubes. Similar purpose to HyCoSy, slightly different method."
+      }
+    ],
+    "disclaimer": "These scans are not routine — they're investigative. If your doctor hasn't raised them, you don't need to request them proactively unless you have a relevant history.",
+    "source": "NHS"
+  },
+  {
+    "id": "laparoscopy_awareness",
+    "title": "What a Laparoscopy Is — and When It's Relevant",
+    "age_min": 22,
+    "age_max": 45,
+    "conditions": ["endometriosis", "pid_history"],
+    "who_sees_this": "Users who flagged endometriosis or PID history; age 22+",
+    "nudge": "A laparoscopy is a minor keyhole surgery where a small camera is inserted through a tiny incision near the navel to examine the womb, fallopian tubes, and ovaries directly. A dye is sometimes injected through the cervix to make any tube blockages visible on camera. It is the only way to definitively diagnose endometriosis, and is also used to investigate suspected blockages or scarring from PID. It is performed under general anaesthetic and is typically day surgery.",
+    "disclaimer": "A laparoscopy is not a routine screening tool — it is recommended when scans suggest a problem, or when there is a documented history of PID or symptoms strongly consistent with endometriosis. If your GP has mentioned it as a possibility, it means they have a specific clinical reason to investigate further.",
+    "source": "NHS"
+  }
+]
