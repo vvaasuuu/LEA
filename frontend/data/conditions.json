@@ -1,0 +1,66 @@
+[
+  {
+    "id": "pcos",
+    "title": "PCOS",
+    "emoji": "🔄",
+    "summary": "Polycystic ovary syndrome affects hormone levels and can impact your cycle, skin, and fertility.",
+    "body": "PCOS is one of the most common hormonal conditions in women of reproductive age. It can cause irregular periods, excess androgen levels, and small cysts on the ovaries. The good news: it's manageable with lifestyle changes, medication, and regular monitoring. Early diagnosis makes a big difference.",
+    "source": "WHO & ACOG Guidelines"
+  },
+  {
+    "id": "pcod",
+    "title": "PCOD",
+    "emoji": "🌀",
+    "summary": "Polycystic ovarian disease is similar to PCOS but generally considered less severe.",
+    "body": "PCOD involves the ovaries releasing immature eggs which over time turn into cysts. Unlike PCOS it is not a syndrome but a condition that can often be controlled with diet and lifestyle changes. Many women with PCOD can conceive naturally.",
+    "source": "NHS Guidelines"
+  },
+  {
+    "id": "endo",
+    "title": "Endometriosis",
+    "emoji": "🌸",
+    "summary": "Tissue similar to the uterine lining grows outside the uterus, often causing severe pain.",
+    "body": "Endometriosis affects roughly 1 in 10 women. It can cause painful periods, pain during sex, and difficulty conceiving. It takes an average of 7–10 years to diagnose because symptoms are often dismissed. If your period pain is disrupting your daily life, that is not normal — push for investigation.",
+    "source": "ACOG & NHS Guidelines"
+  },
+  {
+    "id": "thyroid",
+    "title": "Thyroid & Cycles",
+    "emoji": "🦋",
+    "summary": "Thyroid imbalances — both hypo and hyper — can significantly disrupt your menstrual cycle.",
+    "body": "The thyroid gland regulates metabolism and has a direct relationship with reproductive hormones. Hypothyroidism can cause heavier, more frequent periods. Hyperthyroidism can cause lighter or missed periods. A simple blood test (TSH) can check your thyroid function — worth doing if your cycle is irregular.",
+    "source": "WHO Guidelines"
+  },
+  {
+    "id": "calcium",
+    "title": "Calcium & Vitamin D",
+    "emoji": "🦴",
+    "summary": "Your 20s are your peak bone density window. What you do now affects you at 50.",
+    "body": "Women reach peak bone mass in their late 20s. After that, bone density gradually declines — faster after menopause. Calcium and Vitamin D deficiency in your 20s significantly increases osteoporosis risk later. Most young women in Singapore are deficient in Vitamin D due to indoor lifestyles. A daily supplement and some sunlight go a long way.",
+    "source": "Singapore MOH Guidelines"
+  },
+  {
+    "id": "iron",
+    "title": "Iron & Anaemia",
+    "emoji": "💪",
+    "summary": "Iron deficiency is the most common nutritional deficiency in women worldwide.",
+    "body": "Women lose iron every month through menstruation. Symptoms of iron deficiency include fatigue, brain fog, shortness of breath, and pale skin — often dismissed as stress or being busy. A simple blood test checks your ferritin levels. Diet (leafy greens, legumes, red meat) and supplements can correct it quickly.",
+    "source": "WHO Guidelines"
+  },
+  {
+    "id": "hpv",
+    "title": "HPV & Vaccine Windows",
+    "emoji": "💉",
+    "summary": "HPV is the most common STI. The vaccine is most effective before exposure — timing matters.",
+    "body": "Human papillomavirus causes most cervical cancers. The vaccine (Gardasil) is highly effective and recommended up to age 26, with some benefit up to 45. In Singapore it is part of the national school vaccination programme. If you missed it, it is still worth getting. Regular Pap smears from age 25 are also recommended regardless of vaccination status.",
+    "source": "Singapore MOH & ACOG Guidelines"
+  },
+  {
+    "id": "mentalhealth",
+    "title": "Mental Health & Hormones",
+    "emoji": "🧠",
+    "summary": "Hormonal fluctuations across your cycle directly affect mood, anxiety, and energy.",
+    "body": "Oestrogen and progesterone fluctuations throughout the menstrual cycle affect serotonin and dopamine levels — the neurotransmitters that regulate mood. PMS affects up to 75% of women. PMDD (severe PMS) affects around 5%. Tracking your mood alongside your cycle can reveal patterns and help you advocate for yourself with a doctor.",
+    "source": "WHO & NHS Guidelines"
+  }
+]
