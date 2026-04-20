@@ -1629,6 +1629,79 @@
           },
           "next_stage": null,
           "returns_to": "current_age_plus_one"
+        },
+        {
+          "id": "fp_decision_3",
+          "career_moment": {
+            "narrative": "You're thinking past the pregnancy itself — to what life actually looks like with a child and a career running in parallel. More women are doing this than the silence around it suggests.",
+            "choice_a": {
+              "label": "Tell me what the first year back at work actually looks like",
+              "consequence": "The first year back is harder and more manageable than you expected simultaneously. The logistics are solvable. The emotional adjustment takes longer."
+            },
+            "choice_b": {
+              "label": "Tell me how women structure careers around children long-term",
+              "consequence": "The structures are more varied than the binary of working mum vs stay at home suggests. Women build arrangements that work for their specific life — and those arrangements change as the child grows."
+            }
+          },
+          "health_sidebar": {
+            "default": {
+              "headline": "Your health in the first year postpartum",
+              "body": "The first year after birth is one of the most significant hormonal transitions of a woman's life. Estrogen and progesterone drop sharply after delivery, breastfeeding suppresses ovulation, thyroid dysfunction is more common postpartum than at any other time, and iron deficiency is nearly universal after birth. None of this is weakness — it is physiology. Knowing it in advance means you can monitor rather than be blindsided.",
+              "action": "A 6-week postpartum checkup is standard — but also ask for a full blood panel including thyroid, ferritin, and Vitamin D at that appointment, not just a general wellbeing check."
+            },
+            "pcos": {
+              "headline": "Postpartum health with PCOS",
+              "body": "Since you have PCOS, the postpartum period requires specific monitoring. Breastfeeding can temporarily improve insulin sensitivity — but the return of menstruation after breastfeeding often brings a return of PCOS symptoms. Having your endocrinologist involved in your postpartum care ensures continuity of your metabolic management.",
+              "action": "Tell your endocrinologist when you are pregnant so they can plan for postpartum PCOS management — don't wait until symptoms return after birth."
+            },
+            "endometriosis": {
+              "headline": "Endometriosis and the postpartum period",
+              "body": "Since you have endometriosis, pregnancy often provides temporary symptom relief due to the absence of menstruation. The return of periods postpartum can bring a return of endometriosis symptoms — sometimes more intensely than before. Having a management plan ready before symptoms return is better than restarting the specialist pathway from scratch.",
+              "action": "Discuss postpartum endometriosis management with your specialist during pregnancy — plan for symptom return rather than being caught off guard by it."
+            },
+            "thyroid": {
+              "headline": "Postpartum thyroiditis — more common than most women know",
+              "body": "Since you have a thyroid condition, postpartum thyroiditis affects up to 10 percent of women and is significantly more common in women with pre-existing thyroid conditions. It can cause temporary hyperthyroidism followed by hypothyroidism in the months after birth — symptoms are often mistaken for postnatal depression or normal new-parent exhaustion.",
+              "action": "Ask your doctor to include thyroid function in your 6-week and 3-month postpartum blood tests specifically — not just a general wellbeing check."
+            },
+            "iron_deficiency": {
+              "headline": "Iron deficiency postpartum",
+              "body": "Since you have iron deficiency, birth involves significant blood loss and iron deficiency postpartum is nearly universal in women who already have low stores going in. Treating iron aggressively in the first weeks after birth — including IV iron if oral supplementation is insufficient — significantly affects energy, mood, and recovery speed.",
+              "action": "Ask for a ferritin check at your 6-week postpartum appointment and discuss whether your current supplementation approach is sufficient given birth-related blood loss."
+            }
+          },
+          "working_parent_info": {
+            "headline": "Working and parenting — what actually helps",
+            "sections": [
+              {
+                "title": "The first year back",
+                "body": "Returning to work after maternity leave is one of the most emotionally complex transitions working women navigate. The logistics — childcare, feeding schedules, sleep deprivation — are real and solvable. The emotional dimension — guilt, identity shift, grief for the previous version of your life — is less discussed and equally real. Both are normal.",
+                "action": "Before returning to work, have one explicit conversation with your manager about your first 90 days back — workload, travel, flexibility. Most managers will accommodate what they are asked for directly."
+              },
+              {
+                "title": "Childcare in Singapore",
+                "body": "Infant care centres in Singapore accept children from 2 months. Government-subsidised infant care costs approximately SGD 600 to 1,300 per month after subsidies depending on income. The Baby Bonus and CDA provide financial support. Waitlists for popular centres can be 6 to 12 months — registering during pregnancy is standard.",
+                "action": "Register for infant care during your second trimester, not after birth. Popular centres have long waitlists and registration during pregnancy is normal and expected."
+              },
+              {
+                "title": "Shared parental responsibility",
+                "body": "Paternity leave in Singapore is 4 weeks for Singapore citizen children. Shared Parental Leave allows mothers to share up to 4 weeks of their maternity leave with their partner. The most sustainable working-parent arrangements are built on genuinely shared home responsibility — this is a conversation to have explicitly before the baby arrives, not after.",
+                "action": "Have the division of labour conversation with your partner before birth — specifically who handles what when the baby is sick, who adjusts work schedules, and how you both define a fair split."
+              },
+              {
+                "title": "Career continuity",
+                "body": "Research consistently shows that women who maintain some professional connection during maternity leave have smoother transitions back. This does not mean working during leave. It means staying on relevant mailing lists, having one coffee with a colleague at 12 weeks, keeping your professional identity warm. The career pause is real. The career end is a myth.",
+                "action": "Identify one professional connection to maintain during your maternity leave — a mentor, a colleague, an industry newsletter. That is enough to keep the professional identity thread intact."
+              },
+              {
+                "title": "The long game",
+                "body": "The working-parent years are genuinely hard — typically ages 0 to 8 of the child's life — and they are finite. Women who build sustainable structures in the first two years rather than powering through at full capacity tend to have better career outcomes at 40 than those who burned out at 32.",
+                "action": "Give yourself explicit permission to operate at 80 percent capacity in the first year back. That is sustainability planning with a known end date — not underperforming."
+              }
+            ]
+          },
+          "next_stage": null,
+          "returns_to": "current_age_plus_one"
         }
       ]
     },
@@ -1700,6 +1773,69 @@
               "body": "Since you have endometriosis, IVF success rates may be affected by ovarian reserve and the impact of the condition on egg quality. Specialist fertility clinics with endometriosis expertise — not just general fertility clinics — are better positioned to optimise your treatment protocol.",
               "action": "Ask your fertility clinic specifically about their experience with endometriosis patients and how they adjust their protocol for the condition."
             }
+          },
+          "next_stage": null,
+          "returns_to": "current_age_plus_one"
+        },
+        {
+          "id": "fp_later_3",
+          "career_moment": {
+            "narrative": "Having children in your early thirties while managing a career that now has real momentum is one of the most logistically complex things you will navigate. It is also something thousands of women do successfully every year.",
+            "choice_a": {
+              "label": "Tell me what the childcare and logistics picture looks like practically",
+              "consequence": "The logistics are more solvable than they appear from the outside. The cost is real. The planning horizon required is longer than most people start with."
+            },
+            "choice_b": {
+              "label": "Tell me how to protect my career trajectory through a pregnancy and return",
+              "consequence": "Career protection through maternity leave and return is active, not passive. The women who return to strong positions are the ones who planned for it before they left."
+            }
+          },
+          "health_sidebar": {
+            "default": {
+              "headline": "Health in pregnancy at 32 to 35 — what's different",
+              "body": "Pregnancies at 32 to 35 are classified as standard in most guidelines — not high risk. You will likely have slightly more monitoring than at 25, including additional screening options, but the vast majority of pregnancies in this age range are uncomplicated. Folic acid, iron, Vitamin D, and thyroid monitoring are the core health foundations of a healthy pregnancy at any age.",
+              "action": "Start folic acid 400mcg daily at least 3 months before trying to conceive. Ask your GP for a pre-conception blood panel covering iron, thyroid, Vitamin D, and rubella immunity."
+            },
+            "pcos": {
+              "headline": "Pregnancy with PCOS at 32 to 35",
+              "body": "Since you have PCOS, pregnancies with PCOS carry a slightly higher risk of gestational diabetes and require monitoring for it from the first trimester. This is manageable and expected — your obstetric team should be aware of your PCOS from your first antenatal appointment. The majority of women with PCOS have uncomplicated pregnancies with appropriate monitoring.",
+              "action": "Tell your obstetrician about your PCOS at your first antenatal appointment and ask specifically about gestational diabetes screening — earlier than the standard 26-week screen may be appropriate."
+            },
+            "endometriosis": {
+              "headline": "Pregnancy with endometriosis at 32 to 35",
+              "body": "Since you have endometriosis, pregnancy typically provides relief from endometriosis symptoms due to the absence of menstruation. Some studies suggest slightly higher rates of preterm birth and placenta-related complications in women with endometriosis — your obstetric team should know your diagnosis and monitor accordingly.",
+              "action": "Ensure your obstetrician has your full endometriosis history including any surgical records. This context affects their monitoring approach throughout your pregnancy."
+            },
+            "thyroid": {
+              "headline": "Thyroid management in pregnancy at 32 to 35",
+              "body": "Since you have a thyroid condition, thyroid hormone requirements increase in pregnancy — typically by 25 to 50 percent. Your TSH should be checked at confirmation of pregnancy and each trimester. Suboptimal thyroid function in the first trimester specifically affects foetal neurological development. This is well-managed when planned — the key is not waiting until symptoms appear.",
+              "action": "Tell your GP you are trying to conceive so they can establish a thyroid monitoring plan for early pregnancy. The first trimester TSH check should happen as soon as pregnancy is confirmed."
+            }
+          },
+          "working_parent_info": {
+            "headline": "Working and parenting in your early thirties",
+            "sections": [
+              {
+                "title": "Childcare costs and planning in Singapore",
+                "body": "Full-day infant care in Singapore costs SGD 1,200 to 2,500 per month before subsidies. After government subsidies, working mothers pay approximately SGD 600 to 1,300 depending on household income. Childcare costs are the single largest new expense for most families. Building this into your financial planning 12 months before trying is realistic planning.",
+                "action": "Use the MSF childcare subsidy calculator on the Singapore government website to estimate your actual post-subsidy costs before making financial decisions."
+              },
+              {
+                "title": "Negotiating flexibility at a senior level",
+                "body": "At 32 to 35 you likely have professional capital you didn't have at 28. Senior roles often have more flexibility than junior ones — but that flexibility is negotiated, not assumed. The most effective approach is to propose a specific arrangement with a clear plan for how your responsibilities will be covered, not to ask generally for flexibility.",
+                "action": "Before your maternity leave, document your role's key responsibilities and propose specifically how each will be managed during your absence and on your return. This is professional, not presumptuous."
+              },
+              {
+                "title": "The identity shift",
+                "body": "Becoming a parent at 32 to 35 — when professional identity is well-established — involves a specific kind of identity negotiation that doesn't get much airtime. You are not replacing one identity with another. You are expanding. The grief for lost freedom and the love for the new life coexist. Both are entirely real and neither cancels the other out.",
+                "action": "Find one other working parent at a similar career stage — not for advice necessarily, but for the normalisation of the experience. The isolation of feeling like the only one navigating this is more damaging than the logistics."
+              },
+              {
+                "title": "Parental leave and return strategy",
+                "body": "The most important career protection during maternity leave is a clear handover, a named point of contact for your responsibilities, and a scheduled return conversation at 8 weeks before you come back. Women who drive these conversations themselves return to stronger positions than those who wait for their employer to manage it.",
+                "action": "Schedule your return-to-work planning conversation with your manager for 8 weeks before your return date — put it in the calendar before you leave."
+              }
+            ]
           },
           "next_stage": null,
           "returns_to": "current_age_plus_one"
