@@ -1,0 +1,1782 @@
+{
+  "_meta": {
+    "version": "2.0",
+    "age_range": "21-35",
+    "notes": [
+      "Simulation always starts at user's current age from backend (user_age in AsyncStorage)",
+      "Pre-existing conditions read from user_conditions in AsyncStorage",
+      "Relationship content is opt-in via settings toggle (relationship_content_enabled in AsyncStorage)",
+      "Health sidebar rotates through user's conditions one per age — index tracked in simulation_condition_index",
+      "Family planning track has 4 age brackets with different content and framing",
+      "Condition list: pcos, pcod, endometriosis, fibroids, thyroid, iron_deficiency, calcium_vitamin_d"
+    ]
+  },
+
+  "_relationship_gate": {
+    "first_ask": {
+      "prompt": "Some of LEA's scenarios touch on relationships — romantic partnerships, cohabitation, life planning with a partner. Would you like to include relationship-related content in your simulation?",
+      "yes": "Sets relationship_content_enabled: true in AsyncStorage",
+      "no": "Sets relationship_content_enabled: false in AsyncStorage. Relationship decisions are replaced with a second career or health decision for that age.",
+      "shown_at": "Start of simulation, before age 21 content loads"
+    },
+    "re_enable": {
+      "location": "Settings toggle labelled: Include relationship scenarios in my simulation",
+      "behaviour": "Sets relationship_content_enabled: true and resumes from next age"
+    }
+  },
+
+  "_condition_rotation_logic": {
+    "description": "At each age, health sidebar shows content for one condition from user's condition list. Index increments each age, wrapping back to 0 after last condition. If user has no conditions, default sidebar is shown with proactive screening prompts.",
+    "storage_key": "simulation_condition_index",
+    "example": "User has [pcos, iron_deficiency]. Age 21 shows pcos sidebar. Age 22 shows iron_deficiency sidebar. Age 23 shows pcos sidebar again.",
+    "multiple_condition_note": "Each sidebar acknowledges the user's full condition list in passing but focuses on the rotating condition in depth."
+  },
+
+  "_family_planning_brackets": {
+    "21-23": "Early awareness — introducing the concept that family planning is a spectrum of options, not a deadline. Very low pressure. Focus on education.",
+    "24-27": "Active consideration window — realistic timeline information, what planning alongside a career looks like, pre-conception health.",
+    "28-31": "Decision window — practical information about trying to conceive, fertility preservation, maternity leave, career timing.",
+    "32-35": "Extended options window — honest information about natural conception rates, assisted reproduction, adoption as equally valid paths. No fear, just facts."
+  },
+
+  "ages": {
+    "age_21": {
+      "decisions": [
+        {
+          "id": "age_21_career",
+          "theme": "career",
+          "narrative": "You're either finishing your degree or stepping into your first real job. The world is genuinely open — and that openness is both exciting and disorienting. Lea sits beside you, patient.",
+          "choice_a": {
+            "label": "Dive straight into work — get ahead while others are still figuring it out",
+            "consequence": "You hit the ground running. The learning curve was steep and the experience was real. You're already ahead of where you expected to be."
+          },
+          "choice_b": {
+            "label": "Take time to explore first — travel, internships, figure out what you want",
+            "consequence": "The exploration gave you clarity that rushing wouldn't have. You entered the workforce later but with intention."
+          }
+        },
+        {
+          "id": "age_21_health",
+          "theme": "health",
+          "narrative": "Health has never been something you've thought about much — that's been your parents' domain. But you're on your own now, and your body is yours to understand.",
+          "choice_a": {
+            "label": "Start paying attention — book a first adult health checkup",
+            "consequence": "The checkup was unremarkable and useful. You have a baseline now. That reference point will matter later."
+          },
+          "choice_b": {
+            "label": "I'm young and healthy — I'll deal with health stuff when it becomes relevant",
+            "consequence": "Nothing dramatic has happened. But you also don't know what your normal looks like — which means you won't notice when it changes."
+          }
+        },
+        {
+          "id": "age_21_relationship",
+          "theme": "relationships",
+          "narrative": "Your first serious adult relationship is either underway or on the horizon. The stakes feel higher than before — because they are.",
+          "choice_a": {
+            "label": "Invest fully — this relationship deserves real attention",
+            "consequence": "You showed up. The relationship grew into something real — or it ended cleanly. Either way you were present for it."
+          },
+          "choice_b": {
+            "label": "Keep it light — I'm not ready to prioritise a relationship right now",
+            "consequence": "You kept your freedom. You learned what you actually want from a relationship by not forcing one."
+          },
+          "hidden_if_relationship_disabled": true
+        }
+      ],
+      "health_sidebar": {
+        "default": {
+          "headline": "Your body at 21 — what's worth knowing now",
+          "body": "This is the most important window for bone density. Calcium and Vitamin D absorbed in your early twenties have a 30-year structural payoff — your bones stop building mass by your early thirties. Your cycle, if it's been irregular through school and exam stress, may still be settling. This is worth logging rather than ignoring.",
+          "action": "Check whether you've completed your HPV vaccine series — recommended before 26 in Singapore and available at polyclinics."
+        },
+        "pcos": {
+          "headline": "PCOS at 21 — this is the right time to establish your baseline",
+          "body": "Since you have PCOS, your early twenties are the most important window for establishing a management baseline. PCOS is a metabolic condition as much as a hormonal one — insulin resistance, androgen levels, and cycle regularity all interact. What you understand and manage now shapes your long-term metabolic health significantly.",
+          "action": "Book a PCOS management review with your GP. Ask for a full panel: androgens, insulin, LH/FSH ratio, and a pelvic ultrasound if you haven't had one recently."
+        },
+        "pcod": {
+          "headline": "PCOD at 21 — lifestyle is your most powerful tool right now",
+          "body": "Since you have PCOD, the good news is that at 21 your condition responds strongly to lifestyle intervention. Diet, regular movement, and stress management can significantly reduce symptoms and prevent progression to PCOS. This is the most impactful window for those changes.",
+          "action": "Ask your GP whether your current management approach is optimised for your age. Diet and exercise referrals are available through most polyclinics in Singapore."
+        },
+        "endometriosis": {
+          "headline": "Endometriosis at 21 — don't let it keep being dismissed",
+          "body": "Since you have endometriosis, you already know how long the road to diagnosis can be. At 21, establishing a specialist relationship is the most important thing you can do. A gynaecologist who takes your condition seriously, rather than managing it at GP level, changes your long-term trajectory.",
+          "action": "If you don't already have a gynaecologist managing your endometriosis, ask your GP for a referral. In Singapore, KKH and NUH both have dedicated endometriosis services."
+        },
+        "fibroids": {
+          "headline": "Fibroids at 21 — monitoring is the priority right now",
+          "body": "Since you have fibroids, at 21 the focus is on monitoring growth and managing any symptoms — particularly heavy bleeding that can lead to iron deficiency. Most fibroids at this age are small and asymptomatic, but knowing their size and location gives you a baseline for comparison over time.",
+          "action": "Ensure you have a recent pelvic ultrasound on record — within the last 12 months — so you have a size and location baseline for your fibroids."
+        },
+        "thyroid": {
+          "headline": "Thyroid health at 21 — optimal management matters now",
+          "body": "Since you have a thyroid condition, the demands of early adult life — irregular sleep, dietary changes, stress — can affect thyroid function significantly. Annual TSH monitoring is the standard but 'within normal range' may not mean optimal for you. Fatigue, weight changes, or mood shifts that have returned since your last review are worth flagging.",
+          "action": "If your last thyroid review was more than 12 months ago or your symptoms have changed, book a review rather than waiting for your scheduled test."
+        },
+        "iron_deficiency": {
+          "headline": "Iron deficiency at 21 — building your levels while you can",
+          "body": "Since you have iron deficiency, your early twenties are when the pattern of monthly blood loss begins compounding against your stores most significantly. Dietary iron, absorption with Vitamin C, and avoiding calcium-rich foods with iron supplements are the first-line interventions. Many women need supplementation throughout their reproductive years.",
+          "action": "Ask your GP to recheck your ferritin level and discuss whether your current supplementation approach is adequate. Ferritin above 30 is the target — not just haemoglobin within range."
+        },
+        "calcium_vitamin_d": {
+          "headline": "Calcium and Vitamin D at 21 — the investment with the longest payoff",
+          "body": "Since you have calcium or Vitamin D deficiency, you are missing the single most important bone-building window of your life. The bone density you build before your late twenties is what you live on for the rest of your life. Correcting this now has a payoff that extends 50 years.",
+          "action": "Confirm with your GP that your current supplementation is achieving target levels — not just supplementing. A follow-up Vitamin D blood test 3 months after starting supplementation is standard to confirm correction."
+        }
+      },
+      "track_prompt": {
+        "track_id": "family_planning",
+        "bracket": "21-23",
+        "prompt": "Family planning means different things at different ages — from understanding your options to active planning. At 21, it might just mean knowing what's out there. Want to explore what that looks like?",
+        "yes_leads_to": "track_family_planning_21_23",
+        "no_leads_to": "age_22"
+      },
+      "next_age": 22
+    },
+
+    "age_22": {
+      "decisions": [
+        {
+          "id": "age_22_career",
+          "theme": "career",
+          "narrative": "You've graduated or you've had your first taste of real work. Two paths have emerged — and both are legitimate.",
+          "choice_a": {
+            "label": "Join a high-growth startup — fast learning, high risk, high reward",
+            "consequence": "The startup was everything it promised — chaotic, educational, and exhausting. You've grown faster than you expected and aged faster than you'd like."
+          },
+          "choice_b": {
+            "label": "Take a structured graduate program at a large company",
+            "consequence": "The program gave you foundations. You understand how organisations actually work. Now you're asking whether you want to work inside one forever."
+          }
+        },
+        {
+          "id": "age_22_health",
+          "theme": "health",
+          "narrative": "You've been tired in a way that feels different from just being busy. A colleague mentioned she felt the same until she got a blood test and found out she was iron deficient.",
+          "choice_a": {
+            "label": "Get a blood test — rule out anything physical before blaming it on lifestyle",
+            "consequence": "Low ferritin. You've been iron deficient probably for longer than you realised. You're treating it now and the difference is noticeable."
+          },
+          "choice_b": {
+            "label": "It's just the adjustment — push through",
+            "consequence": "The tiredness has become your baseline. You've stopped questioning it. That normalisation is worth examining."
+          }
+        },
+        {
+          "id": "age_22_relationship",
+          "theme": "relationships",
+          "narrative": "Someone in your life is asking for more commitment — time, energy, future plans. It's the first time a relationship has felt genuinely weighty.",
+          "choice_a": {
+            "label": "Give it what it needs — this is worth it",
+            "consequence": "You chose to invest and the relationship grew into something real. You've learned things about yourself that only come from commitment."
+          },
+          "choice_b": {
+            "label": "Not ready to prioritise this right now",
+            "consequence": "You were honest about where you are. The relationship either adjusted or ended. Both were acceptable outcomes."
+          },
+          "hidden_if_relationship_disabled": true
+        }
+      ],
+      "health_sidebar": {
+        "default": {
+          "headline": "Iron deficiency — the condition hiding as a busy lifestyle",
+          "body": "Women lose iron monthly through menstruation and it is one of the most under-recognised deficiencies in young women. The symptoms — fatigue, difficulty concentrating, low mood, feeling cold — are identical to the experience of a demanding early career. A ferritin test takes one appointment to rule out.",
+          "action": "Ask for ferritin specifically at your next blood test. A standard full blood count doesn't always catch low iron stores before they become clinical anaemia."
+        },
+        "pcos": {
+          "headline": "PCOS and work stress — a combination worth monitoring",
+          "body": "Since you have PCOS, the chronic stress of early career life elevates cortisol, which worsens insulin resistance — a core mechanism in your condition. High-pressure work periods can trigger irregular cycles, energy crashes, and skin changes. This is not a reason to avoid ambition. It is a reason to monitor your symptoms during demanding periods.",
+          "action": "Track cycle regularity and energy levels during your highest-pressure work months. Bring patterns to your next GP or endocrinologist review."
+        },
+        "pcod": {
+          "headline": "PCOD and the lifestyle window at 22",
+          "body": "Since you have PCOD, you are still in the window where lifestyle interventions have the strongest effect. Regular movement, reduced refined sugar, and stress management can significantly reduce immature follicle accumulation. The habits built at 22 have a disproportionate impact on how PCOD progresses.",
+          "action": "If you haven't had a follow-up ultrasound since diagnosis, book one. Seeing whether cyst burden has changed with lifestyle gives you concrete feedback."
+        },
+        "endometriosis": {
+          "headline": "Endometriosis and the work environment at 22",
+          "body": "Since you have endometriosis, managing your condition in a work environment requires self-advocacy that isn't always easy. Knowing your rights around medical leave, managing pain during flares, and having a clear pain management plan are practical necessities at this stage — not luxuries.",
+          "action": "Ensure you have a current pain management plan from your gynaecologist that covers what to do during a severe flare at work, not just routine management."
+        },
+        "fibroids": {
+          "headline": "Fibroids and iron deficiency — a common pairing at 22",
+          "body": "Since you have fibroids, heavy menstrual bleeding is one of the most common symptoms — and it is also a leading cause of iron deficiency in women your age. If you feel consistently tired and have heavy periods, these two things are likely connected and both are worth addressing.",
+          "action": "Ask your GP to check your ferritin level alongside your next fibroid monitoring ultrasound. Heavy periods plus fibroids plus fatigue is a clinical pattern, not bad luck."
+        },
+        "thyroid": {
+          "headline": "Thyroid and fatigue at 22 — don't let it be normalised",
+          "body": "Since you have a thyroid condition, fatigue that doesn't resolve with adequate sleep is a specific symptom worth flagging rather than tolerating. In the early career years it's easy to attribute everything to stress. If your energy is significantly lower than your peers in similar circumstances, your thyroid management may need reviewing.",
+          "action": "If your energy levels haven't improved despite adequate sleep and nutrition, book a thyroid review rather than waiting for your next scheduled check."
+        },
+        "iron_deficiency": {
+          "headline": "Iron deficiency at 22 — checking your treatment is working",
+          "body": "Since you have iron deficiency, treatment needs follow-up — supplementing without retesting doesn't tell you whether your levels have actually corrected. Ferritin above 30 micrograms per litre is the target. Many women supplement for months without reaching this because absorption varies significantly.",
+          "action": "If you've been supplementing for 3 months or more, ask for a ferritin retest to confirm your levels have corrected. If they haven't, absorption may be the issue — IV iron is an option."
+        },
+        "calcium_vitamin_d": {
+          "headline": "Calcium and Vitamin D at 22 — the follow-up matters",
+          "body": "Since you have calcium or Vitamin D deficiency, the supplement alone is only the first step. Vitamin D absorption varies significantly between people and the only way to know whether your supplementation is working is a follow-up blood test. Many people supplement for years without reaching adequate levels.",
+          "action": "Book a Vitamin D follow-up test if you haven't had one since starting supplementation. Target level is 75 nmol/L or above — not just out of the deficient range."
+        }
+      },
+      "track_prompt": null,
+      "next_age": 23
+    },
+
+    "age_23": {
+      "decisions": [
+        {
+          "id": "age_23_career",
+          "theme": "career",
+          "narrative": "A year in and you're being properly evaluated for the first time. The performance review is real. So is the gap between people who are climbing and people who are coasting.",
+          "choice_a": {
+            "label": "Go all in — late nights, high visibility, make your mark early",
+            "consequence": "Your name is known. You delivered results. You also haven't slept properly in months and your body is registering the cost in ways you're starting to notice."
+          },
+          "choice_b": {
+            "label": "Perform well but protect your limits — sustainable is the strategy",
+            "consequence": "You delivered consistently without burning out. Some peers moved faster. You moved steadier — and you still feel like yourself."
+          }
+        },
+        {
+          "id": "age_23_health",
+          "theme": "health",
+          "narrative": "Your periods have been irregular for over a year. You've attributed it to stress. A friend was recently diagnosed with PCOS after dismissing the same pattern for years.",
+          "choice_a": {
+            "label": "Investigate it — irregular cycles for over a year warrant a conversation",
+            "consequence": "You pushed for an answer. Whether the result was a diagnosis or a clear all-clear, you now know. The uncertainty was worse."
+          },
+          "choice_b": {
+            "label": "It's probably stress — I'll see if it settles",
+            "consequence": "Another year has passed. The irregularity hasn't resolved. You're still attributing it to stress without knowing whether that's true."
+          }
+        },
+        {
+          "id": "age_23_relationship",
+          "theme": "relationships",
+          "narrative": "You're starting to understand your own patterns in relationships — what you bring, what you need, what you keep getting wrong.",
+          "choice_a": {
+            "label": "Do the work — understanding your patterns is worth the discomfort",
+            "consequence": "The self-examination was uncomfortable and useful. You entered your next relationship with more self-awareness than you'd had before."
+          },
+          "choice_b": {
+            "label": "Not right now — I'll figure this out as I go",
+            "consequence": "You kept moving. The patterns are still there. They'll show up again."
+          },
+          "hidden_if_relationship_disabled": true
+        }
+      ],
+      "health_sidebar": {
+        "default": {
+          "headline": "PCOS — peak undiagnosed age is right now",
+          "body": "PCOS affects 1 in 10 women of reproductive age and up to 70 percent are undiagnosed. Your early-to-mid twenties are when symptoms become consistent enough to investigate clearly. Irregular cycles, acne, unexplained weight changes, or hair thinning are the most common signals. Early diagnosis meaningfully reduces long-term metabolic risk regardless of fertility plans.",
+          "action": "If your cycles have been irregular for more than 12 months, ask your GP for a PCOS screening panel: pelvic ultrasound, androgens, insulin, and LH/FSH ratio."
+        },
+        "pcos": {
+          "headline": "PCOS at 23 — are you getting the right monitoring?",
+          "body": "Since you have PCOS, by 23 you should have an established annual review rhythm. This covers your hormonal panel, metabolic markers, and cycle patterns. If your management has been reactive — treating symptoms as they arise — rather than proactive, now is a good time to shift that.",
+          "action": "Ask your GP or endocrinologist for a proactive management plan, not just reactive symptom treatment. Annual metabolic monitoring is the standard of care."
+        },
+        "pcod": {
+          "headline": "PCOD at 23 — have you been tested for PCOS progression?",
+          "body": "Since you have PCOD, it's worth checking whether your condition has progressed toward PCOS — particularly if you've had a stressful year or significant lifestyle changes. PCOD can transition to PCOS and the management approach shifts accordingly. A hormonal panel comparison against your baseline is how you track this.",
+          "action": "Ask for a hormonal panel comparison against your previous results. If androgens or insulin have increased, your management approach may need updating."
+        },
+        "endometriosis": {
+          "headline": "Endometriosis at 23 — is your pain management still working?",
+          "body": "Since you have endometriosis, pain management that worked at 20 or 21 may not be adequate at 23 if your condition has progressed. Endometriosis is progressive in many cases. If your pain levels have increased or your current treatment is less effective than it was, a specialist review is warranted rather than dose escalation without assessment.",
+          "action": "Rate your current pain management effectiveness honestly — is it working as well as it did 12 months ago? If not, request a specialist review rather than just increasing analgesia."
+        },
+        "fibroids": {
+          "headline": "Fibroids at 23 — have you had a follow-up ultrasound?",
+          "body": "Since you have fibroids, monitoring growth is the primary concern at your age. Fibroids tend to grow slowly but the rate varies. A follow-up ultrasound 12 to 18 months after your baseline gives you a growth rate — which is more clinically useful than a single measurement.",
+          "action": "If it's been more than 12 months since your last pelvic ultrasound, book a follow-up to establish a growth rate for your fibroids."
+        },
+        "thyroid": {
+          "headline": "Thyroid health at 23 — stress affects your levels",
+          "body": "Since you have a thyroid condition, sustained high-pressure periods can affect thyroid function and may require dose adjustment. If you've had a significantly stressful year and your symptoms — fatigue, weight, mood, hair — have shifted, your TSH may have moved even if you're not due for a scheduled check.",
+          "action": "If you've had a high-stress year and your symptoms have changed, request a thyroid check now rather than waiting for your next scheduled one."
+        },
+        "iron_deficiency": {
+          "headline": "Iron deficiency at 23 — are your levels actually corrected?",
+          "body": "Since you have iron deficiency, many women reach a technically normal haemoglobin level but still have low ferritin stores — which means symptoms persist despite 'normal' blood results. Ferritin is the storage form and the more clinically meaningful number for how you feel.",
+          "action": "Ask specifically for ferritin in your next blood test, not just haemoglobin. Target is ferritin above 30 micrograms per litre."
+        },
+        "calcium_vitamin_d": {
+          "headline": "Calcium and Vitamin D at 23 — the bone density window is closing",
+          "body": "Since you have calcium or Vitamin D deficiency, your mid-twenties are the tail end of the primary bone-building window. The calcium your bones absorb before your late twenties is the structural reserve you live on for the rest of your life. This is the most urgent decade for correction.",
+          "action": "If your Vitamin D has not been retested since starting supplementation, book a test now. Correction should be confirmed, not assumed."
+        }
+      },
+      "track_prompt": {
+        "track_id": "family_planning",
+        "bracket": "21-23",
+        "prompt": "Before we move forward — some women your age find it useful to understand what family planning options exist at this stage, even as something to know rather than act on. Want a quick overview?",
+        "yes_leads_to": "track_family_planning_21_23",
+        "no_leads_to": "age_24"
+      },
+      "next_age": 24
+    },
+
+    "age_24": {
+      "decisions": [
+        {
+          "id": "age_24_career",
+          "theme": "career",
+          "narrative": "You're competent now — and competence has made the question sharper. Is this the right direction? A lateral move has come up. It would mean starting over in some ways.",
+          "choice_a": {
+            "label": "Stay and go deeper — master what you're building",
+            "consequence": "You doubled down and became genuinely good at something specific. The depth is starting to open doors that breadth couldn't."
+          },
+          "choice_b": {
+            "label": "Make the pivot — better to find out now than at 30",
+            "consequence": "The pivot was disorienting for six months. By the end of the year it felt right. The work finally feels like yours."
+          }
+        },
+        {
+          "id": "age_24_health",
+          "theme": "health",
+          "narrative": "You've never had a proper gynaecology checkup. Cervical screening is recommended from 25 in Singapore — but a baseline exam before that makes sense. A friend just had her first one and said she wished she'd done it sooner.",
+          "choice_a": {
+            "label": "Book a first gynaecology checkup — establish a baseline",
+            "consequence": "The appointment was unremarkable and reassuring. You know your baseline now. That reference point matters."
+          },
+          "choice_b": {
+            "label": "I'll start when cervical screening is due at 25",
+            "consequence": "You're waiting for the formal milestone. Nothing is wrong — but you also don't have a picture of where you are."
+          }
+        },
+        {
+          "id": "age_24_relationship",
+          "theme": "relationships",
+          "narrative": "A relationship in your life is at a crossroads — either deepening or revealing it isn't the right fit. Both outcomes require honesty.",
+          "choice_a": {
+            "label": "Have the direct conversation — clarity is kinder than ambiguity",
+            "consequence": "The conversation changed things. You're clearer on what you need from relationships now than you've ever been."
+          },
+          "choice_b": {
+            "label": "Let it develop at its own pace",
+            "consequence": "You gave it space. It either grew or quietly resolved. Either way it didn't end in a forced conclusion."
+          },
+          "hidden_if_relationship_disabled": true
+        }
+      ],
+      "health_sidebar": {
+        "default": {
+          "headline": "First gynaecology checkup — what to expect and why it matters",
+          "body": "A first gynaecological exam at 24 covers a pelvic assessment, discussion of cycle patterns, and any symptoms you've been normalising. Cervical screening starts at 25 in Singapore but a baseline exam before that gives your doctor context. Many conditions — fibroids, ovarian cysts, PCOS — are found incidentally during routine exams in women with no symptoms.",
+          "action": "Book a first gynaecology appointment at your polyclinic or a women's health clinic. Bring a 3-month cycle log if you have one."
+        },
+        "pcos": {
+          "headline": "PCOS at 24 — reviewing your management as your life changes",
+          "body": "Since you have PCOS, life changes at 24 — career shifts, dietary changes, different stress patterns — affect your condition. Management that was right at 21 may not be optimal now. An annual review that looks at whether your current approach is still the right one is more useful than just repeating the same tests.",
+          "action": "Ask for a management review rather than just a monitoring appointment. Ask specifically: is what I'm doing still the best approach for my age and current lifestyle?"
+        },
+        "pcod": {
+          "headline": "PCOD at 24 — checking for progression",
+          "body": "Since you have PCOD, a check for whether your condition has remained stable or progressed is appropriate at 24. The presence of irregular cycles, new hormonal symptoms, or worsening acne can indicate progression toward PCOS. Catching this early means the management shift happens proactively.",
+          "action": "Ask for a comparison of your current hormonal panel against your earliest baseline. Progression is measurable if you have the data to compare."
+        },
+        "endometriosis": {
+          "headline": "Endometriosis at 24 — are you getting specialist-level care?",
+          "body": "Since you have endometriosis, GP-level management is often insufficient for the complexity of the condition. If your pain, fatigue, or quality of life impact is not well-controlled, a specialist review at a dedicated endometriosis service is the appropriate next step — not another round of the same treatment.",
+          "action": "If you're not already under specialist care, ask your GP for a referral to a gynaecologist with endometriosis expertise. In Singapore, KKH and NUH have dedicated services."
+        },
+        "fibroids": {
+          "headline": "Fibroids at 24 — monitoring and symptom management",
+          "body": "Since you have fibroids, at 24 the primary concerns are growth monitoring and symptom management — particularly if heavy bleeding is affecting your iron levels and quality of life. Treatment options exist beyond 'wait and see' if symptoms are significantly affecting you.",
+          "action": "At your next monitoring ultrasound, ask your doctor to discuss treatment options if symptoms are significantly impacting your quality of life — not just confirm size and location."
+        },
+        "thyroid": {
+          "headline": "Thyroid at 24 — optimal vs normal",
+          "body": "Since you have a thyroid condition, there is a meaningful difference between TSH within the broad normal range and TSH at the optimal level for your age and symptoms. Many women are managed to normal rather than optimal and continue to experience symptoms unnecessarily. This is worth a specific conversation with your doctor.",
+          "action": "Ask your GP specifically: what is my target TSH range, and is my current level at the optimal end of that range or just within it?"
+        },
+        "iron_deficiency": {
+          "headline": "Iron deficiency at 24 — dietary sources alongside supplementation",
+          "body": "Since you have iron deficiency, long-term supplementation is more sustainable when combined with dietary iron. Red meat, legumes, dark leafy greens, and fortified cereals all contribute. Vitamin C with iron-rich meals significantly improves absorption. Calcium and coffee within an hour of iron supplementation inhibit absorption.",
+          "action": "Review your diet for regular iron sources. If you're supplementing without dietary changes, your levels may be harder to maintain long-term."
+        },
+        "calcium_vitamin_d": {
+          "headline": "Calcium and Vitamin D at 24 — are you absorbing what you're taking?",
+          "body": "Since you have calcium or Vitamin D deficiency, Vitamin D is fat-soluble and absorbs best with food containing fat. Calcium supplements should be split into doses under 500mg for optimal absorption. Taking both at the same time can reduce absorption of each. These details matter for whether your supplementation is actually working.",
+          "action": "Review how you're taking your supplements with your GP or pharmacist. Timing and dose splitting can make a significant difference to absorption."
+        }
+      },
+      "track_prompt": {
+        "track_id": "family_planning",
+        "bracket": "24-27",
+        "prompt": "You're entering an age range where some women start thinking more actively about family planning — whether that means understanding their health, thinking about timing, or just knowing what options exist. Want to explore what this looks like at your stage?",
+        "yes_leads_to": "track_family_planning_24_27",
+        "no_leads_to": "age_25"
+      },
+      "next_age": 25
+    },
+
+    "age_25": {
+      "decisions": [
+        {
+          "id": "age_25_career",
+          "theme": "career",
+          "narrative": "For the first time you feel genuinely competent. With that competence comes visibility — and a leadership opportunity has appeared.",
+          "choice_a": {
+            "label": "Step into leadership — take the responsibility and grow into it",
+            "consequence": "Managing people is completely different from being good at the work. You've learned that the hard way — and you're better for it."
+          },
+          "choice_b": {
+            "label": "Stay as an individual contributor — go deeper, not wider",
+            "consequence": "Your specialist depth is becoming a genuine asset. People seek you out. You're building something distinctly yours."
+          }
+        },
+        {
+          "id": "age_25_health",
+          "theme": "health",
+          "narrative": "Cervical screening is recommended from 25 in Singapore. You've been meaning to make health appointments more routine — this feels like the natural moment to actually do it.",
+          "choice_a": {
+            "label": "Book the cervical screening and make annual checkups a standing habit",
+            "consequence": "The screening was straightforward. Making it a habit was the important part. You know your baseline and you'll notice when it changes."
+          },
+          "choice_b": {
+            "label": "I'll get to it when I have a gap",
+            "consequence": "Another year without a checkup. Nothing feels wrong — but you also can't know what your baseline looks like."
+          }
+        },
+        {
+          "id": "age_25_relationship",
+          "theme": "relationships",
+          "narrative": "People around you are making increasingly different choices — some deepening commitments, some happily single, some navigating breakups. You're clearer on what you want than you were at 21.",
+          "choice_a": {
+            "label": "Be intentional about pursuing what I want — clarity is useful",
+            "consequence": "The intentionality paid off — not in getting exactly what you wanted, but in knowing what you were looking for when it appeared."
+          },
+          "choice_b": {
+            "label": "Let things unfold — I trust the process",
+            "consequence": "Things unfolded. Whether in the direction you hoped or not, you stayed present to it."
+          },
+          "hidden_if_relationship_disabled": true
+        }
+      ],
+      "health_sidebar": {
+        "default": {
+          "headline": "25 — the year proactive health care starts paying off",
+          "body": "Cervical screening from 25, a first gynaecology exam, thyroid and iron baseline, and a Vitamin D check together give you a reference map that makes every future appointment more meaningful. You are not looking for problems. You are establishing what your normal looks like so you can recognise when it changes.",
+          "action": "Book a cervical screening appointment at your polyclinic. In Singapore it is recommended every 3 years from age 25 and takes 10 minutes."
+        },
+        "pcos": {
+          "headline": "PCOS at 25 — metabolic monitoring is now the priority",
+          "body": "Since you have PCOS, by 25 the metabolic monitoring component of your management becomes as important as the hormonal component. Annual checks on fasting glucose, insulin, cholesterol, and blood pressure are the standard of care — these are the long-term risks that PCOS management is primarily trying to prevent.",
+          "action": "Ask for a full metabolic panel at your next annual review: fasting glucose, insulin, lipid panel, and blood pressure alongside your hormonal markers."
+        },
+        "pcod": {
+          "headline": "PCOD at 25 — stable management or time to reassess?",
+          "body": "Since you have PCOD, at 25 it is worth asking whether your condition has remained stable or requires a different management approach. If symptoms have worsened or lifestyle interventions haven't been sufficient, medication options are available. This is an appropriate age to have that conversation proactively.",
+          "action": "Ask your GP at your next review: given my age and current symptom picture, is my management approach still optimal or are there better options now?"
+        },
+        "endometriosis": {
+          "headline": "Endometriosis at 25 — specialist care should be established by now",
+          "body": "Since you have endometriosis, if you are not yet under specialist care, 25 is the age to establish that relationship. A gynaecologist who knows your history, has performed or reviewed imaging, and has a long-term management plan is meaningfully different from reactive GP management of individual symptoms.",
+          "action": "If you are still being managed at GP level, ask for a specialist referral this year. Bring your full symptom history including pain logs if you have them."
+        },
+        "fibroids": {
+          "headline": "Fibroids at 25 — do you have a clear monitoring schedule?",
+          "body": "Since you have fibroids, a clear monitoring schedule — ultrasound every 12 to 18 months with a consistent clinician who can compare results over time — is the most important thing at 25. Without longitudinal comparison, individual scans tell you size but not trajectory.",
+          "action": "Confirm you have a monitoring schedule with a consistent clinician. Ask specifically: when is my next ultrasound, and who will compare it against my previous results?"
+        },
+        "thyroid": {
+          "headline": "Thyroid health at 25 — annual monitoring is the baseline",
+          "body": "Since you have a thyroid condition, annual TSH monitoring from 25 onward is standard — not just when you feel symptoms. Thyroid function can drift gradually in ways that don't register as acute symptoms until the shift is significant. Annual testing catches drift early.",
+          "action": "Confirm your next annual thyroid review is scheduled. If it's been more than 12 months since your last test and you haven't booked one, do that now."
+        },
+        "iron_deficiency": {
+          "headline": "Iron deficiency at 25 — are heavy periods the underlying driver?",
+          "body": "Since you have iron deficiency, heavy menstrual bleeding is one of the most common ongoing causes. If your iron keeps dropping despite supplementation, the monthly loss may be outpacing what you can replace. This is a medical issue — not a lifestyle one — and treatment options for heavy bleeding are available.",
+          "action": "If your iron levels are not maintaining despite supplementation, ask your GP specifically whether your menstrual blood loss is the driving factor and what treatment options are available."
+        },
+        "calcium_vitamin_d": {
+          "headline": "Calcium and Vitamin D at 25 — the last major bone-building window",
+          "body": "Since you have calcium or Vitamin D deficiency, 25 to 30 is the final significant bone density building window. After your late twenties the bone-building process slows dramatically. Correcting deficiency now and maintaining adequate levels through this period is the most impactful thing you can do for your skeletal health over the next 50 years.",
+          "action": "Confirm your Vitamin D level has reached the target range — 75 nmol/L or above. If not, discuss whether your current supplement dose is sufficient."
+        }
+      },
+      "track_prompt": null,
+      "next_age": 26
+    },
+
+    "age_26": {
+      "decisions": [
+        {
+          "id": "age_26_career",
+          "theme": "career",
+          "narrative": "You're entering a new tier. The work is more complex, the stakes higher, and the people around you more capable. How you position yourself now shapes the next five years.",
+          "choice_a": {
+            "label": "Become the specialist — deep expertise in one domain",
+            "consequence": "You've built something rare — genuine depth. People come to you specifically. It's starting to make you indispensable in a way generalism couldn't."
+          },
+          "choice_b": {
+            "label": "Build breadth — understand the whole system",
+            "consequence": "Your ability to connect dots across domains is becoming your edge. It's harder to title but easier to leverage across contexts."
+          }
+        },
+        {
+          "id": "age_26_health",
+          "theme": "health",
+          "narrative": "You've been managing painful periods for years. A colleague just told you she was finally diagnosed with endometriosis after 8 years of being dismissed. The average diagnosis delay is 7 to 10 years.",
+          "choice_a": {
+            "label": "Investigate properly — painful periods that disrupt your life are not normal",
+            "consequence": "The investigation took persistence. You have an answer now — and a management plan. The relief of knowing outweighs the difficulty of finding out."
+          },
+          "choice_b": {
+            "label": "Manage the pain and carry on",
+            "consequence": "You're still managing. The pain is still there. The question of what's causing it is still unanswered."
+          }
+        },
+        {
+          "id": "age_26_relationship",
+          "theme": "relationships",
+          "narrative": "A relationship is asking for a real commitment — time, geography, shared future plans. It's not a casual ask.",
+          "choice_a": {
+            "label": "Commit — this is worth it",
+            "consequence": "The commitment changed the relationship and changed you. You've learned what choosing someone deliberately actually means."
+          },
+          "choice_b": {
+            "label": "Not at this level — not right now",
+            "consequence": "You honoured what you actually wanted rather than what felt expected. The relationship adjusted — or it ended. Both were honest outcomes."
+          },
+          "hidden_if_relationship_disabled": true
+        }
+      ],
+      "health_sidebar": {
+        "default": {
+          "headline": "Endometriosis — if symptoms have been dismissed, push again now",
+          "body": "Endometriosis affects 1 in 10 women with an average diagnosis delay of 7 to 10 years. If your painful periods started in your mid-to-late teens and have been dismissed as normal, you may still be undiagnosed. Period pain requiring regular painkillers or causing you to miss work or plans is a clinical symptom — not a personality trait.",
+          "action": "Document pain levels across one cycle rated 1 to 10 each day. If you regularly rate above 6, bring that log to a GP and ask specifically for a gynaecology referral."
+        },
+        "pcos": {
+          "headline": "PCOS at 26 — staying ahead of long-term risks",
+          "body": "Since you have PCOS, by 26 the long-term metabolic picture is increasingly relevant. Annual monitoring of fasting glucose, insulin, cholesterol, and blood pressure catches the conditions PCOS predisposes you to — Type 2 diabetes and cardiovascular disease — at the earliest and most treatable stage.",
+          "action": "Ensure your annual PCOS review includes a full metabolic panel, not just hormonal markers. These metabolic checks are the core of long-term PCOS management."
+        },
+        "pcod": {
+          "headline": "PCOD at 26 — has anything changed?",
+          "body": "Since you have PCOD, 26 is a good age for a reassessment — particularly if your lifestyle has changed significantly since diagnosis. Stress levels, diet, exercise, and weight all affect PCOD. An updated ultrasound and hormonal comparison tells you whether you're managing effectively or whether the picture has shifted.",
+          "action": "Book a PCOD reassessment including updated ultrasound and hormonal panel if it's been more than 18 months since your last full review."
+        },
+        "endometriosis": {
+          "headline": "Endometriosis at 26 — quality of life review",
+          "body": "Since you have endometriosis, at 26 a quality of life assessment is as important as a clinical one. If your pain, fatigue, or mental health burden from endometriosis is significantly affecting your daily life, your current management plan may not be adequate even if it's technically treating the condition.",
+          "action": "Rate the impact of endometriosis on your quality of life out of 10. If it's consistently above 5, your management plan deserves a specialist review focused on your lived experience."
+        },
+        "fibroids": {
+          "headline": "Fibroids at 26 — treatment options are available if symptoms warrant",
+          "body": "Since you have fibroids, by 26 the question shifts from just monitoring to whether symptoms warrant treatment. Heavy bleeding, pelvic pressure, or frequent urination that significantly affects your quality of life are valid clinical reasons for treatment — not just ongoing monitoring.",
+          "action": "At your next monitoring appointment, ask specifically: given the symptoms I have, is continued monitoring still the right approach or are treatment options now appropriate?"
+        },
+        "thyroid": {
+          "headline": "Thyroid and career stress at 26",
+          "body": "Since you have a thyroid condition, career acceleration in your mid-twenties often coincides with sustained stress — which can affect thyroid function and may require dose adjustment. Hashimoto's thyroiditis in particular can worsen during stressful periods. If energy, weight, mood, or hair have shifted, don't wait for your scheduled check.",
+          "action": "If you've had a significantly stressful year and your symptoms have changed, request a thyroid check now. Include thyroid antibodies (TPO) if you haven't tested these recently."
+        },
+        "iron_deficiency": {
+          "headline": "Iron deficiency at 26 — is it being managed or just monitored?",
+          "body": "Since you have iron deficiency, there's a difference between monitoring levels and actively managing them. If your ferritin is consistently low despite supplementation, the approach needs to change — not just continue. IV iron infusion, treating the source of blood loss, or dietary optimisation are all options depending on the cause.",
+          "action": "If your ferritin has not reached the target level of 30 micrograms per litre despite supplementation for 6 months or more, ask your GP to investigate why and discuss alternative approaches."
+        },
+        "calcium_vitamin_d": {
+          "headline": "Calcium and Vitamin D at 26 — maintaining what you've built",
+          "body": "Since you have calcium or Vitamin D deficiency, by 26 the focus shifts from building bone density to maintaining it. Annual Vitamin D monitoring ensures your levels stay in the adequate range through this critical decade. Dropping back into deficiency after correction is common without ongoing monitoring.",
+          "action": "Book an annual Vitamin D check as a standing appointment if you haven't already. Maintaining levels requires monitoring, not just supplementing."
+        }
+      },
+      "track_prompt": null,
+      "next_age": 27
+    },
+
+    "age_27": {
+      "decisions": [
+        {
+          "id": "age_27_career",
+          "theme": "career",
+          "narrative": "You know what you're good at and you know what you want to build. The question at 27 is how to position yourself for the next decade — not just the next role.",
+          "choice_a": {
+            "label": "Build toward leadership — scale your impact through others",
+            "consequence": "You're building a team. It's harder than the individual work ever was — and more meaningful in ways you didn't expect."
+          },
+          "choice_b": {
+            "label": "Build toward expertise and influence — become the person others come to",
+            "consequence": "Your reputation is becoming your career. People know what you stand for professionally. That clarity is its own currency."
+          }
+        },
+        {
+          "id": "age_27_health",
+          "theme": "health",
+          "narrative": "A colleague mentions she just had her AMH tested — a blood test that gives an indication of ovarian reserve. Not as a fertility verdict, she says, but as a planning data point she wanted to have.",
+          "choice_a": {
+            "label": "Look into it — I want the data point",
+            "consequence": "Your AMH result gave you information you didn't have before. It changed how you think about your options over the next decade — not with urgency, but with clarity."
+          },
+          "choice_b": {
+            "label": "Not relevant to me right now",
+            "consequence": "You've noted that it exists. You don't have that data point yet. That may or may not matter later."
+          }
+        },
+        {
+          "id": "age_27_relationship",
+          "theme": "relationships",
+          "narrative": "Bigger life questions are arriving. Someone important in your life wants to know where things are going. So do you.",
+          "choice_a": {
+            "label": "Have the direct conversation about the future",
+            "consequence": "The conversation was one of the most important you've had. Whatever the outcome, you're no longer guessing."
+          },
+          "choice_b": {
+            "label": "Give it more time — these things reveal themselves",
+            "consequence": "You waited. The relationship either found its own clarity or the question got bigger. Waiting was a choice too."
+          },
+          "hidden_if_relationship_disabled": true
+        }
+      ],
+      "health_sidebar": {
+        "default": {
+          "headline": "AMH — a planning tool, not a verdict",
+          "body": "AMH is a blood test that indicates ovarian reserve — the number of eggs remaining. It is not a fertility test and does not predict whether you will conceive. It is a data point. Knowing your AMH at 27 gives you a reference number that can inform decisions over the next decade regardless of whether children are part of your plan.",
+          "action": "Ask your GP or a private clinic about an AMH test. It is a single blood test available privately in Singapore for approximately SGD 80 to 150."
+        },
+        "pcos": {
+          "headline": "AMH and PCOS — your number means something different",
+          "body": "Since you have PCOS, your AMH level is likely elevated relative to standard reference ranges — not because of higher fertility but because of the higher number of small follicles characteristic of PCOS. A standard AMH interpretation does not apply to you directly. This is important to understand before you interpret any results.",
+          "action": "If you get an AMH test, discuss results specifically with a gynaecologist who understands PCOS — not just a GP. The interpretation is different for your condition."
+        },
+        "pcod": {
+          "headline": "AMH with PCOD — understanding your picture",
+          "body": "Since you have PCOD, like PCOS, your AMH may appear elevated due to follicle accumulation rather than reflecting true reserve. A specialist interpretation of your AMH alongside an antral follicle count gives a more accurate picture than the number alone.",
+          "action": "Ask for an antral follicle count ultrasound alongside your AMH test for a more complete ovarian picture."
+        },
+        "endometriosis": {
+          "headline": "AMH and endometriosis — why earlier testing matters for you",
+          "body": "Since you have endometriosis, ovarian endometriomas can reduce ovarian reserve over time through inflammation and surgical intervention. This makes an AMH baseline more relevant for you than for women without the condition. Having a number now gives you a reference point as your condition evolves.",
+          "action": "Ask your endometriosis specialist about your ovarian reserve specifically as part of your next review — not just your symptom management."
+        },
+        "fibroids": {
+          "headline": "Fibroids at 27 — impact on quality of life and planning",
+          "body": "Since you have fibroids, by 27 the impact on quality of life is the primary clinical consideration. If heavy bleeding, pain, or pressure symptoms are significantly affecting your life, treatment options that were premature at 22 may now be appropriate. You don't have to continue managing symptoms indefinitely.",
+          "action": "At your next review, ask specifically about treatment options if your symptoms are affecting your quality of life — surgical and non-surgical options are both available."
+        },
+        "thyroid": {
+          "headline": "Thyroid health and long-term planning at 27",
+          "body": "Since you have a thyroid condition, thyroid hormones affect bone density and cardiovascular health over the long term — not just energy and weight. At 27 it is worth a broader conversation about how your thyroid management accounts for these longer-term health outcomes, not just TSH normalisation.",
+          "action": "Ask your doctor how your thyroid management accounts for long-term bone density and cardiovascular health, not just keeping TSH in the normal range."
+        },
+        "iron_deficiency": {
+          "headline": "Iron deficiency at 27 — the long-term management approach",
+          "body": "Since you have iron deficiency, by 27 it is worth establishing whether this is a permanent management situation — common for women with heavy periods — or something that can be resolved. If you've been supplementing on and off for years without sustained correction, the underlying cause may need addressing directly.",
+          "action": "Ask your GP: is my iron deficiency a condition to manage long-term or something that can be resolved? The answer changes the approach."
+        },
+        "calcium_vitamin_d": {
+          "headline": "Calcium and Vitamin D at 27 — maintaining adequate levels",
+          "body": "Since you have calcium or Vitamin D deficiency, annual monitoring keeps your levels in the adequate range through this critical decade. Vitamin D in particular fluctuates with season, sun exposure, and lifestyle. Indoor-heavy work environments common in your late twenties can reduce levels even after correction.",
+          "action": "Annual Vitamin D testing from 27 onward keeps you from unknowingly dropping back into deficiency. Book this as a standing annual appointment."
+        }
+      },
+      "track_prompt": {
+        "track_id": "family_planning",
+        "bracket": "24-27",
+        "prompt": "You're in an age range where understanding your reproductive health options — whatever you decide to do with them — is genuinely useful. Want to explore what family planning looks like at this stage, including what the timeline actually says?",
+        "yes_leads_to": "track_family_planning_24_27",
+        "no_leads_to": "age_28"
+      },
+      "next_age": 28
+    },
+
+    "age_28": {
+      "decisions": [
+        {
+          "id": "age_28_career",
+          "theme": "career",
+          "narrative": "A significant fork has appeared. Further education — an MBA, a specialist qualification — could accelerate things. So could staying and executing. Both are legitimate paths.",
+          "choice_a": {
+            "label": "Invest in further education — credential and network are worth it",
+            "consequence": "The program was intense and expensive and worth it. You came out with a different perspective on what's possible and a different network to work with."
+          },
+          "choice_b": {
+            "label": "Stay and execute — experience compounds faster than credentials",
+            "consequence": "You built real track record while others were in classrooms. The gap between you and your peers is experience, not qualification."
+          }
+        },
+        {
+          "id": "age_28_health",
+          "theme": "health",
+          "narrative": "A friend is going through the egg freezing process. It's more routine than you expected — she's working through the whole thing without taking leave.",
+          "choice_a": {
+            "label": "Learn what it actually involves — I want to make an informed decision",
+            "consequence": "You now understand what egg freezing is — the process, the costs, the realistic success rates. Whether you pursue it or not, you made an informed choice rather than an uninformed one."
+          },
+          "choice_b": {
+            "label": "Not relevant to me right now",
+            "consequence": "You've noted it exists. The details remain vague. That may be fine — or it may be a gap you'll want to fill later."
+          }
+        },
+        {
+          "id": "age_28_relationship",
+          "theme": "relationships",
+          "narrative": "Cohabitation, marriage, or a deliberate choice to build your life independently — the question of long-term life structure is becoming concrete rather than theoretical.",
+          "choice_a": {
+            "label": "Build a shared life — commit to a structure with someone",
+            "consequence": "Building a life with someone is different from being in a relationship with them. You're learning that distinction in real time."
+          },
+          "choice_b": {
+            "label": "Build an independent life structure on your terms",
+            "consequence": "You've built something that's entirely yours. The freedom is real. So is the intentionality required to maintain it."
+          },
+          "hidden_if_relationship_disabled": true
+        }
+      ],
+      "health_sidebar": {
+        "default": {
+          "headline": "Egg freezing — the honest picture",
+          "body": "Egg freezing involves 2 to 3 weeks of hormone injections and monitoring appointments, followed by an egg retrieval procedure. In Singapore one cycle costs approximately SGD 10,000 to 15,000 including medication. Success rates per frozen egg are meaningfully better at 28 to 30 than at 35. It preserves options — it does not guarantee outcomes.",
+          "action": "A consultation with a fertility clinic is free or low cost at most Singapore private clinics. You'll get personalised information based on your AMH and current health."
+        },
+        "pcos": {
+          "headline": "Egg freezing with PCOS — what's different for you",
+          "body": "Since you have PCOS, you typically respond strongly to ovarian stimulation — often producing more eggs per cycle than average. This requires careful monitoring to avoid ovarian hyperstimulation syndrome (OHSS). A clinic experienced in PCOS management is important. Ask specifically about their OHSS protocol.",
+          "action": "When consulting fertility clinics, ask: what is your specific protocol for PCOS patients and how do you monitor for OHSS? The answer tells you about their competence."
+        },
+        "pcod": {
+          "headline": "Egg freezing with PCOD",
+          "body": "Since you have PCOD, similar to PCOS, ovarian stimulation may produce a higher than average response. The risk of OHSS exists and requires active monitoring. Discussing your condition in detail with a fertility specialist before starting any stimulation cycle is important.",
+          "action": "Disclose your PCOD diagnosis at any fertility consultation and ask how it affects their stimulation protocol specifically."
+        },
+        "endometriosis": {
+          "headline": "Egg freezing with endometriosis — timing is more relevant for you",
+          "body": "Since you have endometriosis, ovarian endometriomas can reduce your reserve over time. This makes the timing of egg freezing more relevant for you than for women without the condition — earlier is generally better. A specialist should assess your current reserve before advising on whether and when to proceed.",
+          "action": "Ask your endometriosis specialist: given my condition and current ovarian reserve, is there a window where egg freezing would be most beneficial for me?"
+        },
+        "fibroids": {
+          "headline": "Fibroids and egg freezing — what to know",
+          "body": "Since you have fibroids, their location and size can affect the egg freezing and future embryo transfer processes. Submucosal fibroids in particular can affect implantation. A fertility specialist will assess whether any fibroid treatment is advisable before proceeding with egg freezing.",
+          "action": "Include your fibroid diagnosis and most recent ultrasound findings in any fertility consultation so the specialist can assess whether they affect the process."
+        },
+        "thyroid": {
+          "headline": "Thyroid function and egg freezing",
+          "body": "Since you have a thyroid condition, thyroid hormones affect ovarian response to stimulation. Suboptimal thyroid function — even within broad normal range — can affect egg quality and quantity. Ensuring optimal thyroid management before a cycle is worth discussing with your clinic.",
+          "action": "Tell your fertility clinic about your thyroid condition and ask whether your current TSH level is optimal for stimulation or whether it should be reviewed first."
+        },
+        "iron_deficiency": {
+          "headline": "Iron deficiency and hormonal health at 28",
+          "body": "Since you have iron deficiency, iron plays a role in ovarian function and egg quality. Chronic iron deficiency can affect mitochondrial function in cells — including egg cells. Correcting iron deficiency before any assisted reproductive procedure is standard clinical advice.",
+          "action": "If you're considering egg freezing or fertility investigation, ask your GP to confirm your ferritin is in the adequate range before proceeding."
+        },
+        "calcium_vitamin_d": {
+          "headline": "Vitamin D and reproductive health at 28",
+          "body": "Since you have calcium or Vitamin D deficiency, Vitamin D receptors are present in ovarian tissue and emerging research suggests adequate Vitamin D levels support ovarian function. While the evidence is still developing, maintaining adequate Vitamin D is a low-cost, low-risk intervention with multiple health benefits.",
+          "action": "Confirm your Vitamin D level is in the adequate range — 75 nmol/L or above — before any fertility-related procedure."
+        }
+      },
+      "track_prompt": {
+        "track_id": "family_planning",
+        "bracket": "28-31",
+        "prompt": "You're in an age range where family planning decisions — whether that's trying to conceive, exploring fertility preservation, or making a definitive choice not to — are most commonly made. Want to explore what's available and what the timeline actually looks like?",
+        "yes_leads_to": "track_family_planning_28_31",
+        "no_leads_to": "age_29"
+      },
+      "next_age": 29
+    },
+
+    "age_29": {
+      "decisions": [
+        {
+          "id": "age_29_career",
+          "theme": "career",
+          "narrative": "You're thinking in five-year arcs now. The question isn't what your next role is — it's what you're building toward and whether your current path leads there.",
+          "choice_a": {
+            "label": "Map a clear trajectory — specific goals, specific timeline",
+            "consequence": "The clarity is motivating and pressurising in equal measure. You know where you're going — and you know when you're off track."
+          },
+          "choice_b": {
+            "label": "Stay responsive — the best opportunities aren't always planned",
+            "consequence": "You stayed open and something unexpected appeared. Whether it's better than a plan would have been is a question you can't answer."
+          }
+        },
+        {
+          "id": "age_29_health",
+          "theme": "health",
+          "narrative": "A mentor a decade ahead of you mentions that the habits she built at 29 shaped her forties in ways she didn't expect. She's talking about health as much as career.",
+          "choice_a": {
+            "label": "Take health seriously as a long-term asset — build the habits now",
+            "consequence": "The habits took six months to stick. By the end of the year they're infrastructure rather than effort."
+          },
+          "choice_b": {
+            "label": "I'll build better habits when life is less intense",
+            "consequence": "Life remained intense. The habits are still pending. This is the third year you've said this."
+          }
+        },
+        {
+          "id": "age_29_relationship",
+          "theme": "relationships",
+          "narrative": "The social landscape at 29 is diverging sharply — engagements, children, relocations, career pivots. You're clear on what you want your life to look like. Staying connected across different life choices is its own skill.",
+          "choice_a": {
+            "label": "Stay connected to people making different choices — breadth enriches",
+            "consequence": "The breadth of your relationships has given you a wider picture of what a good life can look like."
+          },
+          "choice_b": {
+            "label": "Invest in people whose lives align with yours — depth over breadth",
+            "consequence": "Your inner circle is smaller and more aligned. The conversations are deeper. The support is more specific."
+          },
+          "hidden_if_relationship_disabled": true
+        }
+      ],
+      "health_sidebar": {
+        "default": {
+          "headline": "The habits at 29 that shape your forties",
+          "body": "Perimenopause begins on average between 45 and 51 — which is 16 to 22 years from now. But the lifestyle factors that shape how it unfolds are being set right now. Bone density, cardiovascular health, and metabolic function are all being shaped today by your sleep, movement, nutrition, and stress levels.",
+          "action": "Identify one health habit that is currently inconsistent — sleep, exercise, or nutrition — and build it into your routine before 30. These compound in the same way career choices do."
+        },
+        "pcos": {
+          "headline": "PCOS and the decade ahead",
+          "body": "Since you have PCOS, the metabolic risks — insulin resistance, cardiovascular disease, Type 2 diabetes — become more clinically relevant as you move through your thirties. The habits you build now around diet, movement, and metabolic monitoring are your most effective long-term intervention. Annual metabolic reviews are the clinical minimum.",
+          "action": "Schedule an annual metabolic review as a recurring appointment — fasting glucose, insulin, lipid panel, blood pressure. This is your long-term PCOS management infrastructure."
+        },
+        "pcod": {
+          "headline": "PCOD at 29 — long-term management strategy",
+          "body": "Since you have PCOD, by 29 a clear long-term management strategy is appropriate. Whether your condition has remained stable or evolved, having a plan that covers the next decade — including metabolic monitoring and symptom management — is more useful than reactive annual checkups.",
+          "action": "Ask your GP or specialist: what does long-term management of my condition look like through my thirties? What should I be monitoring annually?"
+        },
+        "endometriosis": {
+          "headline": "Endometriosis and long-term quality of life",
+          "body": "Since you have endometriosis, at 29 the question is whether your condition is being actively managed for your quality of life or just monitored. Pain management strategies, hormonal treatments, and surgical options all have different profiles at this age. A specialist who treats quality of life, not just clinical markers, is worth finding.",
+          "action": "Ask your specialist specifically: what is the best approach for my quality of life over the next 10 years, not just my current symptom burden?"
+        },
+        "fibroids": {
+          "headline": "Fibroids at 29 — treatment decision point",
+          "body": "Since you have fibroids, by 29 the question of whether symptoms warrant treatment rather than ongoing monitoring becomes more pressing. Non-surgical options — UAE, medication — are available alongside surgical ones. The decision depends on symptom severity, fibroid characteristics, and your future plans.",
+          "action": "Ask your doctor for a comprehensive treatment options review — not just monitoring. Ask which options are appropriate for your specific fibroids and symptom picture."
+        },
+        "thyroid": {
+          "headline": "Thyroid health going into your thirties",
+          "body": "Since you have a thyroid condition, thyroid management may require adjustment as your body changes through your late twenties. Stress, weight changes, and other hormonal shifts can all affect thyroid function. Annual monitoring with a consistent clinician who knows your history is the standard going into your thirties.",
+          "action": "Confirm annual thyroid monitoring is in your calendar. If you've had significant life changes — stress, weight change, other health issues — request a check now rather than waiting."
+        },
+        "iron_deficiency": {
+          "headline": "Iron deficiency at 29 — resolving it or managing it long-term",
+          "body": "Since you have iron deficiency, by 29 it is worth a definitive conversation about whether this is manageable through diet and supplementation or whether the underlying cause — typically heavy menstrual bleeding — needs direct treatment. Treating the source is more sustainable than indefinite supplementation.",
+          "action": "Ask your GP: given how long I've had iron deficiency and my current management approach, is this sustainable long-term or should we address the underlying cause directly?"
+        },
+        "calcium_vitamin_d": {
+          "headline": "Calcium and Vitamin D at 29 — protecting what you've built",
+          "body": "Since you have calcium or Vitamin D deficiency, by 29 the bone density building phase is largely complete. The focus now is on maintaining what you've built. Annual Vitamin D monitoring and consistent calcium intake through diet and supplementation are the ongoing requirements.",
+          "action": "Annual Vitamin D testing is your maintenance tool from here. Book it as a standing appointment alongside your other annual health checks."
+        }
+      },
+      "track_prompt": null,
+      "next_age": 30
+    },
+
+    "age_30": {
+      "decisions": [
+        {
+          "id": "age_30_career",
+          "theme": "career",
+          "narrative": "30 arrives with more internal noise than you expected. You're reassessing everything — not because something is wrong, but because something has shifted. What does the next decade actually look like?",
+          "choice_a": {
+            "label": "Recommit — you're building something real and you're not done",
+            "consequence": "You recommitted with clarity rather than inertia. The next decade has a shape now and you chose it."
+          },
+          "choice_b": {
+            "label": "Redesign — 30 is early enough to build something completely different",
+            "consequence": "The redesign is disorienting and liberating in equal measure. You're starting something. That matters."
+          }
+        },
+        {
+          "id": "age_30_health",
+          "theme": "health",
+          "narrative": "A comprehensive health review at 30 feels like the right thing to do — a full picture of where you are before the next decade.",
+          "choice_a": {
+            "label": "Book a comprehensive health review — I want to know my baseline at 30",
+            "consequence": "The full picture was more useful than individual data points ever were. You know your body at 30. That knowledge is yours now."
+          },
+          "choice_b": {
+            "label": "I'll get to it — things are fine as far as I can tell",
+            "consequence": "You enter your thirties without a comprehensive baseline. Things may well be fine. You genuinely can't know."
+          }
+        },
+        {
+          "id": "age_30_relationship",
+          "theme": "relationships",
+          "narrative": "The question of long-term life structure is no longer abstract. Whatever you're building — with a partner, independently, or something in between — this is the decade it becomes real.",
+          "choice_a": {
+            "label": "Build the life structure I want deliberately — make it concrete",
+            "consequence": "Making it concrete made it real. The life you're building looks like a choice now, not a default."
+          },
+          "choice_b": {
+            "label": "Let it unfold — I trust where I'm going",
+            "consequence": "You're living the life you have rather than the life you planned. There's something right about that."
+          },
+          "hidden_if_relationship_disabled": true
+        }
+      ],
+      "health_sidebar": {
+        "default": {
+          "headline": "Your full health baseline at 30",
+          "body": "A comprehensive review at 30 covers your hormonal panel, AMH if not tested recently, thyroid, iron, Vitamin D, pelvic ultrasound, cervical screening if due, blood pressure, and fasting glucose. This is not a single appointment — it's a set of tests that together give you a complete picture. At 30 you have enough health history to make these results genuinely meaningful.",
+          "action": "Ask your GP to help you coordinate a 30-year health baseline review covering: full hormonal panel, thyroid, iron, Vitamin D, fasting glucose, blood pressure, and pelvic ultrasound."
+        },
+        "pcos": {
+          "headline": "PCOS at 30 — the decade that matters most for management",
+          "body": "Since you have PCOS, your thirties are when the long-term metabolic risks become most clinically relevant. Sustained management of insulin resistance, weight, and hormonal balance in your thirties significantly affects your cardiovascular health, diabetes risk, and quality of life in your forties and fifties.",
+          "action": "Ask your GP or endocrinologist for a forward-looking PCOS management strategy for your thirties — not just your current symptoms."
+        },
+        "pcod": {
+          "headline": "PCOD at 30 — decade review",
+          "body": "Since you have PCOD, at 30 a decade review of your condition — where it started, where it is now, and what the next 10 years of management look like — is appropriate. Whether your condition has remained stable or evolved, having a clear plan is more useful than annual reactive monitoring.",
+          "action": "Request a comprehensive PCOD review at 30 that looks backward at your history and forward at your management strategy."
+        },
+        "endometriosis": {
+          "headline": "Endometriosis at 30 — taking comprehensive stock",
+          "body": "Since you have endometriosis, at 30 a full review covers current symptom burden, quality of life, ovarian reserve, and whether your current treatment is still the right one. Endometriosis changes over time and management appropriate at 25 may not be optimal at 30.",
+          "action": "Request a comprehensive endometriosis review — symptom burden, quality of life, ovarian reserve, and forward-looking management plan for your thirties."
+        },
+        "fibroids": {
+          "headline": "Fibroids at 30 — planning the decade ahead",
+          "body": "Since you have fibroids, by 30 a clear plan for the next decade is appropriate — whether that's continued monitoring, treatment for symptomatic fibroids, or a decision about timing if pregnancy is part of your plans. Fibroids tend to peak in size in the thirties before shrinking after menopause.",
+          "action": "Ask for a comprehensive fibroid management plan that covers the next 10 years — not just your next monitoring appointment."
+        },
+        "thyroid": {
+          "headline": "Thyroid health at 30 — the full picture",
+          "body": "Since you have a thyroid condition, at 30 thyroid management should be reviewed holistically — not just TSH normalisation but the impact on bone density, cardiovascular health, and mental health. If you've been managed to a range rather than to optimal function, this is worth revisiting.",
+          "action": "Ask for a thyroid review that includes Free T3, Free T4, TSH, and thyroid antibodies. Ask how your thyroid management connects to your long-term bone density and cardiovascular health."
+        },
+        "iron_deficiency": {
+          "headline": "Iron deficiency at 30 — resolved or ongoing?",
+          "body": "Since you have iron deficiency, by 30 you should have a clear picture of whether this is a resolved condition, a managed chronic one, or a symptom of something that needs direct treatment. If you're still supplementing reactively without a stable strategy, a definitive conversation with your GP is overdue.",
+          "action": "Ask your GP: is my iron deficiency resolved, managed, or unresolved? What does long-term management look like for my specific situation?"
+        },
+        "calcium_vitamin_d": {
+          "headline": "Calcium and Vitamin D at 30 — long-term maintenance",
+          "body": "Since you have calcium or Vitamin D deficiency, by 30 the management goal is consistent maintenance of adequate levels for the rest of your life. This is a lifestyle management situation with annual monitoring — not a short-term correction. Building it into your annual health review is the most sustainable approach.",
+          "action": "Build annual Vitamin D testing into your standard health review from 30 onward. Consistent maintenance from here protects bone density through perimenopause and beyond."
+        }
+      },
+      "track_prompt": {
+        "track_id": "family_planning_or_child_free",
+        "bracket": "28-31",
+        "prompt": "At 30, some women want to think seriously about family planning — the window where success rates for both natural conception and egg freezing are still strong. Others want to think about long-term health without family planning in the picture. Which feels more relevant to you right now?",
+        "options": [
+          {
+            "label": "Tell me about family planning options at 30",
+            "leads_to": "track_family_planning_28_31"
+          },
+          {
+            "label": "Tell me about long-term health without family planning",
+            "leads_to": "track_child_free"
+          },
+          {
+            "label": "Neither right now",
+            "leads_to": "age_31"
+          }
+        ]
+      },
+      "next_age": 31
+    },
+
+    "age_31": {
+      "decisions": [
+        {
+          "id": "age_31_career",
+          "theme": "career",
+          "narrative": "You're in the middle of building something real. The question is no longer whether you can do this — it's whether this is what you want to keep doing.",
+          "choice_a": {
+            "label": "Double down — this is your decade and you're not done",
+            "consequence": "The recommitment brought clarity. You're not drifting. You're building."
+          },
+          "choice_b": {
+            "label": "Start exploring what else is possible — while you still have the energy",
+            "consequence": "The exploration unsettled things productively. You're not sure yet where it leads but you're more honest about what you want."
+          }
+        },
+        {
+          "id": "age_31_health",
+          "theme": "health",
+          "narrative": "Your annual health review reveals something that's been creeping up — not dramatic, but worth addressing. Small signals matter more at 31 than they did at 23.",
+          "choice_a": {
+            "label": "Address it now — small things caught early are manageable",
+            "consequence": "Catching it early made the intervention simple. You're glad you paid attention."
+          },
+          "choice_b": {
+            "label": "Monitor it — I don't want to overreact",
+            "consequence": "You're monitoring. The thing you noticed is still there. The line between prudent watching and avoidance is worth examining."
+          }
+        },
+        {
+          "id": "age_31_relationship",
+          "theme": "relationships",
+          "narrative": "The life structure you've built — with someone or independently — is being stress-tested by the demands of your thirties. How you navigate this shapes the decade.",
+          "choice_a": {
+            "label": "Invest in the relationship infrastructure — it requires active maintenance",
+            "consequence": "The investment paid off. The relationship is a source of support rather than another demand."
+          },
+          "choice_b": {
+            "label": "Trust that the foundation is strong enough to hold",
+            "consequence": "The foundation held — or it revealed it was less solid than you thought. Either way you know now."
+          },
+          "hidden_if_relationship_disabled": true
+        }
+      ],
+      "health_sidebar": {
+        "default": {
+          "headline": "Annual health review at 31 — what to include",
+          "body": "From your early thirties, annual health reviews should consistently include: cervical screening if due, full blood count including ferritin, thyroid function, fasting glucose and blood pressure, and a pelvic ultrasound every 2 to 3 years or sooner if symptomatic. These together give you a longitudinal picture — each result more meaningful than the last.",
+          "action": "Ensure your annual review covers: blood pressure, fasting glucose, thyroid, ferritin, and cervical screening schedule. These are your core monitoring markers from 30 onward."
+        },
+        "pcos": {
+          "headline": "PCOS at 31 — is your management keeping pace with your life?",
+          "body": "Since you have PCOS, lifestyle changes in your early thirties — changes in diet, activity, stress, or weight — affect your metabolic markers. Management that was optimal at 28 may need adjustment now. Annual reviews that compare your current metabolic picture against your baseline catch drift early.",
+          "action": "Bring your previous metabolic results to your next annual review and ask for a year-on-year comparison. Trends matter more than individual readings."
+        },
+        "pcod": {
+          "headline": "PCOD at 31 — stability or change?",
+          "body": "Since you have PCOD, an ultrasound comparison against your baseline at this age tells you whether your condition is stable or has evolved. PCOD in the thirties often stabilises with established lifestyle management — confirming that stability is reassuring and clinically useful.",
+          "action": "Request an ultrasound comparison against your earliest imaging. Confirmed stability is a useful clinical data point."
+        },
+        "endometriosis": {
+          "headline": "Endometriosis at 31 — managing the full impact",
+          "body": "Since you have endometriosis, the physical, mental health, and career impact of the condition should all be part of your management conversation at 31. If any dimension is not well-managed — pain, fatigue, mental health, or the practical impact on your work — that dimension deserves specific attention.",
+          "action": "Rate each dimension of your endometriosis impact out of 10: pain, fatigue, mental health, work impact. Bring those ratings to your next specialist appointment."
+        },
+        "fibroids": {
+          "headline": "Fibroids at 31 — growth monitoring and planning",
+          "body": "Since you have fibroids, your thirties are when fibroid growth is typically most active. Regular monitoring — ultrasound every 12 to 18 months — gives you a growth trajectory. If growth is rapid or symptoms are worsening, treatment before fibroids become very large is generally simpler.",
+          "action": "Ensure you have an ultrasound scheduled within the next 12 months. Ask your doctor about your fibroid's growth rate based on your imaging history."
+        },
+        "thyroid": {
+          "headline": "Thyroid at 31 — annual monitoring is non-negotiable",
+          "body": "Since you have a thyroid condition, annual TSH monitoring from your early thirties is the consistent standard. If you've missed an annual check, book one now. Thyroid function can shift in ways that don't register acutely until the drift is significant.",
+          "action": "If it's been more than 12 months since your last thyroid check, book one now rather than waiting for your next scheduled appointment."
+        },
+        "iron_deficiency": {
+          "headline": "Iron deficiency at 31 — the chronic management approach",
+          "body": "Since you have iron deficiency, by 31 it is likely a long-term management situation rather than a short-term correction. Establishing a sustainable approach — dietary, supplementation, and treating the source if heavy bleeding is the driver — is more useful than continuing to react to low levels.",
+          "action": "Ask your GP for a long-term iron management plan appropriate for your thirties — one that doesn't require you to react to results each year."
+        },
+        "calcium_vitamin_d": {
+          "headline": "Calcium and Vitamin D at 31 — consistent maintenance",
+          "body": "Since you have calcium or Vitamin D deficiency, consistent maintenance of adequate levels through your thirties protects bone density through the hormonal changes of perimenopause. Annual testing is your early warning system.",
+          "action": "Confirm your annual Vitamin D test is scheduled. If levels have dropped below the adequate range, discuss whether your supplement dose needs adjusting."
+        }
+      },
+      "track_prompt": null,
+      "next_age": 32
+    },
+
+    "age_32": {
+      "decisions": [
+        {
+          "id": "age_32_career",
+          "theme": "career",
+          "narrative": "You've arrived at a level of capability and reputation that opens doors. The question is which doors to walk through — and which to close intentionally.",
+          "choice_a": {
+            "label": "Focus — close some doors to go deeper through the right ones",
+            "consequence": "The focus has accelerated things in a way that trying to do everything never could. You know what you're for."
+          },
+          "choice_b": {
+            "label": "Keep multiple options open — optionality has value",
+            "consequence": "You've maintained flexibility. Some opportunities required it. Some were just distraction. Telling the difference is the skill you're developing."
+          }
+        },
+        {
+          "id": "age_32_health",
+          "theme": "health",
+          "narrative": "Hormonal changes in your early thirties are subtle but real. Some women start noticing shifts — in energy, in cycle patterns, in skin — that don't have an obvious explanation.",
+          "choice_a": {
+            "label": "Investigate changes proactively — I'd rather know",
+            "consequence": "Investigating gave you answers — some expected, some not. The ones you didn't expect were the most useful."
+          },
+          "choice_b": {
+            "label": "These are probably just part of getting older",
+            "consequence": "You've normalised the changes. Some of them probably are normal. Some of them might be worth knowing about."
+          }
+        },
+        {
+          "id": "age_32_relationship",
+          "theme": "relationships",
+          "narrative": "The relationships that have lasted to 32 have done so because they've adapted. The ones that haven't have taught you something. Either way you know yourself better than you did at 25.",
+          "choice_a": {
+            "label": "Invest in deepening the relationships that matter most",
+            "consequence": "The depth you've built is a genuine asset — to your wellbeing and to the people you've invested in."
+          },
+          "choice_b": {
+            "label": "Some relationships have run their course — let them go with grace",
+            "consequence": "Releasing what's run its course made room for what's more aligned with who you are now."
+          },
+          "hidden_if_relationship_disabled": true
+        }
+      ],
+      "health_sidebar": {
+        "default": {
+          "headline": "Hormonal shifts in your early thirties — what's normal and what's not",
+          "body": "Subtle hormonal shifts begin in the early thirties — changes in cycle length, PMS symptoms, or energy that don't have an obvious lifestyle explanation. These are often perimenopause precursors that begin a decade or more before menopause. Baseline hormonal testing at 32 gives you a reference point for the changes ahead.",
+          "action": "If you've noticed cycle changes, new PMS symptoms, or energy shifts without a lifestyle explanation, ask for a hormonal panel including FSH, LH, estradiol, and AMH."
+        },
+        "pcos": {
+          "headline": "PCOS at 32 — metabolic risk management in your thirties",
+          "body": "Since you have PCOS, your thirties are the decade where proactive metabolic management has the highest return. Insulin resistance that is well-managed now significantly reduces your Type 2 diabetes and cardiovascular risk in your forties and fifties. This is the decade where it matters most.",
+          "action": "Ask your endocrinologist for a metabolic risk assessment at 32 — not just monitoring, but an assessment of your 10-year cardiovascular and diabetes risk and what to do about it."
+        },
+        "pcod": {
+          "headline": "PCOD at 32 — long-term stability assessment",
+          "body": "Since you have PCOD, by 32 most women with PCOD have a relatively stable picture if they've maintained lifestyle management. Confirming stability at this age — through imaging and hormonal panel — is reassuring and provides useful longitudinal data for your ongoing care.",
+          "action": "Request a stability assessment at 32 — imaging and hormonal comparison against your earliest baseline — to confirm your condition is well-managed."
+        },
+        "endometriosis": {
+          "headline": "Endometriosis at 32 — surgical options review",
+          "body": "Since you have endometriosis, by 32 it may be appropriate to review whether any surgical intervention is warranted — either for symptom management, ovarian cyst treatment, or fertility-related reasons. The timing of surgery relative to other life plans matters and is worth a detailed specialist conversation.",
+          "action": "Ask your specialist specifically: given my current symptom picture and life plans, is there a surgical option worth considering now or in the near future?"
+        },
+        "fibroids": {
+          "headline": "Fibroids at 32 — active management decision",
+          "body": "Since you have fibroids, your early thirties are when fibroids are often most symptomatic. If you've been monitoring and symptoms are significantly affecting your quality of life, the calculus between ongoing monitoring and active treatment has likely shifted toward treatment being appropriate.",
+          "action": "Request a treatment options review rather than another monitoring appointment if your symptoms are significantly affecting your quality of life."
+        },
+        "thyroid": {
+          "headline": "Thyroid health at 32 — connected to the decade ahead",
+          "body": "Since you have a thyroid condition, thyroid function affects bone density and cardiovascular health in measurable ways through your thirties. Optimal management — not just within-range management — protects these systems through the hormonal changes of your forties.",
+          "action": "Ask your doctor to review whether your current thyroid management is optimal for long-term bone and cardiovascular health, not just TSH normalisation."
+        },
+        "iron_deficiency": {
+          "headline": "Iron deficiency at 32 — addressing the source",
+          "body": "Since you have iron deficiency, if heavy menstrual bleeding is the underlying cause and you haven't addressed it directly, your thirties are the right time. Treatment options for heavy bleeding — hormonal, surgical, non-surgical — are well-established and can significantly improve your quality of life and iron status simultaneously.",
+          "action": "If heavy periods are your iron deficiency driver and you haven't treated the bleeding directly, ask your GP for a treatment options review."
+        },
+        "calcium_vitamin_d": {
+          "headline": "Calcium and Vitamin D at 32 — protecting bone density through your thirties",
+          "body": "Since you have calcium or Vitamin D deficiency, maintaining adequate levels through your thirties protects bone density against the accelerated loss that occurs in perimenopause. The habits established now are your buffer against osteoporosis.",
+          "action": "Annual Vitamin D testing and consistent calcium intake are your maintenance requirements from 32 onward. Confirm both are in place at your annual review."
+        }
+      },
+      "track_prompt": {
+        "track_id": "family_planning",
+        "bracket": "32-35",
+        "prompt": "At 32, family planning decisions have a specific urgency for women who want children — natural conception rates shift meaningfully through this decade. Want honest information about what the options look like at this stage?",
+        "yes_leads_to": "track_family_planning_32_35",
+        "no_leads_to": "age_33"
+      },
+      "next_age": 33
+    },
+
+    "age_33": {
+      "decisions": [
+        {
+          "id": "age_33_career",
+          "theme": "career",
+          "narrative": "Your career has its own momentum now. The question is whether that momentum is taking you where you want to go — or just carrying you forward.",
+          "choice_a": {
+            "label": "Steer actively — the momentum is yours to direct",
+            "consequence": "Active steering felt uncomfortable at first — like disrupting something that was working. Then it became the most important thing you'd done in years."
+          },
+          "choice_b": {
+            "label": "Trust the momentum — you've built well",
+            "consequence": "The momentum carried you. Whether to where you wanted to go is something only time will fully answer."
+          }
+        },
+        {
+          "id": "age_33_health",
+          "theme": "health",
+          "narrative": "A comprehensive health picture at 33 looks different from the one at 25. You have history now — patterns visible across years rather than months.",
+          "choice_a": {
+            "label": "Review the longitudinal picture — what do the patterns show?",
+            "consequence": "The patterns were more informative than individual data points ever were. You know your body's tendencies now."
+          },
+          "choice_b": {
+            "label": "If nothing acute is happening, I don't need to look too closely",
+            "consequence": "Nothing acute is happening. The patterns are still there, unexamined."
+          }
+        },
+        {
+          "id": "age_33_relationship",
+          "theme": "relationships",
+          "narrative": "The relationships you've built by 33 are largely the ones you'll have for the long term. Tending them intentionally is different from the reactive relationship management of your twenties.",
+          "choice_a": {
+            "label": "Tend them actively — good relationships require maintenance",
+            "consequence": "The intentional tending paid off. The relationships are a genuine source of strength."
+          },
+          "choice_b": {
+            "label": "The good ones sustain themselves",
+            "consequence": "Some do. Some needed more than you gave them. You've learned to tell the difference."
+          },
+          "hidden_if_relationship_disabled": true
+        }
+      ],
+      "health_sidebar": {
+        "default": {
+          "headline": "Longitudinal health patterns at 33 — what years of data show",
+          "body": "By 33 you have enough health history to see patterns that single appointments can't. Trends in ferritin, thyroid, blood pressure, weight, and cycle patterns over years are more clinically meaningful than any individual result. A clinician who reviews your longitudinal picture — not just your most recent numbers — is giving you genuinely better care.",
+          "action": "Ask your GP to pull your results from the last 5 years and review them longitudinally. Ask: what patterns do you see, and what do they suggest about my health trajectory?"
+        },
+        "pcos": {
+          "headline": "PCOS at 33 — a decade of management, what have you learned?",
+          "body": "Since you have PCOS, by 33 you have enough management history to assess what has and hasn't worked. A reflective review with your specialist — what interventions have been most effective, what your metabolic trajectory looks like, what the next decade of management should prioritise — is valuable at this stage.",
+          "action": "Ask your specialist for a reflective management review: what has worked, what hasn't, and what should the focus be for the next 10 years?"
+        },
+        "pcod": {
+          "headline": "PCOD at 33 — stable management confirmation",
+          "body": "Since you have PCOD, confirming stable management at 33 — through comparison imaging and hormonal panel — provides reassurance and useful longitudinal data. If symptoms have changed, this is also the time to reassess the management approach.",
+          "action": "Request a longitudinal comparison at your next review — current imaging and hormonal results against your earliest baseline."
+        },
+        "endometriosis": {
+          "headline": "Endometriosis at 33 — quality of life over the long term",
+          "body": "Since you have endometriosis, by 33 the cumulative impact on quality of life — pain burden, mental health, career impact — is worth assessing comprehensively. If any dimension is not well-managed, specific interventions exist. Accepting ongoing significant quality of life impact is not the standard of care.",
+          "action": "Complete a comprehensive quality of life assessment for your endometriosis and bring it to your specialist. If any dimension is significantly impacted, ask what specific intervention addresses it."
+        },
+        "fibroids": {
+          "headline": "Fibroids at 33 — the treatment window",
+          "body": "Since you have fibroids, your early thirties are often the most appropriate treatment window if symptoms warrant it. Treatment before fibroids become very large is generally simpler with faster recovery. If you've been monitoring while symptoms worsen, this is the year to have the definitive treatment conversation.",
+          "action": "If your symptoms have worsened over the last 2 years, ask for a definitive treatment options review rather than continued monitoring."
+        },
+        "thyroid": {
+          "headline": "Thyroid at 33 — connected to perimenopause ahead",
+          "body": "Since you have a thyroid condition, thyroid management becomes more complex through perimenopause — typically beginning in the mid-to-late forties. Establishing optimal management in your thirties, before those hormonal changes begin, is the most effective preparation.",
+          "action": "Ask your doctor specifically: how should my thyroid management evolve as I approach perimenopause, and what should I be monitoring more closely from my mid-thirties?"
+        },
+        "iron_deficiency": {
+          "headline": "Iron deficiency at 33 — sustainable management into perimenopause",
+          "body": "Since you have iron deficiency, menstrual blood loss typically increases in the perimenopause transition. Establishing sustainable iron management now — before that transition — means you're not starting from a deficit when blood loss potentially increases.",
+          "action": "Ask your GP: how do we ensure my iron management is sustainable through the hormonal changes of my late thirties and early forties?"
+        },
+        "calcium_vitamin_d": {
+          "headline": "Calcium and Vitamin D at 33 — the perimenopause preparation window",
+          "body": "Since you have calcium or Vitamin D deficiency, adequate Vitamin D and calcium levels in your thirties meaningfully buffer against the accelerated bone loss that accompanies declining estrogen in perimenopause. This decade of maintenance has a payoff in your fifties and sixties.",
+          "action": "Confirm your annual Vitamin D test and calcium intake are consistent. Ask your GP how your current approach prepares you for the bone density changes of perimenopause."
+        }
+      },
+      "track_prompt": null,
+      "next_age": 34
+    },
+
+    "age_34": {
+      "decisions": [
+        {
+          "id": "age_34_career",
+          "theme": "career",
+          "narrative": "At 34 your professional identity is largely established — but that doesn't mean it's fixed. The question is what you want the next chapter to look like, and whether you have the courage to ask for it.",
+          "choice_a": {
+            "label": "Ask for what I want — negotiate the career I actually want",
+            "consequence": "Asking for it was harder than you expected. So was the yes. Both were worth it."
+          },
+          "choice_b": {
+            "label": "Build toward it — demonstrate the value first",
+            "consequence": "You're building the case. It's taking longer than asking would have. The case is getting stronger."
+          }
+        },
+        {
+          "id": "age_34_health",
+          "theme": "health",
+          "narrative": "Preventive care at 34 is less about catching things early and more about maintaining the systems you've built. The habits are largely set. The question is whether they're the right ones.",
+          "choice_a": {
+            "label": "Review and optimise — are my health habits still the right ones at 34?",
+            "consequence": "The review revealed two things that needed updating. Small adjustments. Meaningful difference."
+          },
+          "choice_b": {
+            "label": "If it's working, don't change it",
+            "consequence": "Consistency has value. The habits are holding. Whether they're optimal is a question you haven't asked."
+          }
+        },
+        {
+          "id": "age_34_relationship",
+          "theme": "relationships",
+          "narrative": "The life you've built by 34 reflects your choices — including your relationship choices. You know what you value and what you won't compromise on.",
+          "choice_a": {
+            "label": "Keep investing in the relationships that reflect my values",
+            "consequence": "The investments compound. The relationships at 34 are among the most meaningful things in your life."
+          },
+          "choice_b": {
+            "label": "Some things don't need tending — they just are",
+            "consequence": "The ones that just are — they're still there. The others have quietly receded."
+          },
+          "hidden_if_relationship_disabled": true
+        }
+      ],
+      "health_sidebar": {
+        "default": {
+          "headline": "Preventive care at 34 — maintaining the systems",
+          "body": "At 34 the focus of health care shifts from building to maintaining. Annual reviews, consistent monitoring of the markers you've been tracking, and staying ahead of the hormonal shifts that begin in the mid-to-late thirties are the priorities. The women who navigate perimenopause most effectively are the ones who weren't surprised by it.",
+          "action": "Confirm all your annual health monitoring markers are in your calendar and that your GP has a longitudinal picture of your health — not just your most recent results."
+        },
+        "pcos": {
+          "headline": "PCOS at 34 — preparing for perimenopause transition",
+          "body": "Since you have PCOS, approaching the perimenopause transition with PCOS requires specific preparation. Hormonal changes in perimenopause interact with PCOS in complex ways — some symptoms improve, some worsen. Discussing this with your endocrinologist before the transition begins is more useful than responding to it afterward.",
+          "action": "Ask your endocrinologist specifically: how will perimenopause interact with my PCOS, and what should I be monitoring and adjusting from my mid-thirties?"
+        },
+        "pcod": {
+          "headline": "PCOD at 34 — approaching the transition",
+          "body": "Since you have PCOD, hormonal changes in perimenopause may affect your condition differently than they affect women without it. Understanding what to expect and what to monitor is valuable preparation for a transition that typically begins in the mid-to-late forties.",
+          "action": "Ask your GP or specialist: how should I expect PCOD to interact with perimenopause, and what monitoring should I add from my mid-thirties?"
+        },
+        "endometriosis": {
+          "headline": "Endometriosis at 34 — perimenopause and symptom changes",
+          "body": "Since you have endometriosis, perimenopause typically brings symptom changes — sometimes improvement as estrogen declines, sometimes new patterns. Understanding what to expect allows you to distinguish expected changes from new developments worth investigating.",
+          "action": "Ask your endometriosis specialist: what symptom changes should I expect as I approach perimenopause, and what would warrant urgent attention versus watchful waiting?"
+        },
+        "fibroids": {
+          "headline": "Fibroids at 34 — the treatment window may be closing",
+          "body": "Since you have fibroids, treatment before 35 is generally simpler with better recovery. If you've been monitoring symptomatic fibroids without treatment, 34 to 35 is the year to make a definitive decision rather than continue deferring.",
+          "action": "If you have symptomatic fibroids and haven't made a treatment decision, book a definitive treatment consultation this year. Deferring past 35 doesn't make the decision easier."
+        },
+        "thyroid": {
+          "headline": "Thyroid at 34 — pre-perimenopause optimisation",
+          "body": "Since you have a thyroid condition, optimising your thyroid management before perimenopause begins is significantly easier than adjusting during it. Perimenopause brings its own symptom complexity — fatigue, mood changes, weight shifts — that overlap with thyroid symptoms. A clear thyroid baseline in your mid-thirties makes that future picture more readable.",
+          "action": "Ask your doctor to establish an optimal thyroid management baseline before your mid-thirties — one that will give you a clear reference point when perimenopause symptoms begin."
+        },
+        "iron_deficiency": {
+          "headline": "Iron deficiency at 34 — the perimenopause transition ahead",
+          "body": "Since you have iron deficiency, the perimenopause transition can bring changes in menstrual pattern — sometimes heavier periods before they eventually cease. Sustainable iron management going into your late thirties means you're not starting the transition with depleted reserves.",
+          "action": "Confirm your iron management approach is sustainable long-term and discuss with your GP what adjustments may be needed as your menstrual pattern changes in your late thirties and forties."
+        },
+        "calcium_vitamin_d": {
+          "headline": "Calcium and Vitamin D at 34 — preparing for accelerated bone loss",
+          "body": "Since you have calcium or Vitamin D deficiency, the accelerated bone loss that accompanies declining estrogen in perimenopause makes adequate calcium and Vitamin D in your thirties directly protective. The buffer you build now reduces the magnitude of that loss.",
+          "action": "Confirm adequate Vitamin D and calcium levels at your annual review. Ask your GP: am I in the optimal range for protecting bone density through the perimenopause transition?"
+        }
+      },
+      "track_prompt": {
+        "track_id": "family_planning",
+        "bracket": "32-35",
+        "prompt": "For women who want children, 34 to 35 is a significant decision point. Want honest, non-alarming information about what the options look like at this stage — including assisted reproduction?",
+        "yes_leads_to": "track_family_planning_32_35",
+        "no_leads_to": "age_35"
+      },
+      "next_age": 35
+    },
+
+    "age_35": {
+      "decisions": [
+        {
+          "id": "age_35_career",
+          "theme": "career",
+          "narrative": "Lea is fully grown now — steady beside you. You're 35. You've built something real. The question isn't what comes next. It's what you want the rest of your working life to be for.",
+          "choice_a": {
+            "label": "Scale what I've built — take it further than I imagined at 22",
+            "consequence": "You're taking it further. The 22-year-old version of you would be surprised. The 35-year-old version of you finds that unremarkable — which is its own kind of achievement."
+          },
+          "choice_b": {
+            "label": "Reorient — I want the second half of my career to mean something different",
+            "consequence": "The reorientation is underway. It's slower than a fresh start and more considered. That's appropriate."
+          }
+        },
+        {
+          "id": "age_35_health",
+          "theme": "health",
+          "narrative": "A comprehensive health review at 35 is both a milestone and a reference point. Everything you've learned about your body in the last 14 years comes together here.",
+          "choice_a": {
+            "label": "Make it comprehensive — this is the baseline for the next chapter",
+            "consequence": "The comprehensive picture was the most useful health information you'd ever had. You entered the next chapter knowing where you stood."
+          },
+          "choice_b": {
+            "label": "Annual checkup is enough — I don't need a full audit",
+            "consequence": "You've maintained the annual habit. The full picture remains partial. For now that's your choice."
+          }
+        },
+        {
+          "id": "age_35_relationship",
+          "theme": "relationships",
+          "narrative": "At 35, the relationships you've chosen — and the ones you've let go — reflect who you are. The question now is how to tend what matters most.",
+          "choice_a": {
+            "label": "Invest deeply in the few relationships that are genuinely central",
+            "consequence": "Deep investment in a few is a different strategy from broad investment in many. It's the right one for where you are."
+          },
+          "choice_b": {
+            "label": "Keep the breadth — I value the diversity of my relationships",
+            "consequence": "The breadth is a genuine asset. Different people bring different things. You've learned to distinguish the nourishing from the depleting."
+          },
+          "hidden_if_relationship_disabled": true
+        }
+      ],
+      "health_sidebar": {
+        "default": {
+          "headline": "35 — the baseline for the next chapter",
+          "body": "A comprehensive health review at 35 covers your full hormonal panel, AMH, thyroid, iron, Vitamin D, fasting glucose, blood pressure, pelvic ultrasound, cervical screening if due, and a bone density discussion. This is the reference point for everything that follows. At 35 you have enough health history for these results to be genuinely interpretable.",
+          "action": "Book a comprehensive 35-year health review. Ask your GP to look at your longitudinal data — the last 5 to 10 years of results — alongside your current ones. Trends matter as much as numbers."
+        },
+        "pcos": {
+          "headline": "PCOS at 35 — the decade of highest metabolic relevance",
+          "body": "Since you have PCOS, 35 to 45 is the decade when proactive metabolic management has the highest long-term impact. Women with PCOS who maintain good metabolic control through this decade have significantly better cardiovascular and metabolic outcomes in their fifties and sixties.",
+          "action": "Ask your endocrinologist for a 35-year PCOS review that includes your 10-year metabolic risk assessment and a clear management strategy for the decade ahead."
+        },
+        "pcod": {
+          "headline": "PCOD at 35 — long-term stability and the decade ahead",
+          "body": "Since you have PCOD, at 35 confirming long-term stability and planning for the hormonal changes of the late thirties and forties is the appropriate focus. A comprehensive review at this milestone gives you a clear picture going into the second half of your reproductive years.",
+          "action": "Request a comprehensive PCOD review at 35 — longitudinal comparison and forward-looking management plan for your late thirties and forties."
+        },
+        "endometriosis": {
+          "headline": "Endometriosis at 35 — managing through the perimenopause transition",
+          "body": "Since you have endometriosis, 35 is an appropriate age for a forward-looking specialist review that addresses what the perimenopause transition means for your specific condition. For many women, endometriosis symptoms improve as estrogen declines — but the transition itself can be complex.",
+          "action": "Ask your endometriosis specialist for a forward-looking review that specifically addresses the perimenopause transition and what to expect for your condition."
+        },
+        "fibroids": {
+          "headline": "Fibroids at 35 — the natural trajectory",
+          "body": "Since you have fibroids, the natural trajectory from 35 onward is toward stabilisation and eventual shrinkage after menopause as estrogen declines. If you've been managing symptomatic fibroids through your thirties, the approach may appropriately shift toward managing symptoms through perimenopause rather than intervention.",
+          "action": "Ask your gynaecologist: given my fibroids' history and current status, what is the management approach through perimenopause and what should I watch for?"
+        },
+        "thyroid": {
+          "headline": "Thyroid health at 35 — the foundation for the decade ahead",
+          "body": "Since you have a thyroid condition, optimal thyroid management at 35 is the foundation for managing perimenopause well. The symptom overlap between suboptimal thyroid function and perimenopause — fatigue, weight, mood, sleep — makes a clear thyroid baseline at this age essential for the decade ahead.",
+          "action": "Establish a comprehensive thyroid baseline at 35 — Free T3, Free T4, TSH, and antibodies — that will serve as your reference point through the perimenopause transition."
+        },
+        "iron_deficiency": {
+          "headline": "Iron deficiency at 35 — sustainable management through the transition",
+          "body": "Since you have iron deficiency, iron needs typically stabilise and eventually decrease as menstrual loss reduces through perimenopause and menopause. Establishing a sustainable management approach at 35 means you're well-positioned for that transition.",
+          "action": "Ask your GP: what does iron management look like through perimenopause for someone with my history? How do we plan for the changing menstrual pattern ahead?"
+        },
+        "calcium_vitamin_d": {
+          "headline": "Calcium and Vitamin D at 35 — the most critical maintenance decade",
+          "body": "Since you have calcium or Vitamin D deficiency, 35 to 50 is the most critical decade for maintaining bone density. The accelerated bone loss that accompanies declining estrogen in perimenopause makes consistent calcium and Vitamin D maintenance from 35 onward the most impactful bone health intervention available.",
+          "action": "Confirm adequate Vitamin D and calcium levels at your 35-year review. Ask your GP: is my current approach adequate to protect bone density through perimenopause?"
+        }
+      },
+      "track_prompt": {
+        "track_id": "family_planning",
+        "bracket": "32-35",
+        "prompt": "At 35, women who want children often want honest information about their options — natural conception, IVF, egg donation, adoption are all real paths. Want a clear, non-alarmist picture of what's available?",
+        "yes_leads_to": "track_family_planning_32_35",
+        "no_leads_to": "end_screen"
+      },
+      "next_age": null
+    }
+  },
+
+  "tracks": {
+    "track_family_planning_21_23": {
+      "id": "track_family_planning_21_23",
+      "title": "Family Planning — Early Awareness",
+      "bracket": "21-23",
+      "framing": "At 21 to 23, family planning is about awareness and options — not urgency. This is the lowest-pressure window to understand what exists.",
+      "stages": [
+        {
+          "id": "fp_early_1",
+          "career_moment": {
+            "narrative": "Family planning at 21 is less about decisions and more about knowing what's out there. The women who navigate this best later in life are usually the ones who understood their options early — without pressure.",
+            "choice_a": {
+              "label": "Tell me what reproductive health options exist at my age",
+              "consequence": "You have a map now. Not a plan — a map. That's exactly what this stage requires."
+            },
+            "choice_b": {
+              "label": "Tell me what I should know about my fertility health at 21",
+              "consequence": "You understand what your body is doing and what to pay attention to. That's genuinely useful regardless of what you decide later."
+            }
+          },
+          "health_sidebar": {
+            "default": {
+              "headline": "What family planning actually means at 21",
+              "body": "Family planning at 21 means understanding your options — contraception, fertility awareness, the things worth monitoring for your long-term health. It doesn't mean making decisions about children. Most women in their early twenties are in their most fertile years and have significant time for any path they choose.",
+              "action": "The most useful thing at 21 is establishing your health baseline — knowing your cycle, understanding your body, and having a GP you trust. That foundation serves every path."
+            },
+            "pcos": {
+              "headline": "Family planning with PCOS at 21 — what to know early",
+              "body": "Since you have PCOS, understanding how it affects fertility is useful information even at 21 — not because decisions are urgent, but because knowledge reduces anxiety later. PCOS is a very treatable cause of ovulation-related fertility challenges. Most women with PCOS who want children conceive, often with some clinical support.",
+              "action": "Ask your GP or gynaecologist to explain what trying to conceive with PCOS would look like — not as an immediate plan, but as useful information for your future self."
+            },
+            "endometriosis": {
+              "headline": "Family planning with endometriosis at 21",
+              "body": "Since you have endometriosis, understanding the fertility implications of your condition early — before they become urgent — is one of the most useful things you can do. Not all women with endometriosis have fertility challenges, but knowing your specific picture early gives you options.",
+              "action": "Ask your endometriosis specialist about your current fertility picture — ovarian reserve, tube health — as informational context, not as a decision you need to make now."
+            }
+          },
+          "next_stage": null,
+          "returns_to": "current_age_plus_one"
+        }
+      ]
+    },
+
+    "track_family_planning_24_27": {
+      "id": "track_family_planning_24_27",
+      "title": "Family Planning — Active Consideration",
+      "bracket": "24-27",
+      "framing": "At 24 to 27, family planning becomes an active consideration for many women — understanding timelines, pre-conception health, and how planning fits with career.",
+      "stages": [
+        {
+          "id": "fp_mid_1",
+          "career_moment": {
+            "narrative": "You're in a window where family planning — whatever direction it goes — benefits from having real information. Not the fear-based version. The actual clinical picture.",
+            "choice_a": {
+              "label": "Tell me what the actual fertility timeline looks like at my age",
+              "consequence": "The actual data is more reassuring than the narrative suggests. You have time — and you know what affects that time."
+            },
+            "choice_b": {
+              "label": "Tell me what pre-conception health looks like if I want children someday",
+              "consequence": "Pre-conception health is simpler than you expected. Folic acid, a baseline checkup, knowing your cycle. The groundwork is manageable."
+            }
+          },
+          "health_sidebar": {
+            "default": {
+              "headline": "The fertility timeline at 24 to 27 — what the data actually says",
+              "body": "At 24 to 27 you are in a strong biological window. Most women who want children and begin trying before 32 conceive within 12 months. The narrative of urgency at this age is not supported by clinical evidence. What does matter: knowing your AMH as a baseline, understanding your cycle, and managing any conditions that affect ovulation.",
+              "action": "If you want a baseline data point, an AMH test is available privately in Singapore for SGD 80 to 150. It's informational — not predictive of whether you'll conceive."
+            },
+            "pcos": {
+              "headline": "Fertility with PCOS at 24 to 27",
+              "body": "Since you have PCOS, the good news is that PCOS-related ovulation challenges are among the most treatable fertility presentations. Ovulation induction — typically first with Letrozole — has a high success rate. Most women with PCOS who want children do not require IVF.",
+              "action": "Ask your GP or gynaecologist about ovulation induction options — not as something you need now, but so you know the pathway when you do."
+            },
+            "endometriosis": {
+              "headline": "Fertility with endometriosis at 24 to 27",
+              "body": "Since you have endometriosis, the fertility implications depend significantly on severity and location. Many women with endometriosis conceive naturally. Others benefit from early specialist involvement. The most useful thing at this stage is knowing your specific picture — ovarian reserve, tube health — from a specialist.",
+              "action": "Ask your endometriosis specialist specifically about your fertility picture at your next review. The answer is more nuanced than the general statistics suggest."
+            }
+          },
+          "next_stage": "fp_mid_2"
+        },
+        {
+          "id": "fp_mid_2",
+          "career_moment": {
+            "narrative": "Career and family planning are not in opposition — they're in conversation. The women who navigate this most successfully are the ones who understand both sides of the conversation.",
+            "choice_a": {
+              "label": "Tell me how pregnancy fits practically with a career at this stage",
+              "consequence": "The practical picture is more plannable than the silence around it suggests. Maternity leave, career timing, employer conversations — these are all navigable."
+            },
+            "choice_b": {
+              "label": "Tell me about fertility preservation options if I want to delay",
+              "consequence": "Egg freezing at 24 to 27 has the best success rates of any window. You understand what's involved now — and whether it fits your situation."
+            }
+          },
+          "health_sidebar": {
+            "default": {
+              "headline": "Singapore maternity leave and career timing",
+              "body": "Government-paid maternity leave in Singapore is 16 weeks for Singapore citizen children. Many companies offer additional weeks. Shared Parental Leave allows partners to share some of that leave. Timing a pregnancy around a promotion cycle or major project is something women plan deliberately and successfully — it is plannable.",
+              "action": "Find your company's maternity leave policy in your employment contract or HR handbook. Knowing your entitlements before you need them is part of planning."
+            },
+            "pcos": {
+              "headline": "Fertility preservation with PCOS at 24 to 27",
+              "body": "Since you have PCOS, egg freezing is an option — though your response to stimulation may be stronger than average, requiring careful monitoring for OHSS. Your elevated AMH does not mean egg freezing is more or less beneficial than for women without PCOS — it means the process requires PCOS-specific expertise.",
+              "action": "If considering egg freezing, consult a clinic experienced in PCOS management specifically. Ask about their OHSS monitoring protocol."
+            },
+            "endometriosis": {
+              "headline": "Fertility preservation with endometriosis at 24 to 27",
+              "body": "Since you have endometriosis, egg freezing in your mid-twenties may be particularly valuable if your condition carries a risk of ovarian reserve reduction over time. A specialist assessment of your ovarian reserve and the trajectory of your condition informs whether and when fertility preservation is advisable.",
+              "action": "Ask your endometriosis specialist: given my specific condition and ovarian reserve, is fertility preservation something I should consider, and when would be optimal?"
+            }
+          },
+          "next_stage": null,
+          "returns_to": "current_age_plus_one"
+        }
+      ]
+    },
+
+    "track_family_planning_28_31": {
+      "id": "track_family_planning_28_31",
+      "title": "Family Planning — Decision Window",
+      "bracket": "28-31",
+      "framing": "At 28 to 31, family planning decisions — trying to conceive, fertility preservation, or making a definitive choice not to — are most commonly made. Real information supports real decisions.",
+      "stages": [
+        {
+          "id": "fp_decision_1",
+          "career_moment": {
+            "narrative": "This is the window where the decision — whatever it is — benefits from being made with real information rather than assumptions, anxiety, or avoidance.",
+            "choice_a": {
+              "label": "I want to understand what trying to conceive looks like at this age",
+              "consequence": "The picture is clearer than you expected. The timeline is realistic. The options, if natural conception needs support, are well-established."
+            },
+            "choice_b": {
+              "label": "I want to understand egg freezing in detail — process, costs, realistic outcomes",
+              "consequence": "You understand what egg freezing actually involves. The process is more routine than the language around it suggests. The costs are real. The success rates are honest."
+            }
+          },
+          "health_sidebar": {
+            "default": {
+              "headline": "Trying to conceive at 28 to 31 — the realistic picture",
+              "body": "Natural conception rates at 28 to 31 remain strong — roughly 80 to 85 percent of women who try for 12 months will conceive. The decline in fertility is gradual through the twenties and becomes more notable from the mid-thirties. Most women in this window who want children and try have a good statistical chance of natural conception.",
+              "action": "A pre-conception checkup 3 to 6 months before trying covers: folic acid, rubella immunity, cycle health, any condition management, and baseline bloodwork. Book this before you need it."
+            },
+            "pcos": {
+              "headline": "Trying to conceive with PCOS at 28 to 31",
+              "body": "Since you have PCOS, the most common first-line intervention for ovulation-related fertility challenges is Letrozole — an oral medication with a high success rate. Most women with PCOS who want to conceive at this age do so within 2 to 3 treatment cycles. IVF is a later step, not the first one.",
+              "action": "Book a pre-conception consultation with a gynaecologist who specialises in PCOS. Ask to discuss the ovulation induction pathway before you start trying, so you know what the support options are."
+            },
+            "endometriosis": {
+              "headline": "Trying to conceive with endometriosis at 28 to 31",
+              "body": "Since you have endometriosis, your fertility picture depends on your specific diagnosis — severity, location, and ovarian reserve. Many women with endometriosis conceive naturally. Others benefit from early specialist involvement or assisted reproduction. A personalised assessment from your specialist is more useful than general statistics.",
+              "action": "Ask your endometriosis specialist for a pre-conception fertility assessment — your current ovarian reserve, tube health, and a realistic picture of your specific situation."
+            }
+          },
+          "next_stage": "fp_decision_2"
+        },
+        {
+          "id": "fp_decision_2",
+          "career_moment": {
+            "narrative": "However you've decided to approach family planning, the career dimension is real and worth planning around — not avoiding.",
+            "choice_a": {
+              "label": "Tell me how to time pregnancy planning with my career trajectory",
+              "consequence": "Timing is more plannable than you expected. Identifying the career milestones you want to reach first gives you a concrete planning window."
+            },
+            "choice_b": {
+              "label": "Tell me what maternity leave and returning to work looks like practically",
+              "consequence": "The practical realities are more navigable than the silence around them suggests. Women do this regularly and successfully."
+            }
+          },
+          "health_sidebar": {
+            "default": {
+              "headline": "Career timing and pregnancy — practical planning",
+              "body": "Timing a pregnancy around a promotion, a major project, or a career transition is something women do deliberately and successfully. The most useful planning horizon is 12 to 18 months — identifying what career milestones you want to hit first, working back from a rough target window, and ensuring your health baseline is in order.",
+              "action": "Identify the one or two career milestones you want to reach before a pregnancy. Work backward to a rough target window. Book a pre-conception checkup for 3 to 6 months before that window."
+            },
+            "pcos": {
+              "headline": "Career and pregnancy planning with PCOS",
+              "body": "Since you have PCOS, irregular ovulation means conception may not happen on the precise timeline you plan. Building a slightly wider planning window — 18 to 24 months rather than 12 — accounts for the possibility that ovulation support may be needed without creating urgency.",
+              "action": "When planning your career-pregnancy timeline with PCOS, build in a 6-month buffer for the possibility of ovulation support. This is not pessimism — it's realistic planning."
+            },
+            "endometriosis": {
+              "headline": "Career and pregnancy planning with endometriosis",
+              "body": "Since you have endometriosis, discussing the timing of any surgical intervention relative to your pregnancy plans is important. Surgery before trying to conceive — to remove endometriomas or improve tube health — may improve your chances but has a recovery period. This conversation is best had with your specialist 12 to 18 months before your target window.",
+              "action": "Have the timing conversation with your endometriosis specialist 12 to 18 months before your target pregnancy window — surgical timing matters and requires advance planning."
+            }
+          },
+          "next_stage": null,
+          "returns_to": "current_age_plus_one"
+        }
+      ]
+    },
+
+    "track_family_planning_32_35": {
+      "id": "track_family_planning_32_35",
+      "title": "Family Planning — Extended Options Window",
+      "bracket": "32-35",
+      "framing": "At 32 to 35, family planning decisions carry more weight — not because options have disappeared, but because the timeline is shorter and the decisions deserve honest information.",
+      "stages": [
+        {
+          "id": "fp_later_1",
+          "career_moment": {
+            "narrative": "The honest conversation about family planning at 32 to 35 isn't about panic. It's about having real information to make real decisions — with all the options on the table.",
+            "choice_a": {
+              "label": "Tell me the honest picture for natural conception at my age",
+              "consequence": "The honest picture is more nuanced than the headlines suggest. Natural conception remains possible for most women at 32 to 35. The odds shift — but they don't disappear."
+            },
+            "choice_b": {
+              "label": "Tell me about assisted reproduction options at this stage",
+              "consequence": "IVF, IUI, egg donation — these are real options with real success rates at this age. Understanding them removes the fear and replaces it with information."
+            }
+          },
+          "health_sidebar": {
+            "default": {
+              "headline": "Natural conception at 32 to 35 — the real numbers",
+              "body": "At 32, roughly 78 percent of women who try for 12 months will conceive. At 35, that figure is approximately 66 percent. These are not catastrophic declines — they are gradual shifts that mean more women at 35 may need a longer runway or some clinical support, but the majority do conceive. The alarmist narrative significantly overstates the case.",
+              "action": "A pre-conception fertility assessment at 32 to 35 — AMH, antral follicle count, and a specialist consultation — gives you your personal picture rather than a statistical average."
+            },
+            "pcos": {
+              "headline": "Natural conception and IVF with PCOS at 32 to 35",
+              "body": "Since you have PCOS, ovulation induction remains the first-line approach at this age. If first-line treatment doesn't result in conception within 3 to 6 cycles, IVF is the next step. IVF with PCOS typically has good outcomes because ovarian response to stimulation is usually strong.",
+              "action": "Book a fertility consultation now if you want children and haven't started trying. With PCOS at 32 to 35, the sooner the pathway is established the better — not because it's urgent, but because the steps take time."
+            },
+            "endometriosis": {
+              "headline": "Natural conception and IVF with endometriosis at 32 to 35",
+              "body": "Since you have endometriosis, a specialist fertility assessment at this age is important. The impact of endometriosis on fertility is highly variable — some women conceive naturally without difficulty, others need assisted reproduction. Your specific picture — ovarian reserve, tube health, disease severity — determines which pathway is most appropriate.",
+              "action": "Book a specialist fertility consultation with an endometriosis-experienced fertility doctor. The assessment of your specific situation is more useful than any general statistic."
+            }
+          },
+          "next_stage": "fp_later_2"
+        },
+        {
+          "id": "fp_later_2",
+          "career_moment": {
+            "narrative": "All the paths are real. Natural conception, assisted reproduction, adoption, child-free living — none of these is a consolation prize. They are all choices that women make deliberately and live fully.",
+            "choice_a": {
+              "label": "Tell me about IVF — what it involves and what the realistic outcomes are",
+              "consequence": "IVF is more routine and less dramatic than its cultural representation. The success rates at 32 to 35 are real. The process is demanding but manageable. You understand it now."
+            },
+            "choice_b": {
+              "label": "Tell me about adoption and child-free living as equally valid paths",
+              "consequence": "Both paths are complete. Neither is a default. Understanding all the options is what makes any choice feel like a genuine one."
+            }
+          },
+          "health_sidebar": {
+            "default": {
+              "headline": "IVF at 32 to 35 — realistic success rates",
+              "body": "IVF success rates at 32 to 35 using own eggs are approximately 35 to 40 percent per cycle. This means most cycles do not result in a live birth — but across multiple cycles, cumulative success rates are higher. Age 35 is the threshold above which NICE and ACOG guidelines recommend earlier referral to assisted reproduction. Understanding this means understanding the timeline for decision-making.",
+              "action": "A fertility consultation at 32 to 35 — AMH, antral follicle count, specialist assessment — gives you a personalised success rate estimate rather than a population average."
+            },
+            "pcos": {
+              "headline": "IVF with PCOS at 32 to 35 — the realistic picture",
+              "body": "Since you have PCOS, IVF success rates at this age are generally comparable to or slightly above the average because ovarian response is typically strong. The OHSS risk remains relevant and requires monitoring. A clinic experienced in PCOS management is important at this stage.",
+              "action": "When consulting fertility clinics at this age with PCOS, ask specifically for their per-cycle and cumulative success rates for your age group and condition."
+            },
+            "endometriosis": {
+              "headline": "IVF with endometriosis at 32 to 35",
+              "body": "Since you have endometriosis, IVF success rates may be affected by ovarian reserve and the impact of the condition on egg quality. Specialist fertility clinics with endometriosis expertise — not just general fertility clinics — are better positioned to optimise your treatment protocol.",
+              "action": "Ask your fertility clinic specifically about their experience with endometriosis patients and how they adjust their protocol for the condition."
+            }
+          },
+          "next_stage": null,
+          "returns_to": "current_age_plus_one"
+        }
+      ]
+    },
+
+    "track_child_free": {
+      "id": "track_child_free",
+      "title": "Your Health, Your Terms",
+      "framing": "Reproductive health is not synonymous with fertility. Your health matters on your own terms — for your quality of life, your energy, your long-term wellbeing.",
+      "stages": [
+        {
+          "id": "cf_1",
+          "career_moment": {
+            "narrative": "Children are not part of your plan — and that is a complete plan. Your reproductive health still matters entirely on its own terms. Here is what that looks like.",
+            "choice_a": {
+              "label": "Tell me about long-term hormonal health without pregnancy",
+              "consequence": "The picture is broader than you expected. Hormonal health affects your energy, mood, bone density, and cardiovascular health — none of it contingent on fertility."
+            },
+            "choice_b": {
+              "label": "Tell me what perimenopause looks like and how to prepare",
+              "consequence": "Understanding perimenopause in advance removes the shock. It begins on average in the mid-to-late forties. The symptoms, timelines, and what helps are all knowable and manageable."
+            }
+          },
+          "health_sidebar": {
+            "default": {
+              "headline": "Reproductive health is not the same as fertility",
+              "body": "PCOS, endometriosis, fibroids, and thyroid conditions affect quality of life, energy, pain levels, and long-term health regardless of whether children are wanted. Managing these conditions matters for you — your daily experience, your cardiovascular health, your bone density, your mental health. None of that is contingent on family planning.",
+              "action": "Annual gynaecology checkup from 25 onward is a standard recommendation for all women — not just those considering pregnancy. Book yours if you haven't had one in the last year."
+            },
+            "pcos": {
+              "headline": "PCOS long-term health without fertility focus",
+              "body": "Since you have PCOS, the long-term metabolic risks — Type 2 diabetes, cardiovascular disease, metabolic syndrome — exist independently of fertility intentions. Managing PCOS well is about your quality of life and long-term health. The management approach is exactly the same regardless of family planning status.",
+              "action": "Ensure your PCOS management includes annual metabolic monitoring — fasting glucose, insulin, lipid panel, blood pressure. These are the health outcomes that matter regardless of fertility plans."
+            },
+            "endometriosis": {
+              "headline": "Endometriosis and quality of life — your health is sufficient reason",
+              "body": "Since you have endometriosis, your quality of life is a sufficient reason for treatment — you do not need to frame your condition in fertility terms to access care. Pain, fatigue, and the mental health impact of endometriosis all deserve treatment on their own terms.",
+              "action": "If any clinician frames your endometriosis management primarily in fertility terms when that is not your priority, ask explicitly: what is the best approach for my quality of life specifically?"
+            },
+            "fibroids": {
+              "headline": "Fibroids without fertility considerations",
+              "body": "Since you have fibroids, management without fertility considerations focuses entirely on symptom control and quality of life. Treatment options that might be deferred for fertility reasons — endometrial ablation, for example — may be entirely appropriate for you. This is worth discussing explicitly with your gynaecologist.",
+              "action": "Tell your gynaecologist explicitly that fertility preservation is not a consideration in your treatment decisions. This may open treatment options that wouldn't otherwise be discussed."
+            },
+            "thyroid": {
+              "headline": "Thyroid health long-term — bone and cardiovascular",
+              "body": "Since you have a thyroid condition, thyroid hormones affect bone density and cardiovascular health over the long term. These are reasons to ensure optimal thyroid management that have nothing to do with fertility.",
+              "action": "Ask your GP how your thyroid management accounts for long-term bone density and cardiovascular health, not just TSH normalisation."
+            },
+            "iron_deficiency": {
+              "headline": "Iron deficiency without fertility context",
+              "body": "Since you have iron deficiency, managing it well matters for your energy, immune function, cognitive performance, and cardiovascular health — entirely independently of fertility. Treatment options including directly addressing heavy menstrual bleeding are appropriate and worth pursuing.",
+              "action": "Ask your GP for a long-term iron management strategy that addresses the underlying cause, not just supplementation to keep levels acceptable."
+            },
+            "calcium_vitamin_d": {
+              "headline": "Calcium and Vitamin D for long-term bone health",
+              "body": "Since you have calcium or Vitamin D deficiency, adequate levels through your thirties and forties protect bone density against the accelerated loss of perimenopause. This is a long-term health investment with a 30-year payoff that has nothing to do with fertility.",
+              "action": "Annual Vitamin D monitoring and consistent calcium intake are your maintenance requirements. Confirm both are in place at your annual health review."
+            }
+          },
+          "next_stage": null,
+          "returns_to": "current_age_plus_one"
+        }
+      ]
+    }
+  },
+
+  "end_screen": {
+    "title": "You made it to the long healthy life.",
+    "closing_line": "Your career and your health are not in competition. They are the same long game — and you have been playing both.",
+    "lea_state": "adult_celebration",
+    "decisions_summary_label": "Your journey",
+    "health_insights_label": "What you learned along the way",
+    "roadmap_prompt": "Want to turn what you've learned into a personal health roadmap in your planner?",
+    "roadmap_yes_leads_to": "section_3_roadmap",
+    "roadmap_no_leads_to": "home"
+  }
+}
