@@ -5,6 +5,7 @@ import {
   Animated, PanResponder, DevSettings,
 } from 'react-native';
 import LeaAvatar from '../components/LeaAvatar';
+import WeeklyCheckIn from '../components/WeeklyCheckIn';
 import { Storage } from '../utils/storage';
 import { Points } from '../utils/points';
 
@@ -254,6 +255,9 @@ export default function LearnScreen() {
         <View style={styles.pointsPill}>
           <Text style={styles.pointsText}>⭐ {points} point{points !== 1 ? 's' : ''} earned</Text>
         </View>
+
+        {/* Weekly Check-In */}
+        <WeeklyCheckIn />
 
         {/* My Health */}
         <View style={styles.section}>

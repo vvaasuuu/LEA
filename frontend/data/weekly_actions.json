@@ -1,0 +1,44 @@
+{
+  "health": {
+    "label": "Health",
+    "emoji": "🌿",
+    "color": "#F1F8E9",
+    "accentColor": "#2E7D32",
+    "borderColor": "#C5E1A5",
+    "actions": [
+      { "id": "h1", "emoji": "😴", "title": "Try sleeping 30 minutes earlier a few days this week" },
+      { "id": "h2", "emoji": "📖", "title": "Read something short about fertility — just to know your options" },
+      { "id": "h3", "emoji": "🩺", "title": "Consider booking a general health check (totally optional)" },
+      { "id": "h4", "emoji": "🌿", "title": "Notice how your energy shifts throughout the day" },
+      { "id": "h5", "emoji": "💧", "title": "Drink one extra glass of water each day" }
+    ]
+  },
+  "career": {
+    "label": "Career",
+    "emoji": "💼",
+    "color": "#FFF8E1",
+    "accentColor": "#E65100",
+    "borderColor": "#FFE082",
+    "actions": [
+      { "id": "c1", "emoji": "🎯", "title": "Block 2 hours of focused time for something that matters to you" },
+      { "id": "c2", "emoji": "👋", "title": "Reach out to one person in your field, just to say hi" },
+      { "id": "c3", "emoji": "⏸️", "title": "Give yourself permission to delay one big decision this week" },
+      { "id": "c4", "emoji": "💡", "title": "Check what health benefits your workplace actually offers" },
+      { "id": "c5", "emoji": "🛑", "title": "Say no to one thing that doesn't need to be a yes" }
+    ]
+  },
+  "balance": {
+    "label": "Balance",
+    "emoji": "🌸",
+    "color": "#F3E5F5",
+    "accentColor": "#6A1B9A",
+    "borderColor": "#CE93D8",
+    "actions": [
+      { "id": "b1", "emoji": "🛁", "title": "Take one evening completely off — no obligations" },
+      { "id": "b2", "emoji": "📓", "title": "Write down what felt heavy this week" },
+      { "id": "b3", "emoji": "✨", "title": "Try a 5-minute reflection before you sleep" },
+      { "id": "b4", "emoji": "🎈", "title": "Do one thing that's just for fun, no productivity required" },
+      { "id": "b5", "emoji": "💕", "title": "Spend time with someone who makes you feel good" }
+    ]
+  }
+}
