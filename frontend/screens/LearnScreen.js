@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, SafeAreaView,
-  TouchableOpacity, Animated, DevSettings, Platform, UIManager,
+  TouchableOpacity, DevSettings, Platform, UIManager,
   Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -32,6 +32,7 @@ const STAGE_IMAGES = {
 const STAGE_LABELS = { puppy: 'Puppy', young: 'Teen', adult: 'Adult' };
 
 // ── Derive Life Mode from priorities ─────────────────────────────────────────
+// need to edit -kavya
 function getLifeMode(priorities = []) {
   if (priorities.includes('Career growth'))          return 'Hustle Mode';
   if (priorities.includes('Family planning (someday)')) return 'Nesting Mode';
@@ -39,173 +40,6 @@ function getLifeMode(priorities = []) {
   if (priorities.includes('Personal health'))        return 'Self-Care Mode';
   if (priorities.includes('Relationships'))          return 'Connection Mode';
   return 'Discovery Mode';
-}
-
-// ── Power Level scores ────────────────────────────────────────────────────────
-function careerScore(lifeStage, points) {
-  const base = lifeStage === 'Mid-career' ? 72 : lifeStage === 'Early career' ? 54 : 30;
-  const bonus = Math.min(points / 10, 20);
-  return Math.min(Math.round(base + bonus), 100);
-}
-
-function healthScore(conditions = []) {
-  if (!conditions.length || conditions.includes('None') || conditions.includes('Prefer not to say')) return 82;
-  return Math.max(82 - conditions.filter(c => c !== 'None' && c !== 'Prefer not to say').length * 14, 38);
-}
-
-function flexScore(points) {
-  return Math.min(Math.round(30 + points * 0.12), 95);
-}
-
-function scoreStatus(score) {
-  if (score >= 70) return { label: 'Strong', color: '#388E3C' };
-  if (score >= 45) return { label: 'Building', color: '#F57C00' };
-  return { label: 'Watch', color: '#C2748A' };
-}
-
-// ── Horizon card copy ─────────────────────────────────────────────────────────
-function horizonCopy(lifeStage, priorities = []) {
-  const hasCareer  = priorities.includes('Career growth');
-  const hasFamily  = priorities.includes('Family planning (someday)');
-  const hasHealth  = priorities.includes('Personal health');
-  if (hasCareer && hasFamily) {
-    const yrs = lifeStage === 'Student' ? 5 : lifeStage === 'Early career' ? 3 : 2;
-    return {
-      body: `In ${yrs} years, your goal of 'Senior Role' intersects with your 'Optimal Fertility Window.' Explore how policies can bridge this gap →`,
-      hasIntersection: true,
-    };
-  }
-  if (hasCareer) {
-    return {
-      body: `Your career momentum is picking up. Now's the time to map out how your workplace benefits align with your bigger life goals →`,
-      hasIntersection: true,
-    };
-  }
-  if (hasHealth) {
-    return {
-      body: `Small health investments now compound over time. See how your current habits map against your future milestones →`,
-      hasIntersection: true,
-    };
-  }
-  return {
-    body: `Build your personal timeline — see where your life goals and health milestones are heading →`,
-    hasIntersection: false,
-  };
-}
-
-// ── Circular progress ring ────────────────────────────────────────────────────
-function RingProgress({ size = 72, strokeWidth = 7, progress = 0, color = ROSE_D, children }) {
-  const half = size / 2;
-  const p    = Math.min(1, Math.max(0, progress));
-  const deg  = p * 360;
-
-  // Right half (0–180°): borderTop + borderRight rotate from -90 to +90
-  const rightRot = Math.min(deg, 180) - 90;
-  // Left half (180–360°): borderBottom + borderLeft rotate from +90 to -90
-  const leftRot  = 90 - Math.max(deg - 180, 0);
-
-  return (
-    <View style={{ width: size, height: size }}>
-      {/* Background ring */}
-      <View style={{
-        position: 'absolute', width: size, height: size,
-        borderRadius: half, borderWidth: strokeWidth, borderColor: '#EEE8F5',
-      }} />
-
-      {/* Right half fill */}
-      <View style={{ position: 'absolute', left: half, top: 0, width: half, height: size, overflow: 'hidden' }}>
-        <View style={{
-          position: 'absolute', left: -half, top: 0,
-          width: size, height: size, borderRadius: half, borderWidth: strokeWidth,
-          borderTopColor: color, borderRightColor: color,
-          borderBottomColor: 'transparent', borderLeftColor: 'transparent',
-          transform: [{ rotate: `${rightRot}deg` }],
-        }} />
-      </View>
-
-      {/* Left half fill (only needed once > 50%) */}
-      {p > 0.5 && (
-        <View style={{ position: 'absolute', left: 0, top: 0, width: half, height: size, overflow: 'hidden' }}>
-          <View style={{
-            position: 'absolute', left: 0, top: 0,
-            width: size, height: size, borderRadius: half, borderWidth: strokeWidth,
-            borderTopColor: 'transparent', borderRightColor: 'transparent',
-            borderBottomColor: color, borderLeftColor: color,
-            transform: [{ rotate: `${leftRot}deg` }],
-          }} />
-        </View>
-      )}
-
-      {/* Inner white fill to make it a ring */}
-      <View style={{
-        position: 'absolute',
-        top: strokeWidth, left: strokeWidth,
-        width: size - strokeWidth * 2, height: size - strokeWidth * 2,
-        borderRadius: (size - strokeWidth * 2) / 2,
-        backgroundColor: BG,
-      }} />
-
-      {/* Centre content */}
-      <View style={{ position: 'absolute', width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-        {children}
-      </View>
-    </View>
-  );
-}
-
-// ── Animated ring wrapper ─────────────────────────────────────────────────────
-function AnimatedRing({ targetProgress, delay, size, strokeWidth, color, icon, label, status, statusColor, onPress }) {
-  const anim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(anim, {
-      toValue: targetProgress,
-      duration: 900,
-      delay,
-      useNativeDriver: false,
-    }).start();
-  }, [targetProgress]);
-
-  const [displayProgress, setDisplayProgress] = useState(0);
-  useEffect(() => {
-    const id = anim.addListener(({ value }) => setDisplayProgress(value));
-    return () => anim.removeListener(id);
-  }, []);
-
-  return (
-    <TouchableOpacity style={styles.ringWrapper} onPress={onPress} activeOpacity={0.8}>
-      <RingProgress size={size} strokeWidth={strokeWidth} progress={displayProgress} color={color}>
-        <Text style={styles.ringIcon}>{icon}</Text>
-      </RingProgress>
-      <Text style={styles.ringLabel}>{label}</Text>
-      <Text style={[styles.ringStatus, { color: statusColor }]}>{status}</Text>
-    </TouchableOpacity>
-  );
-}
-
-// ── Horizon card shimmer ──────────────────────────────────────────────────────
-function HorizonCard({ body, onPress }) {
-  const shimmer = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(shimmer, { toValue: 1, duration: 1400, useNativeDriver: true }),
-        Animated.timing(shimmer, { toValue: 0, duration: 1400, useNativeDriver: true }),
-      ])
-    ).start();
-  }, []);
-
-  const shimmerOpacity = shimmer.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] });
-
-  return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.88} style={styles.horizonOuter}>
-      <Animated.View style={[styles.horizonCard, { opacity: shimmerOpacity }]}>
-        <Text style={styles.horizonEyebrow}>WHAT'S ON THE HORIZON</Text>
-        <Text style={styles.horizonBody}>{body}</Text>
-      </Animated.View>
-    </TouchableOpacity>
-  );
 }
 
 // ── Recommended topic card ────────────────────────────────────────────────────
@@ -219,8 +53,8 @@ function TopicCard({ title, desc, onPress }) {
   );
 }
 
-// ── Act card (weekly action) ──────────────────────────────────────────────────
-function ActCard({ emoji, title, accentColor, borderColor }) {
+
+function ActCard({ emoji, title, borderColor }) {
   return (
     <View style={[styles.actCard, { borderColor }]}>
       <Text style={styles.actEmoji}>{emoji}</Text>
@@ -236,40 +70,24 @@ export default function LearnScreen() {
   const [leaName,    setLeaName]    = useState('Lea');
   const [leaStage,   setLeaStage]   = useState('puppy');
   const [points,     setPoints]     = useState(0);
-  const [lifeStage,  setLifeStage]  = useState(null);
-  const [conditions, setConditions] = useState([]);
   const [priorities, setPriorities] = useState([]);
-  const [leaKey,     setLeaKey]     = useState(0);
 
   useEffect(() => {
     async function load() {
       const n  = await Storage.get(Storage.KEYS.LEA_NAME);
       const s  = await Storage.get(Storage.KEYS.LEA_STAGE);
       const p  = await Storage.get(Storage.KEYS.USER_POINTS);
-      const ls = await Storage.get(Storage.KEYS.USER_LIFE_STAGE);
-      const c  = await Storage.get(Storage.KEYS.USER_CONDITIONS);
       const pr = await Storage.get(Storage.KEYS.USER_PRIORITIES);
       if (n)          setLeaName(n);
       if (s)          setLeaStage(s);
       if (p !== null) setPoints(p);
-      if (ls)         setLifeStage(ls);
-      if (c)          setConditions(c);
       if (pr)         setPriorities(pr);
     }
     load();
   }, []);
 
-  // Derived scores
-  const cScore = careerScore(lifeStage, points);
-  const hScore = healthScore(conditions);
-  const fScore = flexScore(points);
-
-  const cStatus = scoreStatus(cScore);
-  const hStatus = scoreStatus(hScore);
-  const fStatus = scoreStatus(fScore);
-
   const lifeMode = getLifeMode(priorities);
-  const { body: horizonBody } = horizonCopy(lifeStage, priorities);
+
 
   // Pick 3 nudges (first 3 general ones)
   const recommendedNudges = nudges.filter(n => !n.conditions || n.conditions.length === 0).slice(0, 3);
@@ -300,56 +118,6 @@ export default function LearnScreen() {
           </View>
         </View>
 
-        {/* ── SECTION 2: What's on the Horizon ──────────────────────── */}
-        <HorizonCard
-          body={horizonBody}
-          onPress={() => navigation.navigate('Planning')}
-        />
-
-        {/* ── SECTION 3: Power Levels ────────────────────────────────── */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Power Levels</Text>
-          <Text style={styles.sectionSub}>Your three core dimensions</Text>
-
-          <View style={styles.ringsRow}>
-            <AnimatedRing
-              targetProgress={cScore / 100}
-              delay={0}
-              size={80}
-              strokeWidth={8}
-              color="#E65100"
-              icon="🚀"
-              label="Career"
-              status={cStatus.label}
-              statusColor={cStatus.color}
-              onPress={() => navigation.navigate('Planning')}
-            />
-            <AnimatedRing
-              targetProgress={hScore / 100}
-              delay={150}
-              size={80}
-              strokeWidth={8}
-              color={ROSE_D}
-              icon="🌿"
-              label="Health"
-              status={hStatus.label}
-              statusColor={hStatus.color}
-              onPress={() => navigation.navigate('Explore')}
-            />
-            <AnimatedRing
-              targetProgress={fScore / 100}
-              delay={300}
-              size={80}
-              strokeWidth={8}
-              color="#6A1B9A"
-              icon="∞"
-              label="Flex"
-              status={fStatus.label}
-              statusColor={fStatus.color}
-              onPress={() => navigation.navigate('Planning')}
-            />
-          </View>
-        </View>
 
         {/* ── SECTION 4: Dog Companion ───────────────────────────────── */}
         <View style={styles.dogSection}>
@@ -424,7 +192,6 @@ export default function LearnScreen() {
                 await Storage.set(Storage.KEYS.LEA_STAGE, stage);
                 setPoints(pts);
                 setLeaStage(stage);
-                setLeaKey(k => k + 1);
               }}
             >
               <Text style={styles.devBtnText}>{label}</Text>
@@ -462,45 +229,11 @@ const styles = StyleSheet.create({
   welcomeText:      { fontSize: 30, fontWeight: '800', color: PLUM, letterSpacing: -0.5 },
   tagline:          { fontSize: 13, fontWeight: '600', color: ROSE, marginTop: 2 },
   taglineUnderline: { width: 110, height: 2, backgroundColor: ROSE, borderRadius: 1, marginTop: 4 },
-
-  // Section 2 — Horizon card
-  horizonOuter: { marginHorizontal: 20, marginBottom: 22 },
-  horizonCard: {
-    backgroundColor: WHITE,
-    borderRadius: 20,
-    padding: 18,
-    borderWidth: 1.5,
-    borderColor: '#E8C9D8',
-    shadowColor: ROSE,
-    shadowOpacity: 0.12,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 4,
-  },
-  horizonEyebrow: {
-    fontSize: 10, fontWeight: '800', color: ROSE, letterSpacing: 1.8,
-    marginBottom: 8,
-  },
-  horizonBody: {
-    fontSize: 14, lineHeight: 21, color: PLUM, fontWeight: '500',
-  },
-
-  // Section 3 — Power Levels
   section: { paddingHorizontal: 20, marginBottom: 24 },
   sectionTitle: { fontSize: 19, fontWeight: '700', color: PLUM, marginBottom: 2 },
-  sectionSub:   { fontSize: 12, color: MUTED, marginBottom: 16 },
   arrowLabel:   { fontWeight: '400', color: ROSE },
 
-  ringsRow: {
-    flexDirection: 'row', justifyContent: 'space-around', alignItems: 'flex-start',
-    backgroundColor: WHITE, borderRadius: 20, paddingVertical: 22,
-    borderWidth: 1, borderColor: '#F0E6F0',
-    shadowColor: PLUM, shadowOpacity: 0.06, shadowRadius: 10, elevation: 2,
-  },
-  ringWrapper:  { alignItems: 'center', gap: 8 },
-  ringIcon:     { fontSize: 22 },
-  ringLabel:    { fontSize: 12, fontWeight: '700', color: PLUM, marginTop: 8 },
-  ringStatus:   { fontSize: 11, fontWeight: '600', marginTop: 2 },
+
 
   // Section 4 — Dog widget
   dogSection: {
