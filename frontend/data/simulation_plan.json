@@ -1,0 +1,107 @@
+{
+  "simulation_metadata": {
+    "duration": "36 months",
+    "inputs": {
+      "career_track": "Corporate High Intensity",
+      "work_hours_per_week": 65,
+      "stress_tolerance": "Medium",
+      "fertility_plan": "Egg Freezing at Month 12",
+      "priorities": { "career": 5, "health": 2, "relationships": 2, "financial_stability": 4 }
+    },
+    "burnout_events": 3,
+    "burnout_months": [14, 23, 32],
+    "total_savings_final": 94012,
+    "final_scores": { "career": 100, "health": 14, "stress": 61, "fertility_flex": 60 }
+  },
+  "timeline": [
+    {
+      "month": 1,
+      "type": "start",
+      "event": "Corporate high-intensity role begins. 65-hour weeks set in immediately. Career climbs fast; stress and health begin their slow divergence.",
+      "impacts": { "career": "increasing", "health": "declining_slowly", "stress": "increasing", "savings": "building" },
+      "scores": { "career": 53, "health": 79, "stress": 24, "savings": 12667, "fertility_flex": 10 }
+    },
+    {
+      "month": 6,
+      "type": "checkpoint",
+      "event": "Six months in. Promotion track looks promising. Savings growing steadily. Health decline is gradual enough to ignore — stress is background noise at this stage.",
+      "impacts": { "career": "increasing", "health": "declining_slowly", "stress": "increasing", "savings": "building" },
+      "scores": { "career": 68, "health": 74, "stress": 44, "savings": 26002, "fertility_flex": 10 }
+    },
+    {
+      "month": 10,
+      "type": "checkpoint",
+      "event": "Egg freezing appointment booked for Month 12. Stress approaching a tipping point. Health has dropped 10 points since start. Savings are on track to cover the procedure.",
+      "impacts": { "career": "strong", "health": "declining", "stress": "warning", "savings": "on_track" },
+      "scores": { "career": 80, "health": 70, "stress": 60, "savings": 36670, "fertility_flex": 10 }
+    },
+    {
+      "month": 12,
+      "type": "egg_freezing",
+      "event": "Egg freezing completed. $12,000 withdrawn. Procedure stress spike pushes stress to 83. Fertility flexibility jumps by 50 points. Savings take a visible dip but remain positive.",
+      "impacts": { "career": "increasing", "health": "declining", "stress": "critical_spike", "savings": "sharp_dip", "fertility_flex": "major_gain" },
+      "scores": { "career": 86, "health": 68, "stress": 83, "savings": 30004, "fertility_flex": 60 }
+    },
+    {
+      "month": 14,
+      "type": "burnout",
+      "event": "BURNOUT #1 — Three consecutive months above stress threshold 70. Body forces a reset: health drops sharply, career momentum slips. Recovery period brings stress back to 45.",
+      "impacts": { "career": "sharp_drop", "health": "critical_drop", "stress": "reset_after_burnout", "savings": "stable" },
+      "scores": { "career": 87, "health": 56, "stress": 45, "savings": 35338, "fertility_flex": 60 }
+    },
+    {
+      "month": 18,
+      "type": "checkpoint",
+      "event": "Recovery phase stabilising. Career nearly back to pre-burnout trajectory. Health has not recovered — the deficit is structural, not temporary. Savings fully rebuilt.",
+      "impacts": { "career": "recovering_strong", "health": "stable_but_low", "stress": "moderate", "savings": "recovered" },
+      "scores": { "career": 99, "health": 52, "stress": 61, "savings": 46006, "fertility_flex": 60 }
+    },
+    {
+      "month": 22,
+      "type": "warning",
+      "event": "Career ceiling reached at 100. Stress climbing again. Health erosion continues. Second burnout is imminent — same pattern as before.",
+      "impacts": { "career": "maxed", "health": "declining", "stress": "critical", "savings": "building" },
+      "scores": { "career": 100, "health": 48, "stress": 77, "savings": 56674, "fertility_flex": 60 }
+    },
+    {
+      "month": 23,
+      "type": "burnout",
+      "event": "BURNOUT #2 — Career maxed, nowhere to channel the stress productively. Health drops to 37. Second forced recovery. The health floor is now dangerously low.",
+      "impacts": { "career": "penalty_applied", "health": "critical_drop", "stress": "reset_after_burnout", "savings": "stable" },
+      "scores": { "career": 95, "health": 37, "stress": 45, "savings": 59341, "fertility_flex": 60 }
+    },
+    {
+      "month": 24,
+      "type": "checkpoint",
+      "event": "Mid-simulation checkpoint. Two years in: savings strong, fertility secured — but health is at 36, down from 80 at start. The structural cost of this path is undeniable.",
+      "impacts": { "career": "recovering", "health": "low_and_declining", "stress": "moderate", "savings": "strong" },
+      "scores": { "career": 98, "health": 36, "stress": 49, "savings": 62008, "fertility_flex": 60 }
+    },
+    {
+      "month": 30,
+      "type": "warning",
+      "event": "Final stretch begins. Savings near $78K. Career at ceiling. Stress climbing toward third burnout threshold — pattern is now cyclical. Health at 30.",
+      "impacts": { "career": "maxed", "health": "critical", "stress": "critical", "savings": "building" },
+      "scores": { "career": 100, "health": 30, "stress": 73, "savings": 78010, "fertility_flex": 60 }
+    },
+    {
+      "month": 32,
+      "type": "burnout",
+      "event": "BURNOUT #3 — Health now at 18, in clinical risk zone. Career dips to 95 again. Savings continue compounding regardless, now over $83K. Financial plan succeeded; health plan failed.",
+      "impacts": { "career": "penalty_applied", "health": "severe_critical", "stress": "reset_after_burnout", "savings": "growing" },
+      "scores": { "career": 95, "health": 18, "stress": 45, "savings": 83344, "fertility_flex": 60 }
+    },
+    {
+      "month": 36,
+      "type": "end",
+      "event": "Simulation complete. Career peaked at 100. Savings at $94K — well above target. Egg freezing secured fertility flexibility. However: health at 14/100, 3 burnouts sustained.",
+      "impacts": { "career": "peak", "health": "critical_long_term_risk", "stress": "moderate", "savings": "goal_exceeded", "fertility_flex": "secured" },
+      "scores": { "career": 100, "health": 14, "stress": 61, "savings": 94012, "fertility_flex": 60 }
+    }
+  ],
+  "what_if_flags": [
+    "Reducing work hours to 50/week eliminates the -1/month health penalty and delays first burnout by ~6 months",
+    "Raising health priority to 4 would apply a protective multiplier, reducing net health loss by ~20 points",
+    "Moving egg freezing to Month 6 avoids the compounding stress-on-stress effect at Month 12"
+  ]
+}

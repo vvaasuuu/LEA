@@ -7,22 +7,25 @@ import { Storage } from '../utils/storage';
 import { Points, POINTS } from '../utils/points';
 import simulationData from '../data/simulation.json';
 
-// ─── Colour tokens ────────────────────────────────────────────────────────────
-const C = {
-  blueMid: '#0288D1', blueDeep: '#01579B', blueLight: '#E1F5FE', blueGhost: '#F0F7FF',
-  tealSoft: '#E0F2F1', tealDark: '#004D40', tealMid: '#00796B',
-  text: '#1A2D3E', textMid: '#4A6275', textSoft: '#90A4AE',
-  white: '#FFFFFF', border: '#C8DFF0',
-  amber: '#FFF8E1', amberDark: '#E65100',
-  sky: '#D6EEFF', ground: '#B8D4E8', road: '#9BB8CC',
-};
+// ── Palette ───────────────────────────────────────────────────────────────────
+const BG      = '#FAF6F0';
+const PLUM    = '#3D0C4E';
+const ROSE    = '#C2748A';
+const ROSE_D  = '#C2185B';
+const MUTED   = '#B39DBC';
+const WHITE   = '#FFFFFF';
+const BORDER  = '#F5DCE8';
+const AMBER   = '#FFF3E0';
+const AMBER_D = '#E65100';
+const PURPLE  = '#6A1B9A';
+const GREEN   = '#388E3C';
 
-// ─── Metrics ──────────────────────────────────────────────────────────────────
+// ── Metrics config ────────────────────────────────────────────────────────────
 const METRICS_CFG = [
-  { key: 'career',    emoji: '💼', label: 'Career',  color: '#1E88E5' },
-  { key: 'wellbeing', emoji: '🌿', label: 'Health',  color: '#43A047' },
-  { key: 'clarity',   emoji: '🧭', label: 'Clarity', color: '#8E24AA' },
-  { key: 'freedom',   emoji: '⏰', label: 'Freedom', color: '#FB8C00' },
+  { key: 'career',    emoji: '🚀', label: 'Career',  color: AMBER_D },
+  { key: 'wellbeing', emoji: '🌿', label: 'Health',  color: ROSE_D },
+  { key: 'clarity',   emoji: '🧭', label: 'Clarity', color: PURPLE },
+  { key: 'freedom',   emoji: '∞',  label: 'Flex',    color: GREEN },
 ];
 const BASE_METRICS = { career: 50, wellbeing: 50, clarity: 50, freedom: 50 };
 const METRIC_DELTAS = {
@@ -38,7 +41,7 @@ function applyDeltas(metrics, theme, key) {
   return { next: n, deltas: d };
 }
 
-// ─── Dog images ───────────────────────────────────────────────────────────────
+// ── Dog images ────────────────────────────────────────────────────────────────
 const DOGS = {
   puppy: { open: require('../assets/dogs/Puppy open eyes.png'), closed: require('../assets/dogs/puppy eyes closed.png') },
   teen:  { open: require('../assets/dogs/teen1 eyes open.png'), closed: require('../assets/dogs/teen1 eyes closed.png') },
@@ -48,48 +51,114 @@ const DOGS = {
     openUp: require('../assets/dogs/adult dog eyes open tail up.png'),
   },
 };
-function leaStage(age)          { return age <= 23 ? 'puppy' : age <= 27 ? 'teen' : 'adult'; }
-function getDog(age, open, up)  {
+function leaStage(age)         { return age <= 23 ? 'puppy' : age <= 27 ? 'teen' : 'adult'; }
+function getDog(age, open, up) {
   const s = leaStage(age);
   if (s === 'puppy') return open ? DOGS.puppy.open  : DOGS.puppy.closed;
   if (s === 'teen')  return open ? DOGS.teen.open   : DOGS.teen.closed;
-  if (up)            return DOGS.adult.openUp;
+  if (up) return DOGS.adult.openUp;
   return open ? DOGS.adult.open : DOGS.adult.closed;
 }
-function getFPTrack(age)        { return age <= 27 ? 'track_family_planning_21_23' : age <= 31 ? 'track_family_planning_28_31' : 'track_family_planning_32_35'; }
+function getFPTrack(age) {
+  return age <= 27 ? 'track_family_planning_21_23' : age <= 31 ? 'track_family_planning_28_31' : 'track_family_planning_32_35';
+}
 
-// ─── Journey transition animation ─────────────────────────────────────────────
+// ── Deterministic simulation engine ──────────────────────────────────────────
+const TRACK_DELTAS = {
+  corporate_high: { career: 2, stress: 3, savings: 2000 },
+  corporate_med:  { career: 1, stress: 1, savings: 1500 },
+  startup:        { career: 3, stress: 4, savings: 1000 },
+};
+const TRACK_LABELS = { corporate_high: 'Corporate (High)', corporate_med: 'Corporate (Med)', startup: 'Startup' };
+
+function runSimulation({ careerTrack, workHours, eggFreezingMonth, priorities }) {
+  const td = TRACK_DELTAS[careerTrack] || TRACK_DELTAS.corporate_high;
+  const careerGain  = Math.round(td.career  * (priorities.career   / 3));
+  const savingsGain = Math.round(td.savings * (priorities.financial / 3));
+
+  let s = { career: 50, health: 80, stress: 20, savings: 10000, flexibility: 10 };
+  let stressCount = 0;
+  const timeline = [];
+  const KEY = new Set([1, 6, 12, 18, 24, 30, 36]);
+
+  for (let m = 1; m <= 36; m++) {
+    const evts = [];
+    s.career   = Math.min(100, s.career + careerGain);
+    s.stress  += td.stress;
+    s.savings += savingsGain;
+
+    if (workHours > 50) { s.health -= 1; s.stress += 1; }
+
+    if (eggFreezingMonth && m === eggFreezingMonth) {
+      s.savings     -= 12000;
+      s.stress      += 15;
+      s.flexibility += 50;
+      evts.push('EGG_FREEZING');
+    }
+
+    if (s.stress > 70) {
+      stressCount++;
+      if (stressCount >= 3) {
+        s.health = Math.max(0, s.health - 10);
+        s.career = Math.max(0, s.career - 5);
+        s.stress = 45;
+        stressCount = 0;
+        evts.push('BURNOUT');
+      }
+    } else {
+      stressCount = 0;
+    }
+
+    s.savings = Math.round(s.savings);
+
+    const type = evts.includes('BURNOUT')      ? 'burnout'
+      : evts.includes('EGG_FREEZING')          ? 'egg_freezing'
+      : m === 1                                ? 'start'
+      : m === 36                               ? 'end'
+      : 'checkpoint';
+
+    if (KEY.has(m) || evts.length > 0) {
+      timeline.push({ month: m, type, scores: { ...s } });
+    }
+  }
+
+  return {
+    timeline,
+    final:        { ...s },
+    burnoutCount: timeline.filter(t => t.type === 'burnout').length,
+    burnoutMonths: timeline.filter(t => t.type === 'burnout').map(t => t.month),
+  };
+}
+
+function shortDesc(type, month, scores, prefs) {
+  switch (type) {
+    case 'start':       return `${TRACK_LABELS[prefs.careerTrack]} · ${prefs.workHours}h/week`;
+    case 'egg_freezing':return `Egg freezing complete · $12,000 spent · flexibility +50`;
+    case 'burnout':     return `Burnout — health −10, career −5 · stress resets`;
+    case 'end':         return `3-year plan complete`;
+    default:            return `Month ${month} snapshot`;
+  }
+}
+
+// ── Journey transition ────────────────────────────────────────────────────────
 const SCENERY = '🌳  🏠  🌲  🏢  🌳  🏙️  🌲  🏠  🌳  🏢  🌲  🌳  🏠  🌲  🏢  🌳  🏙️';
 const CLOUDS  = '☁️          ⛅          ☁️          ⛅          ☁️          ⛅';
 
-function JourneyTransition({ fromAge, toAge, leaImage, onComplete }) {
-  const scroll   = useRef(new Animated.Value(0)).current;
-  const clouds   = useRef(new Animated.Value(0)).current;
-  const bounce   = useRef(new Animated.Value(0)).current;
-  const fadeOut  = useRef(new Animated.Value(1)).current;
-  const ageFade  = useRef(new Animated.Value(0)).current;
+function JourneyTransition({ toAge, leaImage, onComplete }) {
+  const scroll  = useRef(new Animated.Value(0)).current;
+  const clouds  = useRef(new Animated.Value(0)).current;
+  const bounce  = useRef(new Animated.Value(0)).current;
+  const fadeOut = useRef(new Animated.Value(1)).current;
+  const ageFade = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
-    // Scenery scroll (faster)
-    Animated.loop(
-      Animated.timing(scroll, { toValue: -500, duration: 2400, easing: Easing.linear, useNativeDriver: true })
-    ).start();
-    // Clouds scroll (slower, parallax feel)
-    Animated.loop(
-      Animated.timing(clouds, { toValue: -300, duration: 5000, easing: Easing.linear, useNativeDriver: true })
-    ).start();
-    // Lea bounce
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(bounce, { toValue: -9, duration: 220, useNativeDriver: true }),
-        Animated.timing(bounce, { toValue: 0,  duration: 220, useNativeDriver: true }),
-      ])
-    ).start();
-    // Age label fades in at 0.6s
-    setTimeout(() => {
-      Animated.timing(ageFade, { toValue: 1, duration: 400, useNativeDriver: true }).start();
-    }, 600);
-    // Fade out + complete at 2.2s
+    Animated.loop(Animated.timing(scroll, { toValue: -500, duration: 2400, easing: Easing.linear, useNativeDriver: true })).start();
+    Animated.loop(Animated.timing(clouds, { toValue: -300, duration: 5000, easing: Easing.linear, useNativeDriver: true })).start();
+    Animated.loop(Animated.sequence([
+      Animated.timing(bounce, { toValue: -9, duration: 220, useNativeDriver: true }),
+      Animated.timing(bounce, { toValue: 0,  duration: 220, useNativeDriver: true }),
+    ])).start();
+    setTimeout(() => Animated.timing(ageFade, { toValue: 1, duration: 400, useNativeDriver: true }).start(), 600);
     const t = setTimeout(() => {
       Animated.timing(fadeOut, { toValue: 0, duration: 350, useNativeDriver: true }).start(() => onComplete());
     }, 1850);
@@ -98,41 +167,24 @@ function JourneyTransition({ fromAge, toAge, leaImage, onComplete }) {
 
   return (
     <Animated.View style={[jt.wrap, { opacity: fadeOut }]}>
-
-      {/* Sky + clouds */}
       <View style={jt.sky}>
         <Animated.View style={{ transform: [{ translateX: clouds }] }}>
           <Text style={jt.clouds}>{CLOUDS}</Text>
         </Animated.View>
       </View>
-
-      {/* Scenery strip */}
       <View style={jt.sceneryClip}>
         <Animated.View style={[jt.sceneryRow, { transform: [{ translateX: scroll }] }]}>
           <Text style={jt.sceneryTxt}>{SCENERY}</Text>
         </Animated.View>
       </View>
-
-      {/* Road */}
       <View style={jt.road}>
-        {/* Moving dashes */}
         <View style={jt.dashRow}>
           <Animated.View style={[jt.dashes, { transform: [{ translateX: scroll }] }]}>
-            {Array.from({ length: 28 }).map((_, i) => (
-              <View key={i} style={jt.dash} />
-            ))}
+            {Array.from({ length: 28 }).map((_, i) => <View key={i} style={jt.dash} />)}
           </Animated.View>
         </View>
-
-        {/* Lea walking */}
-        <Animated.Image
-          source={leaImage}
-          style={[jt.lea, { transform: [{ translateY: bounce }] }]}
-          resizeMode="contain"
-        />
+        <Animated.Image source={leaImage} style={[jt.lea, { transform: [{ translateY: bounce }] }]} resizeMode="contain" />
       </View>
-
-      {/* Age label */}
       <View style={jt.bottom}>
         <Animated.View style={{ opacity: ageFade, alignItems: 'center' }}>
           <Text style={jt.toAgeNum}>{toAge}</Text>
@@ -143,205 +195,42 @@ function JourneyTransition({ fromAge, toAge, leaImage, onComplete }) {
   );
 }
 const jt = StyleSheet.create({
-  wrap:       { ...StyleSheet.absoluteFillObject, backgroundColor: C.sky, zIndex: 200, flexDirection: 'column' },
-  sky:        { flex: 2, overflow: 'hidden', justifyContent: 'center', backgroundColor: '#C8E8FF' },
+  wrap:       { ...StyleSheet.absoluteFillObject, backgroundColor: '#F3E5F5', zIndex: 200 },
+  sky:        { flex: 2, overflow: 'hidden', justifyContent: 'center', backgroundColor: '#EDE7F6' },
   clouds:     { fontSize: 32, marginLeft: 20 },
-  sceneryClip:{ height: 60, overflow: 'hidden', justifyContent: 'flex-end', backgroundColor: '#D4EBB0' },
+  sceneryClip:{ height: 60, overflow: 'hidden', justifyContent: 'flex-end', backgroundColor: '#F8BBD9' },
   sceneryRow: { flexDirection: 'row' },
   sceneryTxt: { fontSize: 30, marginLeft: 10 },
-  road:       { height: 110, backgroundColor: C.road, justifyContent: 'center', alignItems: 'center' },
+  road:       { height: 110, backgroundColor: ROSE, justifyContent: 'center', alignItems: 'center' },
   dashRow:    { position: 'absolute', top: '45%', left: 0, right: 0, height: 4, overflow: 'hidden' },
   dashes:     { flexDirection: 'row' },
-  dash:       { width: 28, height: 4, backgroundColor: C.white, marginRight: 18, opacity: 0.7 },
+  dash:       { width: 28, height: 4, backgroundColor: WHITE, marginRight: 18, opacity: 0.7 },
   lea:        { width: 90, height: 90 },
-  bottom:     { flex: 1, backgroundColor: C.blueGhost, justifyContent: 'center', alignItems: 'center', paddingBottom: 20 },
-  toAgeNum:   { fontSize: 56, fontWeight: '900', color: C.blueDeep, lineHeight: 60, letterSpacing: -2 },
-  toAgeWord:  { fontSize: 14, color: C.textMid, fontWeight: '500', marginTop: -4 },
+  bottom:     { flex: 1, backgroundColor: BG, justifyContent: 'center', alignItems: 'center' },
+  toAgeNum:   { fontSize: 56, fontWeight: '900', color: PLUM, lineHeight: 60, letterSpacing: -2 },
+  toAgeWord:  { fontSize: 14, color: MUTED, fontWeight: '500' },
 });
 
-// ─── Checkpoint screen (every 2 years) ───────────────────────────────────────
-function CheckpointScreen({ currentAge, metrics, decisionsMade, onContinue, onInsights }) {
-  const yearsSinceStart = currentAge - 21;
+// ── Shared sub-components ─────────────────────────────────────────────────────
+function MetricsStrip({ metrics }) {
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: C.blueGhost }} contentContainerStyle={cp.wrap}>
-      <View style={cp.badge}>
-        <Text style={cp.badgeEmoji}>🛑</Text>
-        <Text style={cp.badgeLabel}>CHECKPOINT</Text>
-      </View>
-
-      <Text style={cp.age}>{currentAge}</Text>
-      <Text style={cp.title}>
-        {yearsSinceStart} year{yearsSinceStart !== 1 ? 's' : ''} into your journey
-      </Text>
-      <Text style={cp.body}>
-        Want to keep exploring, or see what the journey looks like so far?
-      </Text>
-
-      {/* Compact metrics */}
-      <View style={cp.metricsRow}>
-        {METRICS_CFG.map(({ key, emoji, color, label }) => {
-          const val = metrics[key];
-          return (
-            <View key={key} style={cp.metricItem}>
-              <Text style={cp.metricEmoji}>{emoji}</Text>
-              <View style={cp.metricBarBg}>
-                <View style={[cp.metricBar, { width: `${val}%`, backgroundColor: color }]} />
-              </View>
-              <Text style={[cp.metricVal, { color }]}>{val}</Text>
+    <View style={{ flexDirection: 'row', gap: 6, paddingTop: 8 }}>
+      {METRICS_CFG.map(({ key, emoji, color }) => {
+        const val = metrics[key];
+        return (
+          <View key={key} style={{ flex: 1, alignItems: 'center', gap: 3 }}>
+            <Text style={{ fontSize: 14 }}>{emoji}</Text>
+            <View style={{ width: '100%', height: 4, backgroundColor: '#EEE8F5', borderRadius: 2, overflow: 'hidden' }}>
+              <View style={{ height: '100%', width: `${val}%`, backgroundColor: color, borderRadius: 2 }} />
             </View>
-          );
-        })}
-      </View>
-
-      <TouchableOpacity style={cp.primary} onPress={onContinue} activeOpacity={0.82}>
-        <Text style={cp.primaryTxt}>Keep exploring →</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={cp.secondary} onPress={onInsights} activeOpacity={0.82}>
-        <Text style={cp.secondaryTxt}>Show my insights for now</Text>
-      </TouchableOpacity>
-    </ScrollView>
-  );
-}
-const cp = StyleSheet.create({
-  wrap:       { alignItems: 'center', paddingHorizontal: 28, paddingVertical: 40 },
-  badge:      { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 20 },
-  badgeEmoji: { fontSize: 18 },
-  badgeLabel: { fontSize: 11, fontWeight: '800', color: C.textSoft, letterSpacing: 2 },
-  age:        { fontSize: 72, fontWeight: '900', color: C.blueDeep, lineHeight: 76, letterSpacing: -3, marginBottom: 4 },
-  title:      { fontSize: 18, fontWeight: '700', color: C.blueDeep, marginBottom: 12, textAlign: 'center' },
-  body:       { fontSize: 15, lineHeight: 23, color: C.textMid, textAlign: 'center', marginBottom: 28 },
-  metricsRow: { width: '100%', flexDirection: 'row', gap: 8, marginBottom: 32 },
-  metricItem: { flex: 1, alignItems: 'center', gap: 4 },
-  metricEmoji:{ fontSize: 18 },
-  metricBarBg:{ width: '100%', height: 6, backgroundColor: '#DDE9F4', borderRadius: 3, overflow: 'hidden' },
-  metricBar:  { height: '100%', borderRadius: 3 },
-  metricVal:  { fontSize: 11, fontWeight: '700' },
-  primary:    { backgroundColor: C.blueMid, borderRadius: 14, paddingVertical: 15, width: '100%', alignItems: 'center', marginBottom: 12, shadowColor: C.blueMid, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 3 },
-  primaryTxt: { fontSize: 16, fontWeight: '700', color: C.white },
-  secondary:  { borderRadius: 14, paddingVertical: 14, width: '100%', alignItems: 'center', borderWidth: 1.5, borderColor: C.border, backgroundColor: C.white },
-  secondaryTxt:{ fontSize: 15, fontWeight: '600', color: C.blueDeep },
-});
-
-// ─── Mid-journey insights ──────────────────────────────────────────────────────
-function generateInsights(decisionsMade, metrics, age) {
-  const counts = {};
-  decisionsMade.forEach(d => { counts[d.theme] = (counts[d.theme] || 0) + 1; });
-  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-  const insights = [];
-
-  const TOP_MSG = {
-    career:          "You've been leaning into career choices. That focus shows — and it's worth knowing what you're trading for it.",
-    health:          "You've been paying attention to your health. That kind of awareness tends to compound quietly over time.",
-    relationships:   "Relationships have come up a lot. How you show up for others shapes how you experience everything else.",
-    family_planning: "You've been thinking about your future. There's no right timeline — just yours.",
-  };
-  if (sorted[0]) insights.push(TOP_MSG[sorted[0][0]] ?? '');
-
-  if (metrics.freedom < 38)   insights.push("Your freedom is lower than your other areas. It might be worth protecting some personal time going forward.");
-  if (metrics.wellbeing < 38) insights.push("Your wellbeing could use some attention. Even small habits make a difference.");
-  if (metrics.career > 68 && metrics.freedom < 42) insights.push("Strong career, tighter freedom — a classic trade-off. Worth being intentional about.");
-  if (age >= 27 && !counts.health) insights.push("You haven't focused on health yet. At " + age + ", it's a good time to start paying attention.");
-
-  return insights.filter(Boolean).slice(0, 3);
-}
-
-function MidInsightsScreen({ currentAge, metrics, decisionsMade, onContinue, onReset }) {
-  const insights = generateInsights(decisionsMade, metrics, currentAge);
-  const [expanded, setExpanded] = useState(false);
-
-  return (
-    <ScrollView style={{ flex: 1, backgroundColor: C.blueGhost }} contentContainerStyle={mi.wrap}>
-      <Image source={DOGS.adult.open} style={mi.lea} resizeMode="contain" />
-      <Text style={mi.eyebrow}>YOUR JOURNEY SO FAR</Text>
-      <Text style={mi.title}>Age {currentAge} snapshot</Text>
-      <Text style={mi.sub}>You chose to pause here. Here's what your path looks like.</Text>
-
-      {/* Metrics */}
-      <View style={mi.metricsCard}>
-        <Text style={mi.metricsHeading}>WHERE YOU ARE</Text>
-        {METRICS_CFG.map(({ key, emoji, label, color }) => (
-          <View key={key} style={mi.metricRow}>
-            <Text style={mi.metricEmoji}>{emoji}</Text>
-            <Text style={mi.metricLabel}>{label}</Text>
-            <View style={mi.barBg}>
-              <View style={[mi.barFill, { width: `${metrics[key]}%`, backgroundColor: color }]} />
-            </View>
-            <Text style={[mi.metricVal, { color }]}>{metrics[key]}</Text>
+            <Text style={{ fontSize: 10, fontWeight: '700', color }}>{val}</Text>
           </View>
-        ))}
-      </View>
-
-      {/* Insights */}
-      {insights.length > 0 && (
-        <View style={mi.insightsCard}>
-          <Text style={mi.insightsHeading}>WHAT WE NOTICE</Text>
-          {insights.map((txt, i) => (
-            <View key={i} style={[mi.insightRow, i === insights.length - 1 && { borderBottomWidth: 0 }]}>
-              <Text style={mi.insightDot}>💡</Text>
-              <Text style={mi.insightTxt}>{txt}</Text>
-            </View>
-          ))}
-        </View>
-      )}
-
-      {/* Journey log - collapsible */}
-      {decisionsMade.length > 0 && (
-        <View style={mi.section}>
-          <TouchableOpacity style={mi.dropRow} onPress={() => setExpanded(e => !e)} activeOpacity={0.8}>
-            <Text style={mi.dropLabel}>YOUR CHOICES SO FAR</Text>
-            <Text style={mi.dropArrow}>{expanded ? '▲' : '▼'}</Text>
-          </TouchableOpacity>
-          {expanded && decisionsMade.map((d, i) => (
-            <View key={i} style={mi.journeyRow}>
-              <Text style={mi.journeyAge}>Age {d.age} · {d.theme}</Text>
-              <Text style={mi.journeyTxt}>{d.consequence}</Text>
-            </View>
-          ))}
-        </View>
-      )}
-
-      <TouchableOpacity style={mi.primary} onPress={onContinue} activeOpacity={0.82}>
-        <Text style={mi.primaryTxt}>Continue from age {currentAge} →</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={mi.secondary} onPress={onReset} activeOpacity={0.82}>
-        <Text style={mi.secondaryTxt}>↺  Start a new path</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        );
+      })}
+    </View>
   );
 }
-const mi = StyleSheet.create({
-  wrap:           { paddingHorizontal: 24, paddingBottom: 48, alignItems: 'center' },
-  lea:            { width: 110, height: 110, marginTop: 28, marginBottom: 12 },
-  eyebrow:        { fontSize: 11, fontWeight: '700', color: C.textSoft, letterSpacing: 1.5, marginBottom: 6 },
-  title:          { fontSize: 26, fontWeight: '900', color: C.blueDeep, textAlign: 'center', marginBottom: 8 },
-  sub:            { fontSize: 15, lineHeight: 23, color: C.textMid, textAlign: 'center', marginBottom: 24 },
-  metricsCard:    { width: '100%', backgroundColor: C.white, borderRadius: 18, padding: 20, marginBottom: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
-  metricsHeading: { fontSize: 11, fontWeight: '700', color: C.textSoft, letterSpacing: 1.2, marginBottom: 14 },
-  metricRow:      { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-  metricEmoji:    { fontSize: 16, width: 22 },
-  metricLabel:    { fontSize: 13, fontWeight: '600', color: C.text, width: 60 },
-  barBg:          { flex: 1, height: 7, backgroundColor: '#E0EBF5', borderRadius: 4, overflow: 'hidden' },
-  barFill:        { height: '100%', borderRadius: 4 },
-  metricVal:      { fontSize: 12, fontWeight: '700', width: 28, textAlign: 'right' },
-  insightsCard:   { width: '100%', backgroundColor: C.white, borderRadius: 18, padding: 20, marginBottom: 16, borderLeftWidth: 4, borderLeftColor: C.blueMid },
-  insightsHeading:{ fontSize: 11, fontWeight: '700', color: C.textSoft, letterSpacing: 1.2, marginBottom: 12 },
-  insightRow:     { flexDirection: 'row', gap: 10, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F0F5FA' },
-  insightDot:     { fontSize: 14, marginTop: 1 },
-  insightTxt:     { flex: 1, fontSize: 14, lineHeight: 21, color: C.text },
-  section:        { width: '100%', marginBottom: 20 },
-  dropRow:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 },
-  dropLabel:      { fontSize: 11, fontWeight: '700', color: C.textSoft, letterSpacing: 1 },
-  dropArrow:      { fontSize: 12, color: C.textSoft },
-  journeyRow:     { backgroundColor: C.white, borderRadius: 14, padding: 14, marginBottom: 8 },
-  journeyAge:     { fontSize: 11, fontWeight: '700', color: C.blueMid, textTransform: 'capitalize', marginBottom: 4 },
-  journeyTxt:     { fontSize: 14, lineHeight: 21, color: C.text },
-  primary:        { backgroundColor: C.blueMid, borderRadius: 14, paddingVertical: 15, width: '100%', alignItems: 'center', marginBottom: 12, shadowColor: C.blueMid, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 3 },
-  primaryTxt:     { fontSize: 16, fontWeight: '700', color: C.white },
-  secondary:      { borderRadius: 14, paddingVertical: 14, width: '100%', alignItems: 'center', borderWidth: 1.5, borderColor: C.border, backgroundColor: C.white },
-  secondaryTxt:   { fontSize: 15, fontWeight: '600', color: C.blueDeep },
-});
 
-// ─── Shared small components ──────────────────────────────────────────────────
 function Timeline({ startAge, currentAge }) {
   const STOPS = [21, 25, 28, 32, 35].filter(a => a >= startAge);
   return (
@@ -361,37 +250,18 @@ function Timeline({ startAge, currentAge }) {
   );
 }
 const tls = StyleSheet.create({
-  line:    { flex: 1, height: 2, backgroundColor: C.border, marginHorizontal: 2 },
-  lineDone:{ backgroundColor: C.blueMid },
-  dot:     { width: 10, height: 10, borderRadius: 5, backgroundColor: '#D0E8F8', borderWidth: 2, borderColor: C.border, alignItems: 'center', justifyContent: 'center' },
-  dotDone: { backgroundColor: C.blueMid, borderColor: C.blueMid },
-  dotActive:{ width: 16, height: 16, borderRadius: 8, backgroundColor: C.white, borderColor: C.blueMid, borderWidth: 2.5 },
-  core:    { width: 6, height: 6, borderRadius: 3, backgroundColor: C.blueMid },
+  line:     { flex: 1, height: 2, backgroundColor: BORDER, marginHorizontal: 2 },
+  lineDone: { backgroundColor: ROSE_D },
+  dot:      { width: 10, height: 10, borderRadius: 5, backgroundColor: '#F5DCE8', borderWidth: 2, borderColor: BORDER, alignItems: 'center', justifyContent: 'center' },
+  dotDone:  { backgroundColor: ROSE_D, borderColor: ROSE_D },
+  dotActive:{ width: 16, height: 16, borderRadius: 8, backgroundColor: WHITE, borderColor: ROSE_D, borderWidth: 2.5 },
+  core:     { width: 6, height: 6, borderRadius: 3, backgroundColor: ROSE_D },
 });
-
-function MetricsStrip({ metrics }) {
-  return (
-    <View style={{ flexDirection: 'row', gap: 6, paddingTop: 8 }}>
-      {METRICS_CFG.map(({ key, emoji, color }) => {
-        const val = metrics[key];
-        return (
-          <View key={key} style={{ flex: 1, alignItems: 'center', gap: 3 }}>
-            <Text style={{ fontSize: 14 }}>{emoji}</Text>
-            <View style={{ width: '100%', height: 4, backgroundColor: '#DDE9F4', borderRadius: 2, overflow: 'hidden' }}>
-              <View style={{ height: '100%', width: `${val}%`, backgroundColor: color, borderRadius: 2 }} />
-            </View>
-            <Text style={{ fontSize: 10, fontWeight: '700', color: val >= 65 ? color : val <= 38 ? C.amberDark : C.textSoft }}>{val}</Text>
-          </View>
-        );
-      })}
-    </View>
-  );
-}
 
 function ChoiceCard({ label, theme, choiceKey, onPress }) {
   const deltas = METRIC_DELTAS[theme]?.[choiceKey] ?? {};
   const hints  = Object.entries(deltas).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).slice(0, 3);
-  const MAP    = { career: '💼', wellbeing: '🌿', clarity: '🧭', freedom: '⏰' };
+  const MAP    = { career: '🚀', wellbeing: '🌿', clarity: '🧭', freedom: '∞' };
   return (
     <TouchableOpacity style={ch.card} onPress={onPress} activeOpacity={0.8}>
       <Text style={ch.label}>{label}</Text>
@@ -408,25 +278,25 @@ function ChoiceCard({ label, theme, choiceKey, onPress }) {
   );
 }
 const ch = StyleSheet.create({
-  card:     { backgroundColor: C.white, borderRadius: 16, borderWidth: 1.5, borderColor: C.border, paddingVertical: 16, paddingHorizontal: 18, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 6, elevation: 2 },
-  label:    { fontSize: 15, lineHeight: 22, color: C.blueDeep, fontWeight: '600', marginBottom: 10 },
+  card:     { backgroundColor: WHITE, borderRadius: 18, borderWidth: 1.5, borderColor: BORDER, paddingVertical: 16, paddingHorizontal: 18, shadowColor: ROSE, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2 },
+  label:    { fontSize: 15, lineHeight: 22, color: PLUM, fontWeight: '600', marginBottom: 10 },
   hints:    { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
   hint:     { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 100, borderWidth: 1 },
   hintTxt:  { fontSize: 11, fontWeight: '700' },
   hintUp:   { backgroundColor: '#E8F5E9', borderColor: '#A5D6A7' },
-  hintDown: { backgroundColor: '#FFF3E0', borderColor: '#FFCC80' },
-  hintUp2:  { color: '#2E7D32' },
-  hintDown2:{ color: '#E65100' },
+  hintDown: { backgroundColor: '#FCE4EC', borderColor: '#F48FB1' },
+  hintUp2:  { color: GREEN },
+  hintDown2:{ color: ROSE_D },
 });
 
 function DeltaPills({ deltas }) {
   if (!deltas || !Object.keys(deltas).length) return null;
-  const MAP = { career: '💼', wellbeing: '🌿', clarity: '🧭', freedom: '⏰' };
+  const MAP = { career: '🚀', wellbeing: '🌿', clarity: '🧭', freedom: '∞' };
   return (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 14 }}>
       {Object.entries(deltas).map(([k, v]) => (
-        <View key={k} style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100, borderWidth: 1, ...(v > 0 ? { backgroundColor: '#E8F5E9', borderColor: '#A5D6A7' } : { backgroundColor: '#FFEBEE', borderColor: '#EF9A9A' }) }}>
-          <Text style={{ fontSize: 12, fontWeight: '700', color: v > 0 ? '#2E7D32' : '#C62828' }}>
+        <View key={k} style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 100, borderWidth: 1, ...(v > 0 ? { backgroundColor: '#E8F5E9', borderColor: '#A5D6A7' } : { backgroundColor: '#FCE4EC', borderColor: '#F48FB1' }) }}>
+          <Text style={{ fontSize: 12, fontWeight: '700', color: v > 0 ? GREEN : ROSE_D }}>
             {MAP[k]} {v > 0 ? `+${v}` : v}
           </Text>
         </View>
@@ -440,8 +310,8 @@ function HealthInsight({ data }) {
   return (
     <View style={s.insightCard}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-        <Text style={{ fontSize: 14 }}>💡</Text>
-        <Text style={{ fontSize: 11, fontWeight: '700', color: C.blueMid, textTransform: 'uppercase', letterSpacing: 0.5 }}>Health insight</Text>
+        <Text>💡</Text>
+        <Text style={{ fontSize: 11, fontWeight: '700', color: ROSE_D, textTransform: 'uppercase', letterSpacing: 0.5 }}>Health insight</Text>
       </View>
       <Text style={s.insightHeadline}>{data.headline}</Text>
       <Text style={s.insightBody}>{data.body}</Text>
@@ -455,6 +325,498 @@ function HealthInsight({ data }) {
   );
 }
 
+// ── Checkpoint ────────────────────────────────────────────────────────────────
+function CheckpointScreen({ currentAge, metrics, onContinue, onInsights }) {
+  return (
+    <ScrollView style={{ flex: 1, backgroundColor: BG }} contentContainerStyle={cp.wrap}>
+      <Text style={cp.badgeLabel}>CHECKPOINT</Text>
+      <Text style={cp.age}>{currentAge}</Text>
+      <Text style={cp.title}>{currentAge - 21} year{currentAge - 21 !== 1 ? 's' : ''} in</Text>
+      <View style={cp.metricsRow}>
+        {METRICS_CFG.map(({ key, emoji, color }) => (
+          <View key={key} style={cp.metricItem}>
+            <Text style={cp.metricEmoji}>{emoji}</Text>
+            <View style={cp.metricBarBg}>
+              <View style={[cp.metricBar, { width: `${metrics[key]}%`, backgroundColor: color }]} />
+            </View>
+            <Text style={[cp.metricVal, { color }]}>{metrics[key]}</Text>
+          </View>
+        ))}
+      </View>
+      <TouchableOpacity style={cp.primary} onPress={onContinue} activeOpacity={0.82}>
+        <Text style={cp.primaryTxt}>Keep going →</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={cp.secondary} onPress={onInsights} activeOpacity={0.82}>
+        <Text style={cp.secondaryTxt}>See insights so far</Text>
+      </TouchableOpacity>
+    </ScrollView>
+  );
+}
+const cp = StyleSheet.create({
+  wrap:       { alignItems: 'center', paddingHorizontal: 28, paddingVertical: 40 },
+  badgeLabel: { fontSize: 11, fontWeight: '800', color: MUTED, letterSpacing: 2, marginBottom: 12 },
+  age:        { fontSize: 72, fontWeight: '900', color: PLUM, lineHeight: 76, letterSpacing: -3, marginBottom: 4 },
+  title:      { fontSize: 18, fontWeight: '700', color: PLUM, marginBottom: 28, textAlign: 'center' },
+  metricsRow: { width: '100%', flexDirection: 'row', gap: 8, marginBottom: 32 },
+  metricItem: { flex: 1, alignItems: 'center', gap: 4 },
+  metricEmoji:{ fontSize: 18 },
+  metricBarBg:{ width: '100%', height: 6, backgroundColor: '#EEE8F5', borderRadius: 3, overflow: 'hidden' },
+  metricBar:  { height: '100%', borderRadius: 3 },
+  metricVal:  { fontSize: 11, fontWeight: '700' },
+  primary:    { backgroundColor: ROSE_D, borderRadius: 14, paddingVertical: 15, width: '100%', alignItems: 'center', marginBottom: 12 },
+  primaryTxt: { fontSize: 16, fontWeight: '700', color: WHITE },
+  secondary:  { borderRadius: 14, paddingVertical: 14, width: '100%', alignItems: 'center', borderWidth: 1.5, borderColor: BORDER, backgroundColor: WHITE },
+  secondaryTxt:{ fontSize: 15, fontWeight: '600', color: PLUM },
+});
+
+// ── Mid insights ──────────────────────────────────────────────────────────────
+function generateInsights(decisionsMade, metrics, age) {
+  const counts = {};
+  decisionsMade.forEach(d => { counts[d.theme] = (counts[d.theme] || 0) + 1; });
+  const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  const insights = [];
+  const TOP = {
+    career:          "You've been leaning into career choices. Worth knowing what you're trading for it.",
+    health:          "You've been paying attention to your health. That kind of awareness compounds.",
+    relationships:   "Relationships have come up a lot. How you show up for others shapes everything else.",
+    family_planning: "You've been thinking about your future. There's no right timeline — just yours.",
+  };
+  if (sorted[0]) insights.push(TOP[sorted[0][0]] ?? '');
+  if (metrics.freedom < 38)   insights.push("Your freedom score is low. Consider protecting some personal time.");
+  if (metrics.wellbeing < 38) insights.push("Wellbeing needs attention. Small habits make a difference.");
+  if (metrics.career > 68 && metrics.freedom < 42) insights.push("Strong career, lower freedom — a classic trade-off.");
+  return insights.filter(Boolean).slice(0, 3);
+}
+
+function MidInsightsScreen({ currentAge, metrics, decisionsMade, onContinue, onReset }) {
+  const insights = generateInsights(decisionsMade, metrics, currentAge);
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <ScrollView style={{ flex: 1, backgroundColor: BG }} contentContainerStyle={mi.wrap}>
+      <Image source={DOGS.adult.open} style={mi.lea} resizeMode="contain" />
+      <Text style={mi.eyebrow}>AGE {currentAge} SNAPSHOT</Text>
+      <View style={mi.metricsCard}>
+        {METRICS_CFG.map(({ key, emoji, label, color }) => (
+          <View key={key} style={mi.metricRow}>
+            <Text style={mi.metricEmoji}>{emoji}</Text>
+            <Text style={mi.metricLabel}>{label}</Text>
+            <View style={mi.barBg}><View style={[mi.barFill, { width: `${metrics[key]}%`, backgroundColor: color }]} /></View>
+            <Text style={[mi.metricVal, { color }]}>{metrics[key]}</Text>
+          </View>
+        ))}
+      </View>
+      {insights.length > 0 && (
+        <View style={mi.insightsCard}>
+          <Text style={mi.insightsHeading}>WHAT WE NOTICE</Text>
+          {insights.map((txt, i) => (
+            <View key={i} style={[mi.insightRow, i === insights.length - 1 && { borderBottomWidth: 0 }]}>
+              <Text>💡</Text>
+              <Text style={mi.insightTxt}>{txt}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+      {decisionsMade.length > 0 && (
+        <View style={{ width: '100%', marginBottom: 20 }}>
+          <TouchableOpacity style={mi.dropRow} onPress={() => setExpanded(e => !e)} activeOpacity={0.8}>
+            <Text style={mi.dropLabel}>YOUR CHOICES</Text>
+            <Text style={mi.dropArrow}>{expanded ? '▲' : '▼'}</Text>
+          </TouchableOpacity>
+          {expanded && decisionsMade.map((d, i) => (
+            <View key={i} style={mi.journeyRow}>
+              <Text style={mi.journeyAge}>Age {d.age} · {d.theme}</Text>
+              <Text style={mi.journeyTxt}>{d.consequence}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+      <TouchableOpacity style={mi.primary} onPress={onContinue} activeOpacity={0.82}>
+        <Text style={mi.primaryTxt}>Continue from age {currentAge} →</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={mi.secondary} onPress={onReset} activeOpacity={0.82}>
+        <Text style={mi.secondaryTxt}>↺  Start over</Text>
+      </TouchableOpacity>
+    </ScrollView>
+  );
+}
+const mi = StyleSheet.create({
+  wrap:           { paddingHorizontal: 24, paddingBottom: 48, alignItems: 'center' },
+  lea:            { width: 100, height: 100, marginTop: 24, marginBottom: 12 },
+  eyebrow:        { fontSize: 11, fontWeight: '700', color: MUTED, letterSpacing: 1.5, marginBottom: 16 },
+  metricsCard:    { width: '100%', backgroundColor: WHITE, borderRadius: 18, padding: 18, marginBottom: 14, borderWidth: 1, borderColor: BORDER },
+  metricRow:      { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
+  metricEmoji:    { fontSize: 16, width: 22 },
+  metricLabel:    { fontSize: 13, fontWeight: '600', color: PLUM, width: 60 },
+  barBg:          { flex: 1, height: 7, backgroundColor: '#EEE8F5', borderRadius: 4, overflow: 'hidden' },
+  barFill:        { height: '100%', borderRadius: 4 },
+  metricVal:      { fontSize: 12, fontWeight: '700', width: 28, textAlign: 'right' },
+  insightsCard:   { width: '100%', backgroundColor: WHITE, borderRadius: 18, padding: 18, marginBottom: 14, borderLeftWidth: 4, borderLeftColor: ROSE_D, borderWidth: 1, borderColor: BORDER },
+  insightsHeading:{ fontSize: 11, fontWeight: '700', color: MUTED, letterSpacing: 1.2, marginBottom: 10 },
+  insightRow:     { flexDirection: 'row', gap: 10, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#FFF0F5', alignItems: 'flex-start' },
+  insightTxt:     { flex: 1, fontSize: 13, lineHeight: 20, color: PLUM },
+  dropRow:        { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 10 },
+  dropLabel:      { fontSize: 11, fontWeight: '700', color: MUTED, letterSpacing: 1 },
+  dropArrow:      { fontSize: 12, color: MUTED },
+  journeyRow:     { backgroundColor: WHITE, borderRadius: 12, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: BORDER },
+  journeyAge:     { fontSize: 11, fontWeight: '700', color: ROSE_D, textTransform: 'capitalize', marginBottom: 4 },
+  journeyTxt:     { fontSize: 13, lineHeight: 20, color: PLUM },
+  primary:        { backgroundColor: ROSE_D, borderRadius: 14, paddingVertical: 15, width: '100%', alignItems: 'center', marginBottom: 12 },
+  primaryTxt:     { fontSize: 16, fontWeight: '700', color: WHITE },
+  secondary:      { borderRadius: 14, paddingVertical: 14, width: '100%', alignItems: 'center', borderWidth: 1.5, borderColor: BORDER, backgroundColor: WHITE },
+  secondaryTxt:   { fontSize: 15, fontWeight: '600', color: PLUM },
+});
+
+// ── End screen ────────────────────────────────────────────────────────────────
+function EndScreen({ decisionsMade, metrics, onLifePlan, onReset }) {
+  const [expanded, setExpanded] = useState(false);
+  return (
+    <ScrollView style={{ flex: 1, backgroundColor: BG }} contentContainerStyle={s.endWrap}>
+      <Image source={DOGS.adult.openUp} style={s.endLea} resizeMode="contain" />
+      <Text style={s.endTitle}>One possible version of your path</Text>
+      <Text style={s.endSub}>Every choice shapes something. None of them are wrong.</Text>
+      <View style={s.endMetricsCard}>
+        <Text style={s.endMH}>WHERE YOU ENDED UP</Text>
+        {METRICS_CFG.map(({ key, emoji, label, color }) => (
+          <View key={key} style={s.endMetricRow}>
+            <Text style={{ fontSize: 16, width: 22 }}>{emoji}</Text>
+            <Text style={s.endMetricLabel}>{label}</Text>
+            <View style={s.endBarBg}><View style={[s.endBarFill, { width: `${metrics[key]}%`, backgroundColor: color }]} /></View>
+            <Text style={[s.endMetricVal, { color }]}>{metrics[key]}</Text>
+          </View>
+        ))}
+      </View>
+      {decisionsMade.length > 0 && (
+        <View style={{ width: '100%', marginBottom: 20 }}>
+          <TouchableOpacity style={s.endDropRow} onPress={() => setExpanded(e => !e)} activeOpacity={0.8}>
+            <Text style={s.endDropLabel}>YOUR JOURNEY</Text>
+            <Text style={{ fontSize: 12, color: MUTED }}>{expanded ? '▲' : '▼'}</Text>
+          </TouchableOpacity>
+          {expanded && decisionsMade.map((d, i) => (
+            <View key={i} style={s.endRow}>
+              <Text style={s.endRowAge}>Age {d.age} · {d.theme}</Text>
+              <Text style={s.endRowTxt}>{d.consequence}</Text>
+            </View>
+          ))}
+        </View>
+      )}
+      <TouchableOpacity style={s.endPrimary} onPress={onLifePlan} activeOpacity={0.82}>
+        <Text style={s.endPrimaryTxt}>See 36-month life plan →</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={s.endSecondary} onPress={onReset} activeOpacity={0.82}>
+        <Text style={s.endSecondaryTxt}>↺  Try a different path</Text>
+      </TouchableOpacity>
+    </ScrollView>
+  );
+}
+
+// ── Preferences screen ────────────────────────────────────────────────────────
+const CAREER_OPTIONS = [
+  { key: 'corporate_high', label: 'Corporate', sub: 'High intensity' },
+  { key: 'corporate_med',  label: 'Corporate', sub: 'Medium intensity' },
+  { key: 'startup',        label: 'Startup',   sub: 'High growth' },
+];
+const HOURS_OPTIONS = [
+  { key: 40,  label: '≤40h' },
+  { key: 50,  label: '41–50h' },
+  { key: 58,  label: '51–60h' },
+  { key: 65,  label: '60h+' },
+];
+const FREEZE_OPTIONS = [
+  { key: null, label: 'None' },
+  { key: 6,   label: 'Month 6' },
+  { key: 12,  label: 'Month 12' },
+  { key: 18,  label: 'Month 18' },
+  { key: 24,  label: 'Month 24' },
+];
+
+function PillRow({ options, selected, onSelect, keyField = 'key', labelField = 'label', subField }) {
+  return (
+    <View style={pf.pillRow}>
+      {options.map(opt => {
+        const active = selected === opt[keyField];
+        return (
+          <TouchableOpacity
+            key={String(opt[keyField])}
+            style={[pf.pill, active && pf.pillActive]}
+            onPress={() => onSelect(opt[keyField])}
+            activeOpacity={0.78}
+          >
+            <Text style={[pf.pillTxt, active && pf.pillTxtActive]}>{opt[labelField]}</Text>
+            {subField && opt[subField] && (
+              <Text style={[pf.pillSub, active && pf.pillSubActive]}>{opt[subField]}</Text>
+            )}
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
+function PriorityRow({ label, value, onChange }) {
+  return (
+    <View style={pf.priorityRow}>
+      <Text style={pf.priorityLabel}>{label}</Text>
+      <View style={pf.priorityNums}>
+        {[1, 2, 3, 4, 5].map(n => (
+          <TouchableOpacity
+            key={n}
+            style={[pf.numBtn, value === n && pf.numBtnActive]}
+            onPress={() => onChange(n)}
+            activeOpacity={0.75}
+          >
+            <Text style={[pf.numTxt, value === n && pf.numTxtActive]}>{n}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function PrefsScreen({ onRun, onBack }) {
+  const [careerTrack,      setCareerTrack]      = useState('corporate_high');
+  const [workHours,        setWorkHours]        = useState(65);
+  const [eggFreezingMonth, setEggFreezingMonth] = useState(12);
+  const [priorities, setPriorities] = useState({ career: 4, health: 3, financial: 3, relationships: 2 });
+
+  function setPriority(key, val) {
+    setPriorities(p => ({ ...p, [key]: val }));
+  }
+
+  function handleRun() {
+    onRun({ careerTrack, workHours, eggFreezingMonth, priorities });
+  }
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: BG }}>
+      <ScrollView contentContainerStyle={pf.scroll} showsVerticalScrollIndicator={false}>
+
+        <View style={pf.header}>
+          <TouchableOpacity onPress={onBack} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+            <Text style={pf.back}>← Back</Text>
+          </TouchableOpacity>
+          <Text style={pf.title}>Your Scenario</Text>
+          <Text style={pf.sub}>Personalise the 36-month simulation</Text>
+        </View>
+
+        <View style={pf.card}>
+          <Text style={pf.sectionLabel}>CAREER PATH</Text>
+          <PillRow options={CAREER_OPTIONS} selected={careerTrack} onSelect={setCareerTrack} subField="sub" />
+        </View>
+
+        <View style={pf.card}>
+          <Text style={pf.sectionLabel}>WEEKLY HOURS</Text>
+          <PillRow options={HOURS_OPTIONS} selected={workHours} onSelect={setWorkHours} />
+        </View>
+
+        <View style={pf.card}>
+          <Text style={pf.sectionLabel}>EGG FREEZING</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={[pf.pillRow, { flexWrap: 'nowrap' }]}>
+              {FREEZE_OPTIONS.map(opt => {
+                const active = eggFreezingMonth === opt.key;
+                return (
+                  <TouchableOpacity
+                    key={String(opt.key)}
+                    style={[pf.pill, active && pf.pillActive, { minWidth: 72 }]}
+                    onPress={() => setEggFreezingMonth(opt.key)}
+                    activeOpacity={0.78}
+                  >
+                    <Text style={[pf.pillTxt, active && pf.pillTxtActive]}>{opt.label}</Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          </ScrollView>
+        </View>
+
+        <View style={pf.card}>
+          <Text style={pf.sectionLabel}>PRIORITIES  <Text style={pf.sectionHint}>1 = low · 5 = high</Text></Text>
+          <PriorityRow label="Career"      value={priorities.career}       onChange={v => setPriority('career', v)} />
+          <PriorityRow label="Health"      value={priorities.health}       onChange={v => setPriority('health', v)} />
+          <PriorityRow label="Financial"   value={priorities.financial}    onChange={v => setPriority('financial', v)} />
+          <PriorityRow label="Relationships" value={priorities.relationships} onChange={v => setPriority('relationships', v)} />
+        </View>
+
+        <TouchableOpacity style={pf.runBtn} onPress={handleRun} activeOpacity={0.85}>
+          <Text style={pf.runBtnTxt}>Run simulation →</Text>
+        </TouchableOpacity>
+
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+const pf = StyleSheet.create({
+  scroll:      { paddingHorizontal: 20, paddingBottom: 48 },
+  header:      { paddingTop: 20, paddingBottom: 20 },
+  back:        { fontSize: 14, color: ROSE_D, fontWeight: '600', marginBottom: 14 },
+  title:       { fontSize: 28, fontWeight: '800', color: PLUM, letterSpacing: -0.5 },
+  sub:         { fontSize: 13, color: MUTED, marginTop: 4 },
+
+  card:        { backgroundColor: WHITE, borderRadius: 18, padding: 18, marginBottom: 14, borderWidth: 1, borderColor: BORDER },
+  sectionLabel:{ fontSize: 11, fontWeight: '800', color: MUTED, letterSpacing: 1.4, marginBottom: 12 },
+  sectionHint: { fontSize: 10, fontWeight: '500', letterSpacing: 0.5 },
+
+  pillRow:     { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  pill:        { paddingHorizontal: 14, paddingVertical: 9, borderRadius: 100, backgroundColor: '#F5EEF8', borderWidth: 1.5, borderColor: BORDER },
+  pillActive:  { backgroundColor: PLUM, borderColor: PLUM },
+  pillTxt:     { fontSize: 13, fontWeight: '600', color: PLUM },
+  pillTxtActive:{ color: WHITE },
+  pillSub:     { fontSize: 10, color: MUTED, marginTop: 2 },
+  pillSubActive:{ color: 'rgba(255,255,255,0.75)' },
+
+  priorityRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#FFF0F5' },
+  priorityLabel:{ fontSize: 14, color: PLUM, fontWeight: '500', flex: 1 },
+  priorityNums:{ flexDirection: 'row', gap: 6 },
+  numBtn:      { width: 32, height: 32, borderRadius: 16, backgroundColor: '#F5EEF8', alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: BORDER },
+  numBtnActive:{ backgroundColor: ROSE_D, borderColor: ROSE_D },
+  numTxt:      { fontSize: 13, fontWeight: '700', color: PLUM },
+  numTxtActive:{ color: WHITE },
+
+  runBtn:      { backgroundColor: ROSE_D, borderRadius: 16, paddingVertical: 16, alignItems: 'center', marginTop: 8 },
+  runBtnTxt:   { fontSize: 17, fontWeight: '700', color: WHITE },
+});
+
+// ── Life Plan view ────────────────────────────────────────────────────────────
+const TYPE_CONFIG = {
+  start:       { borderColor: '#C5E1A5', bg: '#F1F8E9', tag: 'START',        tagColor: GREEN,   emoji: '🚀' },
+  checkpoint:  { borderColor: BORDER,   bg: WHITE,     tag: 'MONTH',        tagColor: MUTED,   emoji: '📍' },
+  egg_freezing:{ borderColor: '#CE93D8', bg: '#F3E5F5', tag: 'EGG FREEZING', tagColor: PURPLE,  emoji: '🥚' },
+  burnout:     { borderColor: '#F48FB1', bg: '#FCE4EC', tag: 'BURNOUT',      tagColor: ROSE_D,  emoji: '⚠️' },
+  end:         { borderColor: ROSE,     bg: '#FFF0F5', tag: 'FINAL',         tagColor: ROSE,    emoji: '🏁' },
+};
+
+function TimelineCard({ item, prefs }) {
+  const cfg = TYPE_CONFIG[item.type] || TYPE_CONFIG.checkpoint;
+  const { career, health, stress, savings, flexibility } = item.scores;
+  const desc = shortDesc(item.type, item.month, item.scores, prefs);
+
+  return (
+    <View style={[lp.card, { borderColor: cfg.borderColor, backgroundColor: cfg.bg }]}>
+      <View style={lp.cardTop}>
+        <View style={lp.monthBadge}>
+          <Text style={lp.monthNum}>{item.month}</Text>
+          <Text style={lp.monthWord}>mo</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={[lp.typeTag, { color: cfg.tagColor }]}>{cfg.emoji} {cfg.tag}</Text>
+          <Text style={lp.desc}>{desc}</Text>
+        </View>
+      </View>
+
+      <View style={lp.scoresRow}>
+        {[
+          { label: '🚀', val: career,      color: AMBER_D },
+          { label: '🌿', val: health,      color: ROSE_D },
+          { label: '😰', val: stress,      color: PURPLE },
+          { label: '🥚', val: flexibility, color: GREEN },
+        ].map(({ label, val, color }) => (
+          <View key={label} style={lp.scoreItem}>
+            <Text style={lp.scoreEmoji}>{label}</Text>
+            <View style={lp.scoreBarBg}>
+              <View style={[lp.scoreBarFill, { width: `${Math.min(val, 100)}%`, backgroundColor: color }]} />
+            </View>
+            <Text style={[lp.scoreVal, { color }]}>{val}</Text>
+          </View>
+        ))}
+      </View>
+
+      <Text style={lp.savings}>💰 ${savings.toLocaleString()}</Text>
+    </View>
+  );
+}
+
+function LifePlanView({ result, prefs, onBack }) {
+  const { timeline, final, burnoutCount, burnoutMonths } = result;
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: BG }}>
+      <ScrollView contentContainerStyle={lp.scroll} showsVerticalScrollIndicator={false}>
+
+        <View style={lp.header}>
+          <TouchableOpacity onPress={onBack} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+            <Text style={lp.back}>← Edit</Text>
+          </TouchableOpacity>
+          <Text style={lp.title}>36-Month Plan</Text>
+          <Text style={lp.sub}>{TRACK_LABELS[prefs.careerTrack]} · {prefs.workHours}h/week</Text>
+          <View style={lp.underline} />
+        </View>
+
+        <View style={lp.summaryCard}>
+          <View style={lp.summaryRow}>
+            <View style={lp.summaryItem}>
+              <Text style={lp.summaryVal}>{final.career}</Text>
+              <Text style={lp.summaryLbl}>Career</Text>
+            </View>
+            <View style={lp.summaryDivider} />
+            <View style={lp.summaryItem}>
+              <Text style={[lp.summaryVal, { color: final.health < 40 ? ROSE_D : GREEN }]}>{final.health}</Text>
+              <Text style={lp.summaryLbl}>Health</Text>
+            </View>
+            <View style={lp.summaryDivider} />
+            <View style={lp.summaryItem}>
+              <Text style={[lp.summaryVal, { color: GREEN }]}>${Math.round(final.savings / 1000)}K</Text>
+              <Text style={lp.summaryLbl}>Savings</Text>
+            </View>
+            <View style={lp.summaryDivider} />
+            <View style={lp.summaryItem}>
+              <Text style={[lp.summaryVal, { color: burnoutCount > 0 ? ROSE_D : GREEN }]}>{burnoutCount}</Text>
+              <Text style={lp.summaryLbl}>Burnouts</Text>
+            </View>
+          </View>
+          {prefs.eggFreezingMonth && (
+            <Text style={lp.fertileTag}>🥚 Egg freezing secured at month {prefs.eggFreezingMonth}</Text>
+          )}
+        </View>
+
+        <View style={{ paddingHorizontal: 20 }}>
+          {timeline.map(item => <TimelineCard key={item.month} item={item} prefs={prefs} />)}
+        </View>
+
+        <TouchableOpacity style={lp.backBtn} onPress={onBack} activeOpacity={0.82}>
+          <Text style={lp.backBtnTxt}>← Edit scenario</Text>
+        </TouchableOpacity>
+
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+const lp = StyleSheet.create({
+  scroll:        { paddingBottom: 56 },
+  header:        { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16 },
+  back:          { fontSize: 14, color: ROSE_D, fontWeight: '600', marginBottom: 14 },
+  title:         { fontSize: 28, fontWeight: '800', color: PLUM, letterSpacing: -0.5 },
+  sub:           { fontSize: 13, color: MUTED, marginTop: 3 },
+  underline:     { width: 80, height: 2, backgroundColor: ROSE, borderRadius: 1, marginTop: 8 },
+
+  summaryCard:   { marginHorizontal: 20, marginBottom: 20, backgroundColor: WHITE, borderRadius: 18, padding: 18, borderWidth: 1.5, borderColor: BORDER },
+  summaryRow:    { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  summaryItem:   { flex: 1, alignItems: 'center' },
+  summaryVal:    { fontSize: 22, fontWeight: '900', color: PLUM },
+  summaryLbl:    { fontSize: 11, color: MUTED, fontWeight: '500', marginTop: 2 },
+  summaryDivider:{ width: 1, height: 36, backgroundColor: BORDER },
+  fertileTag:    { marginTop: 12, fontSize: 12, color: PURPLE, fontWeight: '600', textAlign: 'center' },
+
+  card:          { borderRadius: 16, borderWidth: 1.5, padding: 14, marginBottom: 12 },
+  cardTop:       { flexDirection: 'row', gap: 12, marginBottom: 12, alignItems: 'flex-start' },
+  monthBadge:    { width: 40, height: 40, borderRadius: 20, backgroundColor: WHITE, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: BORDER, flexShrink: 0 },
+  monthNum:      { fontSize: 14, fontWeight: '900', color: PLUM, lineHeight: 16 },
+  monthWord:     { fontSize: 8, color: MUTED, fontWeight: '600' },
+  typeTag:       { fontSize: 10, fontWeight: '800', letterSpacing: 1.2, marginBottom: 3 },
+  desc:          { fontSize: 13, color: PLUM, lineHeight: 19 },
+
+  scoresRow:     { gap: 5, marginBottom: 8 },
+  scoreItem:     { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  scoreEmoji:    { fontSize: 11, width: 16 },
+  scoreBarBg:    { flex: 1, height: 4, backgroundColor: '#EEE8F5', borderRadius: 2, overflow: 'hidden' },
+  scoreBarFill:  { height: '100%', borderRadius: 2 },
+  scoreVal:      { fontSize: 10, fontWeight: '700', width: 24, textAlign: 'right' },
+  savings:       { fontSize: 11, fontWeight: '600', color: GREEN, marginTop: 4 },
+
+  backBtn:       { marginHorizontal: 20, marginTop: 8, backgroundColor: ROSE_D, borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
+  backBtnTxt:    { fontSize: 15, fontWeight: '700', color: WHITE },
+});
+
+// ── Popup helpers ─────────────────────────────────────────────────────────────
 function FamilyPopup({ visible, currentAge, fpPref, onPlanning, onChildFree, onClose }) {
   const fpTrack = simulationData.tracks[getFPTrack(currentAge)];
   const cfTrack = simulationData.tracks['track_child_free'];
@@ -466,9 +828,9 @@ function FamilyPopup({ visible, currentAge, fpPref, onPlanning, onChildFree, onC
           <View style={s.popCard}>
             <Text style={s.popEmoji}>👪</Text>
             <Text style={s.popTitle}>Explore family planning?</Text>
-            <Text style={s.popBody}>This helps personalise the next part of your journey. You can change this any time.</Text>
+            <Text style={s.popBody}>This personalises the next part of your journey. You can change it any time.</Text>
             <TouchableOpacity style={s.popPrimary} onPress={onPlanning} activeOpacity={0.82}><Text style={s.popPrimaryTxt}>Yes, it's part of my thinking</Text></TouchableOpacity>
-            <TouchableOpacity style={[s.popPrimary, { backgroundColor: C.tealSoft, marginTop: 10 }]} onPress={onChildFree} activeOpacity={0.82}><Text style={[s.popPrimaryTxt, { color: C.tealDark }]}>Not planning to have children</Text></TouchableOpacity>
+            <TouchableOpacity style={[s.popPrimary, { backgroundColor: '#F3E5F5', marginTop: 10 }]} onPress={onChildFree} activeOpacity={0.82}><Text style={[s.popPrimaryTxt, { color: PURPLE }]}>Not planning to have children</Text></TouchableOpacity>
             <TouchableOpacity style={s.popSecondary} onPress={onClose} activeOpacity={0.82}><Text style={s.popSecondaryTxt}>Ask me later</Text></TouchableOpacity>
           </View>
         </View>
@@ -476,7 +838,7 @@ function FamilyPopup({ visible, currentAge, fpPref, onPlanning, onChildFree, onC
     );
   }
   const isChildFree = fpPref === 'child_free';
-  const td  = isChildFree ? cfTrack : fpTrack;
+  const td = isChildFree ? cfTrack : fpTrack;
   return (
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent>
       <View style={s.popOverlay}>
@@ -484,7 +846,7 @@ function FamilyPopup({ visible, currentAge, fpPref, onPlanning, onChildFree, onC
         <View style={s.popCard}>
           <Text style={s.popEmoji}>{isChildFree ? '🌿' : '👨‍👩‍👧'}</Text>
           <Text style={s.popTitle}>{isChildFree ? 'Your health, your terms' : 'Family planning'}</Text>
-          <Text style={s.popBody}>{td?.framing ?? 'Explore what this looks like for you at this stage.'}</Text>
+          <Text style={s.popBody}>{td?.framing ?? 'Explore what this looks like for you.'}</Text>
           <TouchableOpacity style={s.popPrimary} onPress={isChildFree ? onChildFree : onPlanning} activeOpacity={0.82}><Text style={s.popPrimaryTxt}>Explore this</Text></TouchableOpacity>
           <TouchableOpacity style={s.popSecondary} onPress={onClose} activeOpacity={0.82}><Text style={s.popSecondaryTxt}>Not right now</Text></TouchableOpacity>
         </View>
@@ -501,7 +863,7 @@ function RelInfoPopup({ visible, onClose }) {
         <View style={s.popCard}>
           <Text style={s.popEmoji}>💕</Text>
           <Text style={s.popTitle}>Relationship scenarios</Text>
-          <Text style={s.popBody}>When this is on, LEA includes moments about partnerships and life planning with a partner. Turn it off to focus on career and health only.</Text>
+          <Text style={s.popBody}>When on, LEA includes moments about partnerships and life planning with a partner.</Text>
           <TouchableOpacity style={s.popPrimary} onPress={onClose} activeOpacity={0.82}><Text style={s.popPrimaryTxt}>Got it</Text></TouchableOpacity>
         </View>
       </View>
@@ -509,45 +871,7 @@ function RelInfoPopup({ visible, onClose }) {
   );
 }
 
-function EndScreen({ decisionsMade, metrics, onWeeklyFocus, onReset }) {
-  const [expanded, setExpanded] = useState(false);
-  return (
-    <ScrollView style={{ flex: 1, backgroundColor: C.blueGhost }} contentContainerStyle={s.endWrap}>
-      <Image source={DOGS.adult.openUp} style={s.endLea} resizeMode="contain" />
-      <Text style={s.endTitle}>One possible version of your path</Text>
-      <Text style={s.endSub}>Every choice shapes something. None of them are wrong — just different trade-offs.</Text>
-      <View style={s.endMetricsCard}>
-        <Text style={s.endMH}>WHERE YOU ENDED UP</Text>
-        {METRICS_CFG.map(({ key, emoji, label, color }) => (
-          <View key={key} style={s.endMetricRow}>
-            <Text style={{ fontSize: 16, width: 22 }}>{emoji}</Text>
-            <Text style={s.endMetricLabel}>{label}</Text>
-            <View style={s.endBarBg}><View style={[s.endBarFill, { width: `${metrics[key]}%`, backgroundColor: color }]} /></View>
-            <Text style={[s.endMetricVal, { color }]}>{metrics[key]}</Text>
-          </View>
-        ))}
-      </View>
-      {decisionsMade.length > 0 && (
-        <View style={{ width: '100%', marginBottom: 20 }}>
-          <TouchableOpacity style={s.endDropRow} onPress={() => setExpanded(e => !e)} activeOpacity={0.8}>
-            <Text style={s.endDropLabel}>YOUR JOURNEY</Text>
-            <Text style={{ fontSize: 12, color: C.textSoft }}>{expanded ? '▲' : '▼'}</Text>
-          </TouchableOpacity>
-          {expanded && decisionsMade.map((d, i) => (
-            <View key={i} style={s.endRow}>
-              <Text style={s.endRowAge}>Age {d.age} · {d.theme}</Text>
-              <Text style={s.endRowTxt}>{d.consequence}</Text>
-            </View>
-          ))}
-        </View>
-      )}
-      <TouchableOpacity style={s.endPrimary} onPress={onWeeklyFocus} activeOpacity={0.82}><Text style={s.endPrimaryTxt}>Set my weekly focus →</Text></TouchableOpacity>
-      <TouchableOpacity style={s.endSecondary} onPress={onReset} activeOpacity={0.82}><Text style={s.endSecondaryTxt}>↺  Try a different path</Text></TouchableOpacity>
-    </ScrollView>
-  );
-}
-
-// ─── Main ─────────────────────────────────────────────────────────────────────
+// ── Main screen ───────────────────────────────────────────────────────────────
 export default function SimulationScreen({ navigation }) {
   const [startAge,      setStartAge]      = useState(21);
   const [userConds,     setUserConds]     = useState([]);
@@ -570,19 +894,19 @@ export default function SimulationScreen({ navigation }) {
   const [showRelInfo,   setShowRelInfo]   = useState(false);
   const relInfoShown = useRef(false);
   const [showStarter,   setShowStarter]   = useState(true);
+  const [showPrefs,     setShowPrefs]     = useState(false);
+  const [planResult,    setPlanResult]    = useState(null);
+  const [planPrefs,     setPlanPrefs]     = useState(null);
   const [leaOpen,       setLeaOpen]       = useState(true);
   const [leaTail,       setLeaTail]       = useState(false);
   const [loading,       setLoading]       = useState(true);
   const [metrics,       setMetrics]       = useState({ ...BASE_METRICS });
-
-  // ── New: transition + checkpoint state ──
   const [showTransition,  setShowTransition]  = useState(false);
   const [transToAge,      setTransToAge]      = useState(null);
   const [transNode,       setTransNode]       = useState(null);
   const [showCheckpoint,  setShowCheckpoint]  = useState(false);
   const [showMidInsights, setShowMidInsights] = useState(false);
 
-  // ─── Init ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     async function init() {
       const rawAge  = (await Storage.get('user_age')) ?? 21;
@@ -626,7 +950,6 @@ export default function SimulationScreen({ navigation }) {
     if (!track?.stages || trackIdx >= track.stages.length) handleTrackDone();
   }, [currentTrack, trackIdx, loading, showResult]);
 
-  // ─── Helpers ───────────────────────────────────────────────────────────────
   function findNode(age, obj) {
     if (obj[`age_${age}`]) return obj[`age_${age}`];
     for (let a = age + 1; a <= 36; a++) if (obj[`age_${a}`]) return obj[`age_${a}`];
@@ -648,40 +971,25 @@ export default function SimulationScreen({ navigation }) {
     setLeaOpen(false); setLeaTail(true);
     setTimeout(() => { setLeaOpen(true); cb?.(); }, 900);
   }
-
-  // Modified advanceAge — triggers journey transition first
   function advanceAge(from) {
     const next = from + 1;
     if (next > 35) { finish(); return; }
     const node = findNode(next, simulationData.ages);
-    if (!node)  { finish(); return; }
-    setTransToAge(next);
-    setTransNode(node);
-    setShowTransition(true);
+    if (!node) { finish(); return; }
+    setTransToAge(next); setTransNode(node); setShowTransition(true);
   }
-
-  // Called when journey animation finishes
   function handleTransitionDone() {
     setShowTransition(false);
-    setCurrentAge(transToAge);
-    setCurrentNode(transNode);
-    setDecIdx(0);
-    setCurrentTrack(null);
-    setTrackIdx(0);
-    setLeaOpen(true);
-    setLeaTail(false);
-    // Checkpoint every 2 years (ages 23, 25, 27, 29, 31, 33)
-    if (transToAge > startAge && (transToAge - startAge) % 2 === 0 && transToAge < 35) {
-      setShowCheckpoint(true);
-    }
+    setCurrentAge(transToAge); setCurrentNode(transNode);
+    setDecIdx(0); setCurrentTrack(null); setTrackIdx(0);
+    setLeaOpen(true); setLeaTail(false);
+    if (transToAge > startAge && (transToAge - startAge) % 2 === 0 && transToAge < 35) setShowCheckpoint(true);
   }
-
   async function finish() {
     await Points.add(POINTS.SIMULATION_COMPLETE);
     await Storage.set('simulation_history', decisions.map(({ age, theme, choice }) => ({ age, theme, choice })));
     setSimDone(true);
   }
-
   function handleTrackDone() {
     setCurrentTrack(null); setTrackIdx(0);
     setLeaOpen(true); setLeaTail(false);
@@ -691,7 +999,6 @@ export default function SimulationScreen({ navigation }) {
     }
   }
 
-  // ─── Choices ───────────────────────────────────────────────────────────────
   const handleChoice = useCallback(async (decision, choiceKey) => {
     const chosen = decision[choiceKey];
     setHistory(prev => [...prev, { age: currentAge, node: currentNode, decIdx, decisions: [...decisions], headlines: [...headlines], track: currentTrack, trackIdx, metrics: { ...metrics } }]);
@@ -795,71 +1102,59 @@ export default function SimulationScreen({ navigation }) {
     setMetrics({ ...BASE_METRICS });
     setShowTransition(false); setShowCheckpoint(false); setShowMidInsights(false);
     setLeaOpen(true); setLeaTail(false); setShowStarter(true);
+    setShowPrefs(false); setPlanResult(null); setPlanPrefs(null);
   }, []);
 
-  const goWeekly = useCallback(() => navigation.navigate('Home'), [navigation]);
+  // ── Guards ──────────────────────────────────────────────────────────────────
+  if (loading) return <SafeAreaView style={s.loadWrap}><Text style={s.loadTxt}>Loading…</Text></SafeAreaView>;
 
-  // ─── Guards ────────────────────────────────────────────────────────────────
-  if (loading) return <SafeAreaView style={s.loadWrap}><Text style={s.loadTxt}>Loading your journey…</Text></SafeAreaView>;
+  if (showPrefs && !planResult) {
+    return (
+      <PrefsScreen
+        onRun={prefs => { setPlanPrefs(prefs); setPlanResult(runSimulation(prefs)); setShowPrefs(false); }}
+        onBack={() => setShowPrefs(false)}
+      />
+    );
+  }
 
-  // ─── Journey transition overlay ────────────────────────────────────────────
+  if (planResult && planPrefs) {
+    return <LifePlanView result={planResult} prefs={planPrefs} onBack={() => { setPlanResult(null); setPlanPrefs(null); setShowPrefs(true); }} />;
+  }
+
   if (showTransition) {
     return (
       <SafeAreaView style={s.root}>
-        <StatusBar barStyle="dark-content" />
-        <JourneyTransition
-          fromAge={currentAge}
-          toAge={transToAge}
-          leaImage={getDog(transToAge, true, false)}
-          onComplete={handleTransitionDone}
-        />
+        <JourneyTransition toAge={transToAge} leaImage={getDog(transToAge, true, false)} onComplete={handleTransitionDone} />
       </SafeAreaView>
     );
   }
-
-  // ─── Checkpoint ────────────────────────────────────────────────────────────
   if (showCheckpoint) {
     return (
       <SafeAreaView style={s.root}>
-        <StatusBar barStyle="dark-content" backgroundColor={C.blueGhost} />
-        <CheckpointScreen
-          currentAge={currentAge}
-          metrics={metrics}
-          decisionsMade={decisions}
+        <CheckpointScreen currentAge={currentAge} metrics={metrics}
           onContinue={() => setShowCheckpoint(false)}
-          onInsights={() => { setShowCheckpoint(false); setShowMidInsights(true); }}
-        />
+          onInsights={() => { setShowCheckpoint(false); setShowMidInsights(true); }} />
       </SafeAreaView>
     );
   }
-
-  // ─── Mid-journey insights ──────────────────────────────────────────────────
   if (showMidInsights) {
     return (
       <SafeAreaView style={s.root}>
-        <StatusBar barStyle="dark-content" backgroundColor={C.blueGhost} />
-        <MidInsightsScreen
-          currentAge={currentAge}
-          metrics={metrics}
-          decisionsMade={decisions}
-          onContinue={() => setShowMidInsights(false)}
-          onReset={handleReset}
-        />
+        <MidInsightsScreen currentAge={currentAge} metrics={metrics} decisionsMade={decisions}
+          onContinue={() => setShowMidInsights(false)} onReset={handleReset} />
       </SafeAreaView>
     );
   }
 
-  // ─── Starter ───────────────────────────────────────────────────────────────
+  // ── Starter ─────────────────────────────────────────────────────────────────
   if (showStarter) {
     return (
       <SafeAreaView style={s.starterRoot}>
-        <StatusBar barStyle="dark-content" backgroundColor={C.blueGhost} />
         <ScrollView contentContainerStyle={s.starterScroll} showsVerticalScrollIndicator={false}>
           <Image source={DOGS.puppy.open} style={s.starterLea} resizeMode="contain" />
           <Text style={s.starterEyebrow}>SIMULATION</Text>
           <Text style={s.starterTitle}>Explore your future</Text>
-          <Text style={s.starterBody}>We'll guide you through small moments — not big decisions.</Text>
-          <Text style={s.starterHint}>Each step takes seconds. Every path is valid. You can undo any choice.</Text>
+          <Text style={s.starterHint}>Small moments, not big decisions. Every path is valid.</Text>
           <View style={s.starterStops}>
             {[21, 25, 28, 32, 35].map((age, i) => (
               <React.Fragment key={age}>
@@ -868,17 +1163,11 @@ export default function SimulationScreen({ navigation }) {
               </React.Fragment>
             ))}
           </View>
-          <View style={s.starterLegend}>
-            {METRICS_CFG.map(({ emoji, label, color }) => (
-              <View key={label} style={{ alignItems: 'center', gap: 4 }}>
-                <Text style={{ fontSize: 18 }}>{emoji}</Text>
-                <Text style={{ fontSize: 11, fontWeight: '700', color }}>{label}</Text>
-              </View>
-            ))}
-          </View>
-          <Text style={s.starterLegendHint}>These update as you explore</Text>
           <TouchableOpacity style={s.starterBtn} onPress={() => setShowStarter(false)} activeOpacity={0.82}>
             <Text style={s.starterBtnTxt}>Begin exploring →</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={s.starterBtnSecondary} onPress={() => { setShowStarter(false); setShowPrefs(true); }} activeOpacity={0.82}>
+            <Text style={s.starterBtnSecondaryTxt}>📊 Plan my 36 months</Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
@@ -888,21 +1177,19 @@ export default function SimulationScreen({ navigation }) {
   if (simDone) {
     return (
       <SafeAreaView style={s.root}>
-        <StatusBar barStyle="dark-content" backgroundColor={C.blueGhost} />
-        <EndScreen decisionsMade={decisions} metrics={metrics} onWeeklyFocus={goWeekly} onReset={handleReset} />
+        <EndScreen decisionsMade={decisions} metrics={metrics}
+          onLifePlan={() => setShowPrefs(true)} onReset={handleReset} />
       </SafeAreaView>
     );
   }
 
   if (!currentNode) return <SafeAreaView style={s.loadWrap}><Text style={s.loadTxt}>Almost there…</Text></SafeAreaView>;
 
-  // ─── Derived ───────────────────────────────────────────────────────────────
   const isInTrack  = !!currentTrack;
   const track      = isInTrack ? simulationData.tracks[currentTrack] : null;
   const trackStage = (isInTrack && track?.stages && trackIdx < track.stages.length) ? track.stages[trackIdx] : null;
   const vis        = visDecs(currentNode, relEnabled);
   const decision   = vis[Math.min(decIdx, Math.max(0, vis.length - 1))];
-
   const THEME_CTX  = { career: 'A career moment', health: 'A health moment', relationships: 'A relationship moment', family_planning: 'Thinking about the future' };
 
   const Header = (
@@ -923,14 +1210,14 @@ export default function SimulationScreen({ navigation }) {
 
   const Nudge = fpNudge ? (
     <TouchableOpacity style={s.nudge} onPress={() => { setFpNudge(false); handleFamPress(); }} activeOpacity={0.9}>
-      <Text style={s.nudgeTxt}>👪 Tap the family button above to explore family planning whenever you're ready</Text>
+      <Text style={s.nudgeTxt}>👪 Tap to explore family planning whenever you're ready</Text>
     </TouchableOpacity>
   ) : null;
 
   const Footer = history.length > 0 ? (
     <View style={s.footer}>
       <TouchableOpacity style={s.undoBtn} onPress={handleUndo} activeOpacity={0.8}>
-        <Text style={s.undoBtnTxt}>← Undo last choice</Text>
+        <Text style={s.undoBtnTxt}>← Undo</Text>
       </TouchableOpacity>
     </View>
   ) : null;
@@ -942,12 +1229,10 @@ export default function SimulationScreen({ navigation }) {
     </>
   );
 
-  // ─── Track ─────────────────────────────────────────────────────────────────
   if (isInTrack && trackStage && !showResult) {
     const moment = trackStage.career_moment;
     return (
       <SafeAreaView style={s.root}>
-        <StatusBar barStyle="dark-content" backgroundColor={C.blueGhost} />
         {Header}{Nudge}
         <ScrollView style={s.scroll} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
           <View style={s.trackTag}><Text style={s.trackTagTxt}>👨‍👩‍👧  {track.title}</Text></View>
@@ -967,11 +1252,9 @@ export default function SimulationScreen({ navigation }) {
     );
   }
 
-  // ─── Result ────────────────────────────────────────────────────────────────
   if (showResult && resultData) {
     return (
       <SafeAreaView style={s.root}>
-        <StatusBar barStyle="dark-content" backgroundColor={C.blueGhost} />
         {Header}{Nudge}
         <ScrollView style={s.scroll} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
           {resultData.isTrack && track && <View style={s.trackTag}><Text style={s.trackTagTxt}>👨‍👩‍👧  {track.title}</Text></View>}
@@ -992,12 +1275,10 @@ export default function SimulationScreen({ navigation }) {
     );
   }
 
-  // ─── Main moment ───────────────────────────────────────────────────────────
   if (!decision) return null;
 
   return (
     <SafeAreaView style={s.root}>
-      <StatusBar barStyle="dark-content" backgroundColor={C.blueGhost} />
       {Header}{Nudge}
       <ScrollView style={s.scroll} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
         <View style={s.ageBlock}><Text style={s.ageBig}>{currentAge}</Text><Text style={s.ageWord}>years old</Text></View>
@@ -1016,105 +1297,104 @@ export default function SimulationScreen({ navigation }) {
   );
 }
 
-// ─── Shared styles ────────────────────────────────────────────────────────────
+// ── Shared styles ─────────────────────────────────────────────────────────────
 const s = StyleSheet.create({
-  root:     { flex: 1, backgroundColor: C.blueGhost },
-  loadWrap: { flex: 1, backgroundColor: C.blueGhost, alignItems: 'center', justifyContent: 'center' },
-  loadTxt:  { fontSize: 16, color: C.textMid, fontWeight: '500' },
+  root:     { flex: 1, backgroundColor: BG },
+  loadWrap: { flex: 1, backgroundColor: BG, alignItems: 'center', justifyContent: 'center' },
+  loadTxt:  { fontSize: 15, color: MUTED },
 
-  header:     { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 12, backgroundColor: C.blueGhost, borderBottomWidth: 1, borderBottomColor: '#DDE9F4' },
+  header:     { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 12, backgroundColor: BG, borderBottomWidth: 1, borderBottomColor: BORDER },
   headerRow:  { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   headerBtns: { flexDirection: 'row', gap: 8, marginLeft: 12 },
-  iconBtn:    { width: 36, height: 36, borderRadius: 18, backgroundColor: C.white, borderWidth: 1.5, borderColor: C.border, alignItems: 'center', justifyContent: 'center' },
+  iconBtn:    { width: 36, height: 36, borderRadius: 18, backgroundColor: WHITE, borderWidth: 1.5, borderColor: BORDER, alignItems: 'center', justifyContent: 'center' },
   iconBtnRel: { backgroundColor: '#FFF0F5', borderColor: '#F48FB1' },
-  iconBtnFam: { backgroundColor: C.blueLight, borderColor: C.blueMid },
-  badgeDot:   { position: 'absolute', top: 2, right: 2, width: 8, height: 8, borderRadius: 4, backgroundColor: '#F06292', borderWidth: 1.5, borderColor: C.white },
+  iconBtnFam: { backgroundColor: '#F3E5F5', borderColor: ROSE },
+  badgeDot:   { position: 'absolute', top: 2, right: 2, width: 8, height: 8, borderRadius: 4, backgroundColor: ROSE_D, borderWidth: 1.5, borderColor: WHITE },
 
-  nudge:    { marginHorizontal: 16, marginBottom: 6, backgroundColor: C.amber, borderRadius: 10, paddingVertical: 9, paddingHorizontal: 14 },
-  nudgeTxt: { fontSize: 13, color: C.amberDark, fontWeight: '500', lineHeight: 19 },
+  nudge:    { marginHorizontal: 16, marginBottom: 6, backgroundColor: AMBER, borderRadius: 10, paddingVertical: 9, paddingHorizontal: 14 },
+  nudgeTxt: { fontSize: 13, color: AMBER_D, fontWeight: '500' },
 
-  scroll:    { flex: 1 },
-  content:   { paddingHorizontal: 20, paddingBottom: 28, paddingTop: 12 },
+  scroll:   { flex: 1 },
+  content:  { paddingHorizontal: 20, paddingBottom: 28, paddingTop: 12 },
 
-  ageBlock:  { alignItems: 'flex-start', marginBottom: 16 },
-  ageBig:    { fontSize: 52, fontWeight: '900', color: C.blueDeep, lineHeight: 58, letterSpacing: -1 },
-  ageWord:   { fontSize: 14, fontWeight: '500', color: C.textSoft, marginTop: -4 },
+  ageBlock: { alignItems: 'flex-start', marginBottom: 16 },
+  ageBig:   { fontSize: 52, fontWeight: '900', color: PLUM, lineHeight: 58, letterSpacing: -1 },
+  ageWord:  { fontSize: 14, fontWeight: '500', color: MUTED, marginTop: -4 },
 
-  storyCard:    { backgroundColor: C.white, borderRadius: 20, padding: 22, marginBottom: 20, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.07, shadowRadius: 10, elevation: 2 },
-  storyContext: { fontSize: 11, fontWeight: '700', color: C.blueMid, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 10 },
-  storyTxt:     { fontSize: 16, lineHeight: 26, color: C.text },
+  storyCard:    { backgroundColor: WHITE, borderRadius: 20, padding: 22, marginBottom: 20, borderWidth: 1.5, borderColor: BORDER, shadowColor: ROSE, shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 10, elevation: 2 },
+  storyContext: { fontSize: 11, fontWeight: '700', color: ROSE_D, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 10 },
+  storyTxt:     { fontSize: 16, lineHeight: 26, color: PLUM },
 
-  chooseLbl:  { fontSize: 13, fontWeight: '700', color: C.textSoft, letterSpacing: 0.5, marginBottom: 10 },
+  chooseLbl:  { fontSize: 12, fontWeight: '700', color: MUTED, letterSpacing: 0.5, marginBottom: 10 },
   choicesCol: { gap: 10, marginBottom: 16 },
 
-  resultCard:      { backgroundColor: C.blueLight, borderRadius: 20, padding: 20, marginBottom: 14 },
-  resultRow:       { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 12 },
-  resultDot:       { width: 8, height: 8, borderRadius: 4, backgroundColor: C.blueMid, marginTop: 7, flexShrink: 0 },
-  resultLabel:     { fontSize: 14, fontWeight: '700', color: C.blueDeep, flex: 1, lineHeight: 22 },
-  resultDivider:   { height: 1, backgroundColor: C.border, marginBottom: 12 },
-  resultConsequence:{ fontSize: 15, lineHeight: 24, color: C.text },
+  resultCard:       { backgroundColor: '#FFF0F5', borderRadius: 20, padding: 20, marginBottom: 14, borderWidth: 1, borderColor: BORDER },
+  resultRow:        { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 12 },
+  resultDot:        { width: 8, height: 8, borderRadius: 4, backgroundColor: ROSE_D, marginTop: 7, flexShrink: 0 },
+  resultLabel:      { fontSize: 14, fontWeight: '700', color: PLUM, flex: 1, lineHeight: 22 },
+  resultDivider:    { height: 1, backgroundColor: BORDER, marginBottom: 12 },
+  resultConsequence:{ fontSize: 15, lineHeight: 24, color: PLUM },
 
-  continueBtn:    { backgroundColor: C.blueMid, borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginBottom: 8, shadowColor: C.blueMid, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.2, shadowRadius: 8, elevation: 3 },
-  continueBtnTxt: { fontSize: 16, fontWeight: '700', color: C.white },
+  continueBtn:    { backgroundColor: ROSE_D, borderRadius: 14, paddingVertical: 15, alignItems: 'center', marginBottom: 8 },
+  continueBtnTxt: { fontSize: 16, fontWeight: '700', color: WHITE },
 
-  insightCard:    { backgroundColor: C.white, borderRadius: 18, padding: 20, marginBottom: 14, borderLeftWidth: 4, borderLeftColor: C.blueMid, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 6, elevation: 2 },
-  insightHeadline:{ fontSize: 16, fontWeight: '700', color: C.blueDeep, lineHeight: 24, marginBottom: 8 },
-  insightBody:    { fontSize: 14, lineHeight: 22, color: C.text, marginBottom: 12 },
-  insightBox:     { backgroundColor: C.tealSoft, borderRadius: 12, padding: 14 },
-  insightBoxLabel:{ fontSize: 10, fontWeight: '700', color: C.tealMid, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 5 },
-  insightBoxTxt:  { fontSize: 13, lineHeight: 20, color: C.tealDark },
+  insightCard:    { backgroundColor: WHITE, borderRadius: 18, padding: 20, marginBottom: 14, borderLeftWidth: 4, borderLeftColor: ROSE_D, borderWidth: 1, borderColor: BORDER },
+  insightHeadline:{ fontSize: 16, fontWeight: '700', color: PLUM, lineHeight: 24, marginBottom: 8 },
+  insightBody:    { fontSize: 14, lineHeight: 22, color: PLUM, marginBottom: 12 },
+  insightBox:     { backgroundColor: '#F3E5F5', borderRadius: 12, padding: 14 },
+  insightBoxLabel:{ fontSize: 10, fontWeight: '700', color: PURPLE, letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 5 },
+  insightBoxTxt:  { fontSize: 13, lineHeight: 20, color: PLUM },
 
-  trackTag:    { backgroundColor: '#EAF4FF', borderRadius: 10, paddingVertical: 8, paddingHorizontal: 14, marginBottom: 12, alignSelf: 'flex-start' },
-  trackTagTxt: { fontSize: 13, fontWeight: '700', color: C.blueDeep },
+  trackTag:    { backgroundColor: '#F3E5F5', borderRadius: 10, paddingVertical: 8, paddingHorizontal: 14, marginBottom: 12, alignSelf: 'flex-start' },
+  trackTagTxt: { fontSize: 13, fontWeight: '700', color: PLUM },
 
-  footer:     { paddingHorizontal: 20, paddingVertical: 12, borderTopWidth: 1, borderTopColor: '#DDE9F4', backgroundColor: C.blueGhost },
-  undoBtn:    { alignSelf: 'flex-start', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 10, borderWidth: 1.5, borderColor: C.border, backgroundColor: C.white },
-  undoBtnTxt: { fontSize: 14, fontWeight: '600', color: C.textMid },
+  footer:     { paddingHorizontal: 20, paddingVertical: 12, borderTopWidth: 1, borderTopColor: BORDER, backgroundColor: BG },
+  undoBtn:    { alignSelf: 'flex-start', paddingVertical: 8, paddingHorizontal: 14, borderRadius: 10, borderWidth: 1.5, borderColor: BORDER, backgroundColor: WHITE },
+  undoBtnTxt: { fontSize: 13, fontWeight: '600', color: MUTED },
 
-  popOverlay:   { flex: 1, backgroundColor: 'rgba(1,87,155,0.18)', alignItems: 'center', justifyContent: 'center', padding: 24 },
-  popCard:      { backgroundColor: C.white, borderRadius: 24, padding: 28, width: '100%', maxWidth: 400, alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 16, elevation: 5 },
-  popEmoji:     { fontSize: 36, marginBottom: 12 },
-  popTitle:     { fontSize: 18, fontWeight: '700', color: C.blueDeep, marginBottom: 12, textAlign: 'center' },
-  popBody:      { fontSize: 15, lineHeight: 23, color: C.text, textAlign: 'center' },
-  popPrimary:   { backgroundColor: C.blueMid, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 28, width: '100%', alignItems: 'center', marginTop: 20 },
-  popPrimaryTxt:{ fontSize: 15, fontWeight: '700', color: C.white },
-  popSecondary: { paddingVertical: 12, width: '100%', alignItems: 'center', marginTop: 6 },
-  popSecondaryTxt:{ fontSize: 15, fontWeight: '500', color: C.textMid },
+  popOverlay:    { flex: 1, backgroundColor: 'rgba(61,12,78,0.2)', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  popCard:       { backgroundColor: WHITE, borderRadius: 24, padding: 28, width: '100%', maxWidth: 400, alignItems: 'center' },
+  popEmoji:      { fontSize: 36, marginBottom: 12 },
+  popTitle:      { fontSize: 18, fontWeight: '700', color: PLUM, marginBottom: 12, textAlign: 'center' },
+  popBody:       { fontSize: 14, lineHeight: 22, color: PLUM, textAlign: 'center' },
+  popPrimary:    { backgroundColor: ROSE_D, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 28, width: '100%', alignItems: 'center', marginTop: 20 },
+  popPrimaryTxt: { fontSize: 15, fontWeight: '700', color: WHITE },
+  popSecondary:  { paddingVertical: 12, width: '100%', alignItems: 'center', marginTop: 6 },
+  popSecondaryTxt:{ fontSize: 14, fontWeight: '500', color: MUTED },
 
-  starterRoot:      { flex: 1, backgroundColor: C.blueGhost },
-  starterScroll:    { flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, paddingVertical: 40 },
-  starterLea:       { width: 140, height: 140, marginBottom: 16 },
-  starterEyebrow:   { fontSize: 11, fontWeight: '700', color: C.blueMid, letterSpacing: 2, marginBottom: 8 },
-  starterTitle:     { fontSize: 32, fontWeight: '900', color: C.blueDeep, marginBottom: 12, textAlign: 'center', letterSpacing: -0.5 },
-  starterBody:      { fontSize: 17, lineHeight: 26, color: C.text, textAlign: 'center', marginBottom: 8 },
-  starterHint:      { fontSize: 14, lineHeight: 21, color: C.textMid, textAlign: 'center', marginBottom: 28 },
-  starterStops:     { flexDirection: 'row', alignItems: 'center', marginBottom: 28, width: '100%' },
-  starterStop:      { width: 36, height: 36, borderRadius: 18, backgroundColor: C.blueLight, borderWidth: 2, borderColor: C.border, alignItems: 'center', justifyContent: 'center' },
-  starterStopAge:   { fontSize: 11, fontWeight: '800', color: C.blueDeep },
-  starterLine:      { flex: 1, height: 2, backgroundColor: C.border },
-  starterLegend:    { flexDirection: 'row', gap: 14, marginBottom: 6 },
-  starterLegendHint:{ fontSize: 12, color: C.textSoft, marginBottom: 28 },
-  starterBtn:       { backgroundColor: C.blueMid, borderRadius: 16, paddingVertical: 16, paddingHorizontal: 40, alignItems: 'center', shadowColor: C.blueMid, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.25, shadowRadius: 10, elevation: 4 },
-  starterBtnTxt:    { fontSize: 17, fontWeight: '700', color: C.white },
+  starterRoot:           { flex: 1, backgroundColor: BG },
+  starterScroll:         { flexGrow: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, paddingVertical: 40 },
+  starterLea:            { width: 130, height: 130, marginBottom: 16 },
+  starterEyebrow:        { fontSize: 11, fontWeight: '700', color: ROSE, letterSpacing: 2, marginBottom: 8 },
+  starterTitle:          { fontSize: 30, fontWeight: '900', color: PLUM, marginBottom: 10, textAlign: 'center', letterSpacing: -0.5 },
+  starterHint:           { fontSize: 14, lineHeight: 21, color: MUTED, textAlign: 'center', marginBottom: 28 },
+  starterStops:          { flexDirection: 'row', alignItems: 'center', marginBottom: 32, width: '100%' },
+  starterStop:           { width: 36, height: 36, borderRadius: 18, backgroundColor: '#FCE4EC', borderWidth: 2, borderColor: BORDER, alignItems: 'center', justifyContent: 'center' },
+  starterStopAge:        { fontSize: 11, fontWeight: '800', color: PLUM },
+  starterLine:           { flex: 1, height: 2, backgroundColor: BORDER },
+  starterBtn:            { backgroundColor: ROSE_D, borderRadius: 16, paddingVertical: 16, alignItems: 'center', width: '100%', marginBottom: 12 },
+  starterBtnTxt:         { fontSize: 17, fontWeight: '700', color: WHITE },
+  starterBtnSecondary:   { borderRadius: 16, paddingVertical: 14, alignItems: 'center', width: '100%', borderWidth: 1.5, borderColor: BORDER, backgroundColor: WHITE },
+  starterBtnSecondaryTxt:{ fontSize: 15, fontWeight: '600', color: PLUM },
 
-  endWrap:       { paddingHorizontal: 24, paddingBottom: 48, alignItems: 'center' },
-  endLea:        { width: 120, height: 120, marginTop: 28, marginBottom: 16 },
-  endTitle:      { fontSize: 22, fontWeight: '800', color: C.blueDeep, textAlign: 'center', marginBottom: 10 },
-  endSub:        { fontSize: 15, lineHeight: 23, color: C.textMid, textAlign: 'center', marginBottom: 24 },
-  endMetricsCard:{ width: '100%', backgroundColor: C.white, borderRadius: 18, padding: 20, marginBottom: 24, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2 },
-  endMH:         { fontSize: 11, fontWeight: '700', color: C.textSoft, letterSpacing: 1.2, marginBottom: 14 },
-  endMetricRow:  { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
-  endMetricLabel:{ fontSize: 13, fontWeight: '600', color: C.text, width: 60 },
-  endBarBg:      { flex: 1, height: 7, backgroundColor: '#E0EBF5', borderRadius: 4, overflow: 'hidden' },
-  endBarFill:    { height: '100%', borderRadius: 4 },
-  endMetricVal:  { fontSize: 12, fontWeight: '700', width: 28, textAlign: 'right' },
-  endDropRow:    { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10, marginBottom: 4 },
-  endDropLabel:  { fontSize: 12, fontWeight: '700', color: C.textSoft, letterSpacing: 1 },
-  endRow:        { backgroundColor: C.white, borderRadius: 14, padding: 14, marginBottom: 8 },
-  endRowAge:     { fontSize: 11, fontWeight: '700', color: C.blueMid, textTransform: 'capitalize', marginBottom: 4 },
-  endRowTxt:     { fontSize: 14, lineHeight: 21, color: C.text },
-  endPrimary:    { backgroundColor: C.blueMid, borderRadius: 16, paddingVertical: 16, width: '100%', alignItems: 'center', marginBottom: 12, shadowColor: C.blueMid, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.2, shadowRadius: 10, elevation: 3 },
-  endPrimaryTxt: { fontSize: 16, fontWeight: '700', color: C.white },
-  endSecondary:  { borderRadius: 16, paddingVertical: 14, width: '100%', alignItems: 'center', borderWidth: 1.5, borderColor: C.border, backgroundColor: C.white },
-  endSecondaryTxt:{ fontSize: 16, fontWeight: '600', color: C.blueDeep },
+  endWrap:        { paddingHorizontal: 24, paddingBottom: 48, alignItems: 'center' },
+  endLea:         { width: 110, height: 110, marginTop: 24, marginBottom: 14 },
+  endTitle:       { fontSize: 20, fontWeight: '800', color: PLUM, textAlign: 'center', marginBottom: 8 },
+  endSub:         { fontSize: 14, lineHeight: 22, color: MUTED, textAlign: 'center', marginBottom: 22 },
+  endMetricsCard: { width: '100%', backgroundColor: WHITE, borderRadius: 18, padding: 18, marginBottom: 22, borderWidth: 1, borderColor: BORDER },
+  endMH:          { fontSize: 11, fontWeight: '700', color: MUTED, letterSpacing: 1.2, marginBottom: 14 },
+  endMetricRow:   { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10 },
+  endMetricLabel: { fontSize: 13, fontWeight: '600', color: PLUM, width: 60 },
+  endBarBg:       { flex: 1, height: 7, backgroundColor: '#EEE8F5', borderRadius: 4, overflow: 'hidden' },
+  endBarFill:     { height: '100%', borderRadius: 4 },
+  endMetricVal:   { fontSize: 12, fontWeight: '700', width: 28, textAlign: 'right' },
+  endDropRow:     { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 10 },
+  endDropLabel:   { fontSize: 11, fontWeight: '700', color: MUTED, letterSpacing: 1 },
+  endRow:         { backgroundColor: WHITE, borderRadius: 12, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: BORDER },
+  endRowAge:      { fontSize: 11, fontWeight: '700', color: ROSE_D, textTransform: 'capitalize', marginBottom: 4 },
+  endRowTxt:      { fontSize: 13, lineHeight: 20, color: PLUM },
+  endPrimary:     { backgroundColor: ROSE_D, borderRadius: 16, paddingVertical: 15, width: '100%', alignItems: 'center', marginBottom: 12 },
+  endPrimaryTxt:  { fontSize: 16, fontWeight: '700', color: WHITE },
+  endSecondary:   { borderRadius: 16, paddingVertical: 14, width: '100%', alignItems: 'center', borderWidth: 1.5, borderColor: BORDER, backgroundColor: WHITE },
+  endSecondaryTxt:{ fontSize: 15, fontWeight: '600', color: PLUM },
 });
