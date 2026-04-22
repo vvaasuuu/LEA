@@ -5,6 +5,7 @@ import {
   Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import { Storage } from '../utils/storage';
 import { Points } from '../utils/points';
 import nudges from '../data/nudges.json';
@@ -291,7 +292,12 @@ export default function LearnScreen() {
             <Text style={styles.tagline}>Learn. Explore. Act.</Text>
             <View style={styles.taglineUnderline} />
           </View>
-          <Text style={styles.floralDecor}>🌸</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={{ fontSize: 40, marginTop: -4 }}>🌸</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Profile')} activeOpacity={0.7} style={{ padding: 4 }}>
+              <Ionicons name="person-circle-outline" size={32} color={ROSE_D} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* ── SECTION 2: What's on the Horizon ──────────────────────── */}
@@ -456,7 +462,6 @@ const styles = StyleSheet.create({
   welcomeText:      { fontSize: 30, fontWeight: '800', color: PLUM, letterSpacing: -0.5 },
   tagline:          { fontSize: 13, fontWeight: '600', color: ROSE, marginTop: 2 },
   taglineUnderline: { width: 110, height: 2, backgroundColor: ROSE, borderRadius: 1, marginTop: 4 },
-  floralDecor:      { fontSize: 40, marginTop: -4 },
 
   // Section 2 — Horizon card
   horizonOuter: { marginHorizontal: 20, marginBottom: 22 },

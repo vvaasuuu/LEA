@@ -6,6 +6,7 @@ const KEYS = {
   USER_GOALS: 'user_goals',
   USER_POINTS: 'user_points',
   SIMULATION_HISTORY: 'simulation_history',
+  SIMULATION_CONDITION_INDEX: 'simulation_condition_index',
   ROADMAP_ITEMS: 'roadmap_items',
   LEA_STAGE: 'lea_stage',
   LEA_NAME: 'lea_name',
@@ -13,6 +14,7 @@ const KEYS = {
   USER_LIFE_STAGE: 'user_life_stage',
   USER_PRIORITIES: 'user_priorities',
   ONBOARDING_COMPLETE: 'onboarding_complete',
+  RELATIONSHIP_CONTENT_ENABLED: 'relationship_content_enabled',
 };
 
 export const Storage = {
