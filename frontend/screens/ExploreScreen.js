@@ -121,7 +121,7 @@ export default function ExploreScreen() {
           <TextInput
             style={styles.searchInput}
             placeholder="Search conditions…"
-            placeholderTextColor="#90A4AE"
+            placeholderTextColor="#B39DBC"
             value={query}
             onChangeText={setQuery}
           />
@@ -241,25 +241,25 @@ export default function ExploreScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFFFFF' },
+  safe: { flex: 1, backgroundColor: '#FFF8F5' },
 
   // Header + search
   top:          { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 12 },
-  sectionLabel: { fontSize: 11, fontWeight: '700', color: '#0288D1', letterSpacing: 1.5, marginBottom: 4 },
-  title:        { fontSize: 32, fontWeight: '800', color: '#01579B', marginBottom: 14 },
+  sectionLabel: { fontSize: 11, fontWeight: '700', color: '#C2185B', letterSpacing: 1.5, marginBottom: 4 },
+  title:        { fontSize: 32, fontWeight: '800', color: '#3D0C4E', marginBottom: 14 },
   searchBar: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#F0F8FF', borderRadius: 14,
+    backgroundColor: '#FFF0F5', borderRadius: 14,
     paddingHorizontal: 14, paddingVertical: 10,
-    borderWidth: 1, borderColor: '#E1F5FE',
+    borderWidth: 1, borderColor: '#F5DCE8',
   },
   searchIcon:  { fontSize: 16, marginRight: 8 },
-  searchInput: { flex: 1, fontSize: 15, color: '#01579B' },
-  clearBtn:    { fontSize: 14, color: '#90A4AE', paddingLeft: 8 },
+  searchInput: { flex: 1, fontSize: 15, color: '#3D0C4E' },
+  clearBtn:    { fontSize: 14, color: '#B39DBC', paddingLeft: 8 },
 
   // List
   list:       { paddingHorizontal: 20, paddingBottom: 40 },
-  listHeader: { fontSize: 12, color: '#90A4AE', marginBottom: 12, marginTop: 4 },
+  listHeader: { fontSize: 12, color: '#B39DBC', marginBottom: 12, marginTop: 4 },
 
   // Card
   card: {
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#E1F5FE',
+    borderColor: '#F5DCE8',
     shadowColor: '#000',
     shadowOpacity: 0.08,
     shadowRadius: 8,
@@ -278,11 +278,11 @@ const styles = StyleSheet.create({
   cardTop:         { flexDirection: 'row', alignItems: 'center', marginBottom: 10 },
   cardEmojiBubble: {
     width: 48, height: 48, borderRadius: 14,
-    backgroundColor: '#E1F5FE', alignItems: 'center', justifyContent: 'center', marginRight: 12,
+    backgroundColor: '#FCE4EC', alignItems: 'center', justifyContent: 'center', marginRight: 12,
   },
   cardEmoji:   { fontSize: 24 },
   cardMeta:    { flex: 1 },
-  cardName:    { fontSize: 16, fontWeight: '700', color: '#01579B' },
+  cardName:    { fontSize: 16, fontWeight: '700', color: '#3D0C4E' },
   cardTagline: { fontSize: 12, color: '#666666', marginTop: 2 },
   cardSummary: { fontSize: 14, color: '#666666', lineHeight: 20, marginBottom: 10 },
 
@@ -294,34 +294,34 @@ const styles = StyleSheet.create({
   // Planning Impact
   planningImpactSection: { marginBottom: 10 },
   planningImpactLabel:   { fontSize: 11, fontWeight: '700', color: '#888888', marginBottom: 3 },
-  planningImpactText:    { fontSize: 13, fontStyle: 'italic', color: '#1565C0' },
+  planningImpactText:    { fontSize: 13, fontStyle: 'italic', color: '#6A1B9A' },
 
   // Lea Reaction
   leaReactionRow:  { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 4 },
   leaPuppy:        { width: 24, height: 24 },
-  leaReactionText: { fontSize: 12, fontStyle: 'italic', color: '#1565C0', flex: 1 },
+  leaReactionText: { fontSize: 12, fontStyle: 'italic', color: '#6A1B9A', flex: 1 },
 
   // Empty state
   emptyState: { alignItems: 'center', paddingTop: 60 },
   emptyIcon:  { fontSize: 40, marginBottom: 12 },
-  emptyText:  { fontSize: 15, color: '#90A4AE' },
+  emptyText:  { fontSize: 15, color: '#B39DBC' },
 
   // Modal
-  modalSafe:      { flex: 1, backgroundColor: '#FFFFFF' },
+  modalSafe:      { flex: 1, backgroundColor: '#FFF8F5' },
   modalHeaderBar: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8, alignItems: 'flex-end' },
-  closeBtn:       { width: 32, height: 32, borderRadius: 16, backgroundColor: '#F0F8FF', alignItems: 'center', justifyContent: 'center' },
+  closeBtn:       { width: 32, height: 32, borderRadius: 16, backgroundColor: '#FFF0F5', alignItems: 'center', justifyContent: 'center' },
   closeBtnText:   { fontSize: 14, color: '#546E7A', fontWeight: '700' },
   modalScroll:    { paddingHorizontal: 24, paddingBottom: 24 },
   modalEmoji:     { fontSize: 48, marginBottom: 12 },
-  modalName:      { fontSize: 28, fontWeight: '800', color: '#01579B', marginBottom: 4 },
+  modalName:      { fontSize: 28, fontWeight: '800', color: '#3D0C4E', marginBottom: 4 },
   modalTagline:   { fontSize: 15, color: '#546E7A', marginBottom: 12 },
-  divider:        { height: 1, backgroundColor: '#E1F5FE', marginVertical: 16 },
+  divider:        { height: 1, backgroundColor: '#F5DCE8', marginVertical: 16 },
   modalBody:      { fontSize: 15, color: '#263238', lineHeight: 25 },
 
   // Modal footer
-  modalFooter: { padding: 20, borderTopWidth: 1, borderTopColor: '#E1F5FE' },
+  modalFooter: { padding: 20, borderTopWidth: 1, borderTopColor: '#F5DCE8' },
   readMoreBtn: {
-    backgroundColor: '#1565C0',
+    backgroundColor: '#C2185B',
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',

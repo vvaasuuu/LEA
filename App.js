@@ -3,8 +3,10 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ActivityIndicator, View } from 'react-native';
 
-import OnboardingScreen from './frontend/screens/OnboardingScreen';
-import TabNavigator from './frontend/navigation/TabNavigator';
+import OnboardingScreen      from './frontend/screens/OnboardingScreen';
+import TabNavigator           from './frontend/navigation/TabNavigator';
+import CompanyExploreScreen   from './frontend/screens/CompanyExploreScreen';
+import CompanyDetailScreen    from './frontend/screens/CompanyDetailScreen';
 import { Storage } from './frontend/utils/storage';
 
 const Stack = createNativeStackNavigator();
@@ -46,7 +48,11 @@ export default function App() {
             )}
           />
         ) : (
-          <Stack.Screen name="Main" component={TabNavigator} />
+          <>
+            <Stack.Screen name="Main"           component={TabNavigator} />
+            <Stack.Screen name="CompanyExplore" component={CompanyExploreScreen} />
+            <Stack.Screen name="CompanyDetail"  component={CompanyDetailScreen} />
+          </>
         )}
       </Stack.Navigator>
     </NavigationContainer>

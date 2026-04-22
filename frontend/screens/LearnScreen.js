@@ -352,40 +352,40 @@ export default function LearnScreen() {
 
 // ── Styles ───────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  safe:   { flex: 1, backgroundColor: '#FFFFFF' },
+  safe:   { flex: 1, backgroundColor: '#FFF8F5' },
   scroll: { paddingHorizontal: 20, paddingBottom: 48 },
 
   header: { paddingTop: 20, marginBottom: 4 },
-  sectionLabel: { fontSize: 11, fontWeight: '700', color: '#0288D1', letterSpacing: 1.5, marginBottom: 4 },
-  title:  { fontSize: 32, fontWeight: '800', color: '#01579B' },
+  sectionLabel: { fontSize: 11, fontWeight: '700', color: '#C2185B', letterSpacing: 1.5, marginBottom: 4 },
+  title:  { fontSize: 32, fontWeight: '800', color: '#3D0C4E' },
 
   leaWrapper: { alignItems: 'center', marginVertical: 8 },
 
   pointsPill: {
-    alignSelf: 'center', backgroundColor: '#E1F5FE',
+    alignSelf: 'center', backgroundColor: '#FCE4EC',
     borderRadius: 100, paddingHorizontal: 16, paddingVertical: 6, marginBottom: 28,
   },
-  pointsText: { fontSize: 13, fontWeight: '700', color: '#01579B' },
+  pointsText: { fontSize: 13, fontWeight: '700', color: '#C2185B' },
 
   // Section
   section:       { marginBottom: 24 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
-  sectionTitle:  { fontSize: 20, fontWeight: '700', color: '#01579B' },
+  sectionTitle:  { fontSize: 20, fontWeight: '700', color: '#3D0C4E' },
   addBtn: {
     width: 32, height: 32, borderRadius: 16,
-    backgroundColor: '#0288D1', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: '#C2185B', alignItems: 'center', justifyContent: 'center',
   },
   addBtnText: { color: '#FFFFFF', fontSize: 22, lineHeight: 28, fontWeight: '300' },
 
   // Empty state
   emptyState: {
-    backgroundColor: '#F8FBFF', borderRadius: 16, padding: 28,
-    alignItems: 'center', borderWidth: 1, borderColor: '#E1F5FE',
+    backgroundColor: '#FFF8F5', borderRadius: 16, padding: 28,
+    alignItems: 'center', borderWidth: 1, borderColor: '#F5DCE8',
     borderStyle: 'dashed',
   },
   emptyIcon:  { fontSize: 32, marginBottom: 8 },
   emptyTitle: { fontSize: 15, fontWeight: '600', color: '#546E7A', marginBottom: 4 },
-  emptyHint:  { fontSize: 13, color: '#90A4AE', textAlign: 'center' },
+  emptyHint:  { fontSize: 13, color: '#B39DBC', textAlign: 'center' },
 
   // Swipe-to-delete wrapper
   swipeWrapper: { marginBottom: 12 },
@@ -399,54 +399,54 @@ const styles = StyleSheet.create({
   // Widget card
   widget: {
     backgroundColor: '#FFFFFF', borderRadius: 18, padding: 16,
-    borderWidth: 1.5, borderColor: '#B3E5FC',
-    shadowColor: '#0288D1', shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 2 },
+    borderWidth: 1.5, borderColor: '#EDD5E4',
+    shadowColor: '#C2185B', shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 2 },
     elevation: 2,
   },
   widgetActive: { borderColor: '#FFB300', backgroundColor: '#FFFDE7' },
   widgetRow:    { flexDirection: 'row', alignItems: 'center' },
   widgetIconCircle: {
     width: 48, height: 48, borderRadius: 24,
-    backgroundColor: '#E1F5FE', alignItems: 'center', justifyContent: 'center', marginRight: 14,
+    backgroundColor: '#FCE4EC', alignItems: 'center', justifyContent: 'center', marginRight: 14,
   },
   widgetBody:  { flex: 1 },
   widgetLabel: { fontSize: 13, fontWeight: '600', color: '#546E7A' },
-  widgetValue: { fontSize: 17, fontWeight: '700', color: '#01579B', marginTop: 2 },
-  widgetSub:   { fontSize: 12, color: '#90A4AE', marginTop: 2 },
-  chevron:     { fontSize: 20, color: '#0288D1', paddingLeft: 8 },
+  widgetValue: { fontSize: 17, fontWeight: '700', color: '#3D0C4E', marginTop: 2 },
+  widgetSub:   { fontSize: 12, color: '#B39DBC', marginTop: 2 },
+  chevron:     { fontSize: 20, color: '#C2185B', paddingLeft: 8 },
 
   mockBadge:     { backgroundColor: '#F3E5F5', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
   mockBadgeText: { fontSize: 10, color: '#9C27B0', fontWeight: '600' },
 
   // Expanded period list
   expanded:      { marginTop: 14 },
-  expandDivider: { height: 1, backgroundColor: '#E1F5FE', marginBottom: 12 },
-  expandHeading: { fontSize: 11, fontWeight: '700', color: '#0288D1', letterSpacing: 1.2, marginBottom: 8 },
+  expandDivider: { height: 1, backgroundColor: '#F5DCE8', marginBottom: 12 },
+  expandHeading: { fontSize: 11, fontWeight: '700', color: '#C2185B', letterSpacing: 1.2, marginBottom: 8 },
   predRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#F0F8FF',
+    paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#FFF0F5',
   },
-  predMonth: { fontSize: 14, fontWeight: '600', color: '#01579B' },
-  predRange: { fontSize: 14, color: '#0288D1' },
-  cycleNote: { marginTop: 12, fontSize: 11, color: '#90A4AE', textAlign: 'center' },
+  predMonth: { fontSize: 14, fontWeight: '600', color: '#3D0C4E' },
+  predRange: { fontSize: 14, color: '#C2185B' },
+  cycleNote: { marginTop: 12, fontSize: 11, color: '#B39DBC', textAlign: 'center' },
 
   // Dev
   devRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', marginTop: 8 },
-  devBtn: { backgroundColor: '#E1F5FE', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
-  devBtnText: { fontWeight: '700', fontSize: 12, color: '#01579B' },
+  devBtn: { backgroundColor: '#FCE4EC', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
+  devBtnText: { fontWeight: '700', fontSize: 12, color: '#C2185B' },
   resetBtn: { alignSelf: 'center', marginTop: 12, paddingVertical: 8, paddingHorizontal: 16 },
-  resetBtnText: { fontSize: 12, color: '#90A4AE', fontWeight: '600' },
+  resetBtnText: { fontSize: 12, color: '#B39DBC', fontWeight: '600' },
 
   // Bottom sheet
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
   sheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40 },
   sheetHandle: { width: 36, height: 4, backgroundColor: '#E0E0E0', borderRadius: 2, alignSelf: 'center', marginBottom: 20 },
-  sheetTitle:  { fontSize: 20, fontWeight: '700', color: '#01579B', marginBottom: 20 },
-  sheetOption: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#F0F8FF' },
+  sheetTitle:  { fontSize: 20, fontWeight: '700', color: '#3D0C4E', marginBottom: 20 },
+  sheetOption: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#FFF0F5' },
   sheetEmoji:  { fontSize: 28, marginRight: 16 },
-  sheetLabel:  { fontSize: 16, fontWeight: '600', color: '#01579B' },
+  sheetLabel:  { fontSize: 16, fontWeight: '600', color: '#3D0C4E' },
   sheetDesc:   { fontSize: 13, color: '#546E7A', marginTop: 2 },
-  sheetAdd:    { fontSize: 22, color: '#0288D1', fontWeight: '300' },
-  cancelBtn:   { marginTop: 16, paddingVertical: 14, alignItems: 'center', borderRadius: 14, backgroundColor: '#F0F8FF' },
-  cancelText:  { fontSize: 16, fontWeight: '600', color: '#0288D1' },
+  sheetAdd:    { fontSize: 22, color: '#C2185B', fontWeight: '300' },
+  cancelBtn:   { marginTop: 16, paddingVertical: 14, alignItems: 'center', borderRadius: 14, backgroundColor: '#FFF0F5' },
+  cancelText:  { fontSize: 16, fontWeight: '600', color: '#C2185B' },
 });

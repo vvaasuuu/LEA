@@ -222,9 +222,9 @@ function CompleteCard({ state }) {
   const total = (state.actions || []).filter(a => !a.skipped).length;
 
   return (
-    <View style={[styles.card, { backgroundColor: '#F0F8FF', borderColor: '#B3E5FC' }]}>
+    <View style={[styles.card, { backgroundColor: '#FDF0F7', borderColor: '#EDD5E4' }]}>
       <Text style={styles.eyebrow}>WEEK COMPLETE  ✦</Text>
-      <Text style={[styles.priorityTitle, { color: '#01579B' }]}>
+      <Text style={[styles.priorityTitle, { color: '#3D0C4E' }]}>
         {data.emoji}  You focused on {data.label}
       </Text>
       {done > 0 && (
@@ -318,12 +318,12 @@ export default function WeeklyCheckIn() {
 // ── Styles ────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#F0F8FF',
+    backgroundColor: '#FDF0F7',
     borderRadius: 18,
     padding: 20,
     marginBottom: 24,
     borderWidth: 1.5,
-    borderColor: '#B3E5FC',
+    borderColor: '#EDD5E4',
     shadowColor: '#000',
     shadowOpacity: 0.04,
     shadowRadius: 8,
@@ -333,14 +333,14 @@ const styles = StyleSheet.create({
   eyebrow: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#0288D1',
+    color: '#C2185B',
     letterSpacing: 1.5,
     marginBottom: 6,
   },
   question: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#01579B',
+    color: '#3D0C4E',
     marginBottom: 16,
     lineHeight: 24,
   },
@@ -354,10 +354,10 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
     borderWidth: 1.5,
-    borderColor: '#B3E5FC',
+    borderColor: '#EDD5E4',
   },
   optionEmoji: { fontSize: 24, marginBottom: 6 },
-  optionLabel: { fontSize: 13, fontWeight: '700', color: '#01579B' },
+  optionLabel: { fontSize: 13, fontWeight: '700', color: '#3D0C4E' },
 
   // Active card header
   cardTop: {
@@ -418,7 +418,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 4,
   },
-  actionTitleDone: { color: '#90A4AE', textDecorationLine: 'line-through' },
+  actionTitleDone: { color: '#B39DBC', textDecorationLine: 'line-through' },
   actionLinks: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   linkText: { fontSize: 12, fontWeight: '600' },
   linkDot:  { fontSize: 12, color: '#B0BEC5' },
@@ -444,12 +444,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: '#B3E5FC',
+    borderColor: '#EDD5E4',
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
   },
-  reflectBtnActive: { backgroundColor: '#0288D1', borderColor: '#0288D1' },
-  reflectBtnText:   { fontSize: 13, fontWeight: '600', color: '#01579B', textAlign: 'center' },
+  reflectBtnActive:     { backgroundColor: '#C2185B', borderColor: '#C2185B' },
+  reflectBtnText:       { fontSize: 13, fontWeight: '600', color: '#3D0C4E', textAlign: 'center' },
   reflectBtnTextActive: { color: '#FFFFFF' },
   extraLabel: {
     fontSize: 12,
@@ -464,15 +464,15 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: 100,
     borderWidth: 1.5,
-    borderColor: '#B3E5FC',
+    borderColor: '#EDD5E4',
     backgroundColor: '#FFFFFF',
   },
-  chipActive:     { backgroundColor: '#E1F5FE', borderColor: '#0288D1' },
+  chipActive:     { backgroundColor: '#FCE4EC', borderColor: '#C2185B' },
   chipText:       { fontSize: 13, color: '#546E7A', fontWeight: '500' },
-  chipTextActive: { color: '#0288D1', fontWeight: '600' },
+  chipTextActive: { color: '#C2185B', fontWeight: '600' },
   saveBtn: {
     marginTop: 20,
-    backgroundColor: '#0288D1',
+    backgroundColor: '#C2185B',
     borderRadius: 14,
     paddingVertical: 14,
     alignItems: 'center',
@@ -480,6 +480,7 @@ const styles = StyleSheet.create({
   saveBtnText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
 
   // Complete
-  completeSub: { fontSize: 14, color: '#546E7A', marginTop: 4, marginBottom: 8 },
-  nextHint:    { fontSize: 13, color: '#90A4AE', marginTop: 4 },
+  priorityTitle: { fontSize: 16, fontWeight: '700', marginBottom: 4 },
+  completeSub:   { fontSize: 14, color: '#546E7A', marginTop: 4, marginBottom: 8 },
+  nextHint:      { fontSize: 13, color: '#B39DBC', marginTop: 4 },
 });
