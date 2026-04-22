@@ -81,22 +81,23 @@ function StatsTab({ conditions, priorities, simHistory, points, leaStage }) {
 
   return (
     <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
-      <View style={styles.statRow}>
-        <View style={[sc.card, { width: CARD_W3, alignItems: 'center' }]}>
-          <Ionicons name="star" size={20} color={ROSE_D} />
-          <Text style={[sc.value, { color: ROSE_D }]}>{points}</Text>
-          <Text style={sc.label}>Points earned</Text>
-        </View>
-        <View style={[sc.card, { width: CARD_W3, alignItems: 'center' }]}>
-          <Ionicons name="desktop-outline" size={20} color="#E65100" />
-          <Text style={[sc.value, { color: '#E65100' }]}>{simHistory.length}</Text>
-          <Text style={sc.label}>Sim runs</Text>
-        </View>
-        <View style={[sc.card, { width: CARD_W3, alignItems: 'center' }]}>
-          <Ionicons name="paw" size={20} color="#388E3C" />
-          <Text style={[sc.value, { color: '#388E3C' }]}>{STAGE_LABELS[leaStage] || '—'}</Text>
-          <Text style={sc.label}>Lea's stage</Text>
-        </View>
+      <View style={styles.hStatList}>
+        {[
+          { icon: 'star',            color: ROSE_D,    cardBg: '#FFF5F8', accent: ROSE_D,    value: points,                        label: 'Points earned' },
+          { icon: 'desktop-outline', color: '#E65100', cardBg: '#FFFAF5', accent: '#E65100', value: simHistory.length,              label: 'Sim runs'      },
+          { icon: 'paw',             color: '#2E7D32', cardBg: '#F5FBF5', accent: '#2E7D32', value: STAGE_LABELS[leaStage] || '—', label: "Lea's stage"   },
+        ].map(item => (
+          <View key={item.label} style={[styles.hStatCard, { backgroundColor: item.cardBg }]}>
+            <View style={[styles.hStatAccent, { backgroundColor: item.accent }]} />
+            <View style={[styles.hStatIconBox, { backgroundColor: WHITE }]}>
+              <Ionicons name={item.icon} size={24} color={item.color} />
+            </View>
+            <View style={styles.hStatRight}>
+              <Text style={[styles.hStatValue, { color: item.color }]}>{item.value}</Text>
+              <Text style={styles.hStatLabel}>{item.label}</Text>
+            </View>
+          </View>
+        ))}
       </View>
 
       <Text style={[styles.secHeader, { marginTop: 24 }]}>YOUR GOALS</Text>
@@ -117,17 +118,8 @@ function StatsTab({ conditions, priorities, simHistory, points, leaStage }) {
 }
 
 function AchievementsTab({ points, conditions, priorities, simHistory }) {
-  const badgeData     = { conditions, priorities, points, simHistory };
-
-  function showBadgeInfo(badge, earned) {
-    Alert.alert(
-      badge.name,
-      earned
-        ? `✓ Earned\n\n${badge.reason}`
-        : `Not yet earned\n\n${badge.reason}`,
-      [{ text: 'OK' }]
-    );
-  }
+  const badgeData = { conditions, priorities, points, simHistory };
+  const [popupBadge, setPopupBadge] = useState(null);
 
   return (
     <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
@@ -139,7 +131,7 @@ function AchievementsTab({ points, conditions, priorities, simHistory }) {
             <TouchableOpacity
               key={badge.id}
               style={[styles.badgeCard, { width: BADGE_W }, !earned && styles.badgeCardLocked]}
-              onPress={() => showBadgeInfo(badge, earned)}
+              onPress={() => setPopupBadge(badge)}
               activeOpacity={0.7}
             >
               <Ionicons
@@ -158,6 +150,18 @@ function AchievementsTab({ points, conditions, priorities, simHistory }) {
         })}
       </View>
       <View style={{ height: 40 }} />
+
+      <Modal visible={popupBadge !== null} transparent animationType="fade" onRequestClose={() => setPopupBadge(null)}>
+        <View style={styles.badgePopupBackdrop}>
+          <View style={styles.badgePopupCard}>
+            <Text style={styles.badgePopupTitle}>{popupBadge?.name}</Text>
+            <Text style={styles.badgePopupBody}>{popupBadge?.reason}</Text>
+            <TouchableOpacity style={styles.badgePopupBtn} onPress={() => setPopupBadge(null)} activeOpacity={0.8}>
+              <Text style={styles.badgePopupBtnText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -167,23 +171,6 @@ function SettingsTab({ relEnabled, onToggleRel, onEditConditions, onEditGoals, o
   return (
     <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
       <View style={styles.settingsGroup}>
-
-        {/* Relationship content toggle */}
-        <View style={[styles.settingRow, styles.settingBorder]}>
-          <View style={[styles.iconCircle, { backgroundColor: '#FCE4EC' }]}>
-            <Ionicons name="heart-outline" size={18} color={ROSE_D} />
-          </View>
-          <View style={{ flex: 1, marginLeft: 14 }}>
-            <Text style={styles.settingLabel}>Relationship scenarios</Text>
-            <Text style={styles.settingHint}>Include in simulations</Text>
-          </View>
-          <Switch
-            value={relEnabled}
-            onValueChange={onToggleRel}
-            trackColor={{ false: '#F5DCE8', true: '#F48FB1' }}
-            thumbColor={relEnabled ? ROSE_D : '#E0C8D0'}
-          />
-        </View>
 
         {/* Edit conditions */}
         <TouchableOpacity style={[styles.settingRow, styles.settingBorder]} onPress={onEditConditions} activeOpacity={0.7}>
@@ -218,7 +205,7 @@ function SettingsTab({ relEnabled, onToggleRel, onEditConditions, onEditGoals, o
             <Ionicons name="trash-outline" size={18} color="#D32F2F" />
           </View>
           <Text style={[styles.settingLabel, styles.destructiveLabel, { flex: 1, marginLeft: 14 }]}>
-            Reset all data
+            Delete account
           </Text>
           <Ionicons name="chevron-forward" size={18} color={MUTED} />
         </TouchableOpacity>
@@ -362,7 +349,7 @@ export default function ProfileScreen({ navigation }) {
       <View style={styles.navBar}>
         <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
           <Ionicons name="chevron-back" size={22} color={ROSE_D} />
-          <Text style={styles.backText}>Learn</Text>
+          <Text style={styles.backText}>Home</Text>
         </TouchableOpacity>
       </View>
 
@@ -521,10 +508,24 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
 
-  statRow: {
-    flexDirection: 'row', gap: 8,
-    marginBottom: 24,
+  hStatList: { gap: 12, marginBottom: 24 },
+  hStatCard: {
+    flexDirection: 'row', alignItems: 'center',
+    borderRadius: 16, overflow: 'hidden',
+    shadowColor: PLUM, shadowOpacity: 0.07, shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 }, elevation: 3,
   },
+  hStatAccent: { width: 5, alignSelf: 'stretch' },
+  hStatIconBox: {
+    width: 52, height: 52, borderRadius: 14,
+    alignItems: 'center', justifyContent: 'center',
+    marginLeft: 16, marginVertical: 16,
+    shadowColor: '#000', shadowOpacity: 0.05, shadowRadius: 4,
+    shadowOffset: { width: 0, height: 1 }, elevation: 1,
+  },
+  hStatRight:  { flex: 1, paddingHorizontal: 16, paddingVertical: 18 },
+  hStatValue:  { fontSize: 26, fontWeight: '800', lineHeight: 30 },
+  hStatLabel:  { fontSize: 13, color: MUTED, fontWeight: '500', marginTop: 3 },
 
   // Section header
   secHeader: {
@@ -584,6 +585,25 @@ const styles = StyleSheet.create({
   badgeNameLocked: { color: MUTED },
   badgeEarned:     { fontSize: 11, color: '#388E3C', fontWeight: '700', marginTop: 4 },
   badgeLocked:     { fontSize: 11, color: MUTED, fontWeight: '500', marginTop: 4 },
+
+  // Badge info popup
+  badgePopupBackdrop: {
+    flex: 1, backgroundColor: 'rgba(61,12,78,0.4)',
+    alignItems: 'center', justifyContent: 'center', paddingHorizontal: 40,
+  },
+  badgePopupCard: {
+    backgroundColor: WHITE, borderRadius: 20, padding: 24,
+    alignItems: 'center', width: '100%',
+    shadowColor: PLUM, shadowOpacity: 0.15, shadowRadius: 20,
+    shadowOffset: { width: 0, height: 6 }, elevation: 8,
+  },
+  badgePopupTitle: { fontSize: 18, fontWeight: '800', color: PLUM, marginBottom: 10, textAlign: 'center' },
+  badgePopupBody:  { fontSize: 14, color: ROSE, lineHeight: 22, textAlign: 'center', marginBottom: 20 },
+  badgePopupBtn: {
+    backgroundColor: ROSE_D, borderRadius: 12,
+    paddingVertical: 12, paddingHorizontal: 40,
+  },
+  badgePopupBtnText: { fontSize: 15, fontWeight: '700', color: WHITE },
 
   // Settings
   settingsGroup: {
