@@ -19,6 +19,7 @@ const WHITE  = '#FFFFFF';
 
 // ── Layout constants ─────────────────────────────────────────────────────────
 const CARD_W  = (SW - 52) / 2;   // 2-col grid: 20px padding each side + 12px gap
+const CARD_W3  = (SW - 56) / 3;
 const BADGE_W = (SW - 56) / 3;   // 3-col grid: 20px padding each side + 8px*2 gaps
 
 // ── Static data ───────────────────────────────────────────────────────────────
@@ -42,12 +43,12 @@ const DOG_IMAGES = {
 const STAGE_LABELS = { puppy: 'Puppy', young: 'Teen', teen: 'Teen', adult: 'Adult' };
 
 const BADGES = [
-  { id: 'first_steps',  icon: 'footsteps-outline', name: 'First Steps',  check: d => (d.simHistory?.length  ?? 0) >= 1 },
-  { id: 'health_aware', icon: 'heart-outline',     name: 'Health Aware', check: d => (d.conditions?.filter(c => c !== 'None' && c !== 'Prefer not to say').length ?? 0) > 0 },
-  { id: 'explorer',     icon: 'compass-outline',   name: 'Explorer',     check: d => (d.simHistory?.length  ?? 0) >= 3 },
-  { id: 'goal_setter',  icon: 'flag-outline',      name: 'Goal Setter',  check: d => (d.priorities?.length  ?? 0) > 0 },
-  { id: 'consistent',   icon: 'star-outline',      name: 'Consistent',   check: d => d.points >= 10 },
-  { id: 'lea_graduate', icon: 'school-outline',    name: 'LEA Graduate', check: d => d.points >= 50 },
+  { id: 'first_steps',  icon: 'footsteps',  iconLocked: 'footsteps-outline',  name: 'First Steps',  reason: 'Complete your first simulation run.',          check: d => (d.simHistory?.length  ?? 0) >= 1 },
+  { id: 'health_aware', icon: 'heart',       iconLocked: 'heart-outline',       name: 'Health Aware', reason: 'Add at least one health condition to your profile.', check: d => (d.conditions?.filter(c => c !== 'None' && c !== 'Prefer not to say').length ?? 0) > 0 },
+  { id: 'explorer',     icon: 'compass',     iconLocked: 'compass-outline',     name: 'Explorer',     reason: 'Complete 3 or more simulation runs.',           check: d => (d.simHistory?.length  ?? 0) >= 3 },
+  { id: 'goal_setter',  icon: 'flag',        iconLocked: 'flag-outline',        name: 'Goal Setter',  reason: 'Add at least one goal to your profile.',        check: d => (d.priorities?.length  ?? 0) > 0 },
+  { id: 'consistent',   icon: 'star',        iconLocked: 'star-outline',        name: 'Consistent',   reason: 'Earn 10 or more points by completing health cards.', check: d => d.points >= 10 },
+  { id: 'lea_graduate', icon: 'school',      iconLocked: 'school-outline',      name: 'LEA Graduate', reason: 'Earn 50 or more points across all your sessions.', check: d => d.points >= 50 },
 ];
 
 const TABS = ['Stats', 'Achievements', 'Settings'];
@@ -80,26 +81,25 @@ function StatsTab({ conditions, priorities, simHistory, points, leaStage }) {
 
   return (
     <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
-      <View style={styles.statGrid}>
-        <StatCard icon="star"            value={points}                        label="Points earned"  iconColor={ROSE_D}    />
-        <StatCard icon="medical"         value={displayConds.length}           label="Conditions"     iconColor="#6A1B9A"   />
-        <StatCard icon="desktop-outline" value={simHistory.length}             label="Sim runs"       iconColor="#E65100"   />
-        <StatCard icon="paw"             value={STAGE_LABELS[leaStage] || '—'} label="Lea's stage"    iconColor="#388E3C"   />
+      <View style={styles.statRow}>
+        <View style={[sc.card, { width: CARD_W3, alignItems: 'center' }]}>
+          <Ionicons name="star" size={20} color={ROSE_D} />
+          <Text style={[sc.value, { color: ROSE_D }]}>{points}</Text>
+          <Text style={sc.label}>Points earned</Text>
+        </View>
+        <View style={[sc.card, { width: CARD_W3, alignItems: 'center' }]}>
+          <Ionicons name="desktop-outline" size={20} color="#E65100" />
+          <Text style={[sc.value, { color: '#E65100' }]}>{simHistory.length}</Text>
+          <Text style={sc.label}>Sim runs</Text>
+        </View>
+        <View style={[sc.card, { width: CARD_W3, alignItems: 'center' }]}>
+          <Ionicons name="paw" size={20} color="#388E3C" />
+          <Text style={[sc.value, { color: '#388E3C' }]}>{STAGE_LABELS[leaStage] || '—'}</Text>
+          <Text style={sc.label}>Lea's stage</Text>
+        </View>
       </View>
 
-      <Text style={styles.secHeader}>YOUR CONDITIONS</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillScroll}>
-        {displayConds.length > 0
-          ? displayConds.map(c => (
-              <View key={c} style={styles.pill}>
-                <Text style={styles.pillText}>{c}</Text>
-              </View>
-            ))
-          : <Text style={styles.emptyHint}>None selected</Text>
-        }
-      </ScrollView>
-
-      <Text style={[styles.secHeader, { marginTop: 20 }]}>YOUR GOALS</Text>
+      <Text style={[styles.secHeader, { marginTop: 24 }]}>YOUR GOALS</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillScroll}>
         {priorities.length > 0
           ? priorities.map(p => (
@@ -117,50 +117,51 @@ function StatsTab({ conditions, priorities, simHistory, points, leaStage }) {
 }
 
 function AchievementsTab({ points, conditions, priorities, simHistory }) {
-  const level         = Math.floor(points / 100) + 1;
-  const levelProgress = (points % 100) / 100;
   const badgeData     = { conditions, priorities, points, simHistory };
+
+  function showBadgeInfo(badge, earned) {
+    Alert.alert(
+      badge.name,
+      earned
+        ? `✓ Earned\n\n${badge.reason}`
+        : `Not yet earned\n\n${badge.reason}`,
+      [{ text: 'OK' }]
+    );
+  }
 
   return (
     <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
-
-      {/* Level card */}
-      <View style={styles.levelCard}>
-        <View style={styles.levelCircle}>
-          <Text style={styles.levelNumber}>{level}</Text>
-        </View>
-        <View style={{ flex: 1, marginLeft: 16 }}>
-          <Text style={styles.levelTitle}>Level {level}</Text>
-          <Text style={styles.levelSub}>{points % 100} / 100 XP to next level</Text>
-          <View style={styles.progressTrack}>
-            <View style={[styles.progressFill, { width: `${Math.round(levelProgress * 100)}%` }]} />
-          </View>
-        </View>
-      </View>
-
-      {/* Badges */}
-      <Text style={[styles.secHeader, { marginTop: 24 }]}>BADGES</Text>
+      <Text style={styles.secHeader}>BADGES</Text>
       <View style={styles.badgeGrid}>
         {BADGES.map(badge => {
           const earned = badge.check(badgeData);
           return (
-            <View key={badge.id} style={[styles.badgeCard, { width: BADGE_W }, !earned && styles.badgeCardLocked]}>
-              <Ionicons name={badge.icon} size={28} color={earned ? ROSE_D : MUTED} />
+            <TouchableOpacity
+              key={badge.id}
+              style={[styles.badgeCard, { width: BADGE_W }, !earned && styles.badgeCardLocked]}
+              onPress={() => showBadgeInfo(badge, earned)}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name={earned ? badge.icon : badge.iconLocked}
+                size={28}
+                color={earned ? ROSE_D : MUTED}
+              />
               <Text style={[styles.badgeName, !earned && styles.badgeNameLocked]} numberOfLines={2}>
                 {badge.name}
               </Text>
               <Text style={earned ? styles.badgeEarned : styles.badgeLocked}>
                 {earned ? 'Earned' : 'Locked'}
               </Text>
-            </View>
+            </TouchableOpacity>
           );
         })}
       </View>
-
       <View style={{ height: 40 }} />
     </View>
   );
 }
+
 
 function SettingsTab({ relEnabled, onToggleRel, onEditConditions, onEditGoals, onResetSim, onResetAll }) {
   return (
@@ -517,6 +518,11 @@ const styles = StyleSheet.create({
   // Stat grid
   statGrid: {
     flexDirection: 'row', flexWrap: 'wrap', gap: 12,
+    marginBottom: 24,
+  },
+
+  statRow: {
+    flexDirection: 'row', gap: 8,
     marginBottom: 24,
   },
 
