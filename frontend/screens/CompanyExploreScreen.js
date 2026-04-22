@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import companies from '../data/company_details.json';
 
-const BG      = '#FFF8F5';
+const BG      = '#FAF6F0';
 const PLUM    = '#6A1B9A';
 const ROSE    = '#C2185B';
 const MUTED   = '#B39DBC';
@@ -24,13 +24,6 @@ const TAG_LABELS = {
   childcare_support:    'Childcare',
   wellness:             'Wellness',
 };
-
-const CARD_PALETTE = [
-  { bg: '#F0D6E4', text: HEADING },
-  { bg: '#B87A96', text: '#FFFFFF' },
-  { bg: '#EAD0E0', text: HEADING },
-  { bg: '#6A2D4A', text: '#FFFFFF' },
-];
 
 const BENEFIT_FILTERS = [
   { key: 'fertility_coverage',   label: 'Fertility Support' },
@@ -122,7 +115,7 @@ export default function CompanyExploreScreen() {
 
         {/* Search bar */}
         <View style={styles.searchBar}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <Ionicons name="search-outline" size={16} color={MUTED} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search by company or benefit…"
@@ -141,42 +134,32 @@ export default function CompanyExploreScreen() {
         <View style={styles.list}>
           {filtered.length === 0 && (
             <View style={styles.emptyState}>
-              <Text style={styles.emptyIcon}>🔎</Text>
+
               <Text style={styles.emptyText}>No companies found</Text>
             </View>
           )}
-          {filtered.map((company, idx) => {
-            const palette = CARD_PALETTE[idx % CARD_PALETTE.length];
+          {filtered.map((company) => {
             return (
               <TouchableOpacity
                 key={company.id}
-                style={[styles.card, { backgroundColor: palette.bg }]}
+                style={styles.card}
                 onPress={() => navigation.navigate('CompanyDetail', { company })}
                 activeOpacity={0.8}
               >
-                <Text style={[styles.cardName, { color: palette.text }]}>
+                <Text style={styles.cardName}>
                   {company.name}
                 </Text>
                 <View style={styles.cardTagRow}>
                   {company.tags.slice(0, 4).map(tag => (
-                    <View
-                      key={tag}
-                      style={[
-                        styles.cardTagPill,
-                        { borderColor: palette.text === '#FFFFFF' ? 'rgba(255,255,255,0.45)' : 'rgba(106,27,154,0.25)' },
-                      ]}
-                    >
-                      <Text style={[styles.cardTagText, { color: palette.text }]}>
+                    <View key={tag} style={styles.cardTagPill}>
+                      <Text style={styles.cardTagText}>
                         {TAG_LABELS[tag] || tag}
                       </Text>
                     </View>
                   ))}
                 </View>
                 {!!company.notable && (
-                  <Text
-                    style={[styles.cardNotable, { color: palette.text === '#FFFFFF' ? 'rgba(255,255,255,0.75)' : MUTED }]}
-                    numberOfLines={1}
-                  >
+                  <Text style={styles.cardNotable} numberOfLines={1}>
                     {company.notable}
                   </Text>
                 )}
@@ -312,7 +295,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: '#F5DCE8',
     marginHorizontal: 16, marginBottom: 16,
   },
-  searchIcon:  { fontSize: 15, marginRight: 8 },
+  searchIcon:  { marginRight: 8 },
   searchInput: { flex: 1, fontSize: 14, color: HEADING },
   searchClear: { fontSize: 13, color: MUTED, paddingLeft: 8 },
 
@@ -320,17 +303,18 @@ const styles = StyleSheet.create({
   list: { paddingHorizontal: 16, gap: 10 },
   card: {
     borderRadius: 16, padding: 18,
-    shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 8,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5, borderColor: ROSE,
+    shadowColor: ROSE, shadowOpacity: 0.08, shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 }, elevation: 2,
   },
-  cardName:    { fontSize: 18, fontWeight: '700', marginBottom: 10 },
+  cardName:    { fontSize: 18, fontWeight: '700', marginBottom: 10, color: HEADING },
   cardTagRow:  { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
-  cardTagPill: { borderRadius: 100, borderWidth: 1, paddingHorizontal: 8, paddingVertical: 4 },
-  cardTagText: { fontSize: 11, fontWeight: '600' },
-  cardNotable: { fontSize: 12, marginTop: 2 },
+  cardTagPill: { borderRadius: 100, borderWidth: 1, borderColor: '#F5DCE8', backgroundColor: '#FFF0F5', paddingHorizontal: 8, paddingVertical: 4 },
+  cardTagText: { fontSize: 11, fontWeight: '600', color: PLUM },
+  cardNotable: { fontSize: 12, marginTop: 2, color: MUTED },
 
   emptyState: { alignItems: 'center', paddingTop: 48 },
-  emptyIcon:  { fontSize: 36, marginBottom: 8 },
   emptyText:  { fontSize: 14, color: MUTED },
 
   // Modals

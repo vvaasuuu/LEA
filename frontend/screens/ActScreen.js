@@ -6,6 +6,7 @@ import {
   KeyboardAvoidingView, Platform, PanResponder,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import companies from '../data/company_details.json';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -73,6 +74,9 @@ function toDateStr(d) {
 }
 function formatShortDate(d) { return `${MONTH_SHORT[d.getMonth()]} ${d.getDate()}`; }
 function formatFullDate(d)  { return `${DAYS_LONG[d.getDay()]}, ${d.getDate()} ${MONTHS_LONG[d.getMonth()]}`; }
+function formatTimelineDate(d) {
+  return `${WEEK_ABBR[(d.getDay() + 6) % 7]} · ${formatShortDate(d)}`;
+}
 
 // ── Calendar weeks ────────────────────────────────────────────────────────────
 function generateWeeks(numWeeks) {
@@ -164,9 +168,15 @@ function SwipeableUpcomingRow({ entry, onDelete, showDivider }) {
         style={[styles.swipeRowInner, { transform: [{ translateX }] }]}
         {...panResponder.panHandlers}
       >
+        <View style={styles.timelineCol}>
+          <View style={styles.timelineNode}>
+            <Ionicons name="calendar-outline" size={12} color={ROSE} />
+          </View>
+          {showDivider && <View style={styles.timelineLine} />}
+        </View>
         <View style={[styles.upcomingDotIcon, { backgroundColor: DOT_COLORS[entry.category] || '#888' }]} />
         <Text style={styles.upcomingNote} numberOfLines={1}>{entry.note || entry.category}</Text>
-        <Text style={styles.upcomingDate}>{formatShortDate(entry.date)}</Text>
+        <Text style={styles.upcomingDate}>{formatTimelineDate(entry.date)}</Text>
       </Animated.View>
     </View>
   );
@@ -216,6 +226,7 @@ export default function ActScreen() {
   const [recToAdd,       setRecToAdd]      = useState(null);
   const [pickedDate,     setPickedDate]    = useState(TODAY);
   const [showDatePicker, setShowDatePicker]= useState(false);
+  const [recommendations, setRecommendations] = useState(RECOMMENDATIONS);
 
   const calendarRef = useRef(null);
 
@@ -260,6 +271,7 @@ export default function ActScreen() {
     const dateStr = toDateStr(pickedDate);
     const entry   = { id: String(Date.now()), category: recToAdd.category, note: recToAdd.title };
     setEntries(prev => ({ ...prev, [dateStr]: [...(prev[dateStr] || []), entry] }));
+    setRecommendations(prev => prev.filter(r => r.id !== recToAdd.id));
     setShowDatePicker(false);
     setRecToAdd(null);
   }
@@ -351,7 +363,7 @@ export default function ActScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recommended</Text>
           <Text style={styles.sectionSub}>Next 6 months · tap + to add to upcoming</Text>
-          {RECOMMENDATIONS.map(rec => (
+          {recommendations.map(rec => (
             <RecommendationCard
               key={rec.id}
               rec={rec}
@@ -359,13 +371,19 @@ export default function ActScreen() {
               onAdd={() => openDatePicker(rec)}
             />
           ))}
+          {recommendations.length === 0 && (
+            <View style={styles.emptyUpcoming}>
+              <Text style={styles.emptyUpcomingText}>All recommended items added</Text>
+              <Text style={styles.emptyUpcomingSub}>You can still add custom entries on any day.</Text>
+            </View>
+          )}
         </View>
 
         {/* ── 5. Career ──────────────────────────────────────────── */}
         <View style={styles.section}>
           <View style={styles.careerHeader}>
             <TouchableOpacity
-              onPress={() => navigation.navigate('CompanyExplore')}
+              onPress={() => navigation.navigate('CompanyDetail', { company: defaultCompany })}
               activeOpacity={0.7}
             >
               <Text style={styles.careerTitle}>Career →</Text>
@@ -722,7 +740,7 @@ const styles = StyleSheet.create({
   upcomingDivider: { borderBottomWidth: 1, borderBottomColor: '#F3E5F5' },
   upcomingDotIcon: { width: 6, height: 6, borderRadius: 3, flexShrink: 0 },
   upcomingNote:    { flex: 1, fontSize: 14, color: HEADING },
-  upcomingDate:    { fontSize: 12, color: MUTED, flexShrink: 0 },
+  upcomingDate:    { fontSize: 12, color: '#6B7280', flexShrink: 0, fontWeight: '600' },
 
   swipeRowOuter: { overflow: 'hidden', height: 48 },
   swipeDeleteBtn: {
@@ -735,6 +753,13 @@ const styles = StyleSheet.create({
     height: 48, paddingHorizontal: 12, gap: 8,
     backgroundColor: '#FFFFFF',
   },
+  timelineCol: { width: 16, alignItems: 'center', justifyContent: 'flex-start', alignSelf: 'stretch', paddingTop: 6 },
+  timelineNode: {
+    width: 16, height: 16, borderRadius: 8,
+    backgroundColor: '#FCE4EC', borderWidth: 1, borderColor: '#F8BBD0',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  timelineLine: { width: 2, flex: 1, backgroundColor: '#F3E5F5', marginTop: 4, borderRadius: 2 },
 
   // Recommendation cards
   recCard: {
@@ -859,15 +884,15 @@ const styles = StyleSheet.create({
   applyBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
 
   // Date picker
-  datePickerRecName:    { fontSize: 13, color: MUTED, marginBottom: 16 },
+  datePickerRecName:    { fontSize: 13, color: '#374151', marginBottom: 16, fontWeight: '600' },
   datePickerScroll:     { marginBottom: 20 },
   datePickerCell: {
     width: 56, alignItems: 'center',
-    paddingVertical: 12, borderRadius: 12,
-    backgroundColor: '#F3E5F5',
+    paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderColor: '#D0D7E2',
+    backgroundColor: '#F7F9FC',
   },
-  datePickerCellActive: { backgroundColor: ROSE },
-  datePickerWeekday:    { fontSize: 10, fontWeight: '700', color: MUTED, marginBottom: 4 },
-  datePickerDay:        { fontSize: 20, fontWeight: '800', color: HEADING, marginBottom: 2 },
-  datePickerMonth:      { fontSize: 10, color: MUTED },
+  datePickerCellActive: { backgroundColor: PLUM, borderColor: PLUM },
+  datePickerWeekday:    { fontSize: 10, fontWeight: '700', color: '#6B7280', marginBottom: 4 },
+  datePickerDay:        { fontSize: 20, fontWeight: '800', color: '#1F2937', marginBottom: 2 },
+  datePickerMonth:      { fontSize: 10, color: '#6B7280' },
 });
