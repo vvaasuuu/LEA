@@ -1,309 +1,423 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, SafeAreaView,
-  TouchableOpacity, Modal, LayoutAnimation, Platform, UIManager, Alert,
-  Animated, PanResponder, DevSettings,
+  TouchableOpacity, Animated, DevSettings, Platform, UIManager,
+  Image,
 } from 'react-native';
-import LeaAvatar from '../components/LeaAvatar';
-import WeeklyCheckIn from '../components/WeeklyCheckIn';
+import { useNavigation } from '@react-navigation/native';
 import { Storage } from '../utils/storage';
 import { Points } from '../utils/points';
+import nudges from '../data/nudges.json';
+import weeklyActions from '../data/weekly_actions.json';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const CYCLE_LENGTH = 27;
-const PERIOD_DAYS  = 5;
+// ── Palette ───────────────────────────────────────────────────────────────────
+const BG      = '#FAF6F0';
+const PLUM    = '#3D0C4E';
+const ROSE    = '#C2748A';
+const ROSE_D  = '#C2185B';
+const MUTED   = '#B39DBC';
+const WHITE   = '#FFFFFF';
 
-function defaultLastPeriod() {
-  const d = new Date();
-  d.setDate(d.getDate() - 14);
-  return d.toISOString().split('T')[0];
+// ── Dog images ────────────────────────────────────────────────────────────────
+const STAGE_IMAGES = {
+  puppy: require('../assets/dogs/Puppy open eyes.png'),
+  young: require('../assets/dogs/teen1 eyes open.png'),
+  adult: require('../assets/dogs/adult dog eyes open tail up.png'),
+};
+const STAGE_LABELS = { puppy: 'Puppy', young: 'Teen', adult: 'Adult' };
+
+// ── Derive Life Mode from priorities ─────────────────────────────────────────
+function getLifeMode(priorities = []) {
+  if (priorities.includes('Career growth'))          return 'Hustle Mode';
+  if (priorities.includes('Family planning (someday)')) return 'Nesting Mode';
+  if (priorities.includes('Travel'))                 return 'Exploration Mode';
+  if (priorities.includes('Personal health'))        return 'Self-Care Mode';
+  if (priorities.includes('Relationships'))          return 'Connection Mode';
+  return 'Discovery Mode';
 }
 
-function getPredictions(lastPeriodStr, count = 5) {
-  const last  = new Date(lastPeriodStr);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  let next = new Date(last);
-  while (next <= today) next = new Date(next.getTime() + CYCLE_LENGTH * 86400000);
-  const list = [];
-  for (let i = 0; i < count; i++) {
-    list.push({
-      start: new Date(next),
-      end:   new Date(next.getTime() + (PERIOD_DAYS - 1) * 86400000),
-    });
-    next = new Date(next.getTime() + CYCLE_LENGTH * 86400000);
+// ── Power Level scores ────────────────────────────────────────────────────────
+function careerScore(lifeStage, points) {
+  const base = lifeStage === 'Mid-career' ? 72 : lifeStage === 'Early career' ? 54 : 30;
+  const bonus = Math.min(points / 10, 20);
+  return Math.min(Math.round(base + bonus), 100);
+}
+
+function healthScore(conditions = []) {
+  if (!conditions.length || conditions.includes('None') || conditions.includes('Prefer not to say')) return 82;
+  return Math.max(82 - conditions.filter(c => c !== 'None' && c !== 'Prefer not to say').length * 14, 38);
+}
+
+function flexScore(points) {
+  return Math.min(Math.round(30 + points * 0.12), 95);
+}
+
+function scoreStatus(score) {
+  if (score >= 70) return { label: 'Strong', color: '#388E3C' };
+  if (score >= 45) return { label: 'Building', color: '#F57C00' };
+  return { label: 'Watch', color: '#C2748A' };
+}
+
+// ── Horizon card copy ─────────────────────────────────────────────────────────
+function horizonCopy(lifeStage, priorities = []) {
+  const hasCareer  = priorities.includes('Career growth');
+  const hasFamily  = priorities.includes('Family planning (someday)');
+  const hasHealth  = priorities.includes('Personal health');
+  if (hasCareer && hasFamily) {
+    const yrs = lifeStage === 'Student' ? 5 : lifeStage === 'Early career' ? 3 : 2;
+    return {
+      body: `In ${yrs} years, your goal of 'Senior Role' intersects with your 'Optimal Fertility Window.' Explore how policies can bridge this gap →`,
+      hasIntersection: true,
+    };
   }
-  return list;
-}
-
-function daysUntil(date) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  return Math.round((d - today) / 86400000);
-}
-
-function fmt(date) {
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-}
-
-function fmtLong(date) {
-  return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-}
-
-function getFertilityWindow(lastPeriodStr) {
-  const last  = new Date(lastPeriodStr);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  let start = new Date(last);
-  while (new Date(start.getTime() + CYCLE_LENGTH * 86400000) < today) {
-    start = new Date(start.getTime() + CYCLE_LENGTH * 86400000);
+  if (hasCareer) {
+    return {
+      body: `Your career momentum is picking up. Now's the time to map out how your workplace benefits align with your bigger life goals →`,
+      hasIntersection: true,
+    };
+  }
+  if (hasHealth) {
+    return {
+      body: `Small health investments now compound over time. See how your current habits map against your future milestones →`,
+      hasIntersection: true,
+    };
   }
   return {
-    fertileStart: new Date(start.getTime() + 9  * 86400000),
-    fertileEnd:   new Date(start.getTime() + 13 * 86400000),
-    ovulation:    new Date(start.getTime() + 12 * 86400000),
+    body: `Build your personal timeline — see where your life goals and health milestones are heading →`,
+    hasIntersection: false,
   };
 }
 
-// ── Period Tracker Widget ────────────────────────────────────────────────────
-function PeriodWidget({ lastPeriodDate }) {
-  const [expanded, setExpanded] = useState(false);
-  const predictions = getPredictions(lastPeriodDate);
-  const n = daysUntil(predictions[0].start);
-  const countdown = n <= 0 ? 'Starting around today' : n === 1 ? 'Tomorrow' : `In ${n} days`;
+// ── Circular progress ring ────────────────────────────────────────────────────
+function RingProgress({ size = 72, strokeWidth = 7, progress = 0, color = ROSE_D, children }) {
+  const half = size / 2;
+  const p    = Math.min(1, Math.max(0, progress));
+  const deg  = p * 360;
 
-  const toggle = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setExpanded(e => !e);
-  };
+  // Right half (0–180°): borderTop + borderRight rotate from -90 to +90
+  const rightRot = Math.min(deg, 180) - 90;
+  // Left half (180–360°): borderBottom + borderLeft rotate from +90 to -90
+  const leftRot  = 90 - Math.max(deg - 180, 0);
 
   return (
-    <View style={styles.widget}>
-      <TouchableOpacity style={styles.widgetRow} onPress={toggle} activeOpacity={0.7}>
-        <View style={styles.widgetIconCircle}>
-          <Text style={{ fontSize: 22 }}>🩸</Text>
-        </View>
-        <View style={styles.widgetBody}>
-          <Text style={styles.widgetLabel}>Period Tracker</Text>
-          <Text style={styles.widgetValue}>{countdown}</Text>
-          <Text style={styles.widgetSub}>{fmt(predictions[0].start)} – {fmt(predictions[0].end)}</Text>
-        </View>
-        <Text style={styles.chevron}>{expanded ? '▾' : '▸'}</Text>
-      </TouchableOpacity>
+    <View style={{ width: size, height: size }}>
+      {/* Background ring */}
+      <View style={{
+        position: 'absolute', width: size, height: size,
+        borderRadius: half, borderWidth: strokeWidth, borderColor: '#EEE8F5',
+      }} />
 
-      {expanded && (
-        <View style={styles.expanded}>
-          <View style={styles.expandDivider} />
-          <Text style={styles.expandHeading}>UPCOMING PERIODS</Text>
-          {predictions.map((p, i) => (
-            <View key={i} style={[styles.predRow, i === predictions.length - 1 && { borderBottomWidth: 0 }]}>
-              <Text style={styles.predMonth}>{fmtLong(p.start)}</Text>
-              <Text style={styles.predRange}>{fmt(p.start)} – {fmt(p.end)}</Text>
-            </View>
-          ))}
-          <Text style={styles.cycleNote}>
-            {CYCLE_LENGTH}-day cycle · {PERIOD_DAYS}-day period · predictions only
-          </Text>
+      {/* Right half fill */}
+      <View style={{ position: 'absolute', left: half, top: 0, width: half, height: size, overflow: 'hidden' }}>
+        <View style={{
+          position: 'absolute', left: -half, top: 0,
+          width: size, height: size, borderRadius: half, borderWidth: strokeWidth,
+          borderTopColor: color, borderRightColor: color,
+          borderBottomColor: 'transparent', borderLeftColor: 'transparent',
+          transform: [{ rotate: `${rightRot}deg` }],
+        }} />
+      </View>
+
+      {/* Left half fill (only needed once > 50%) */}
+      {p > 0.5 && (
+        <View style={{ position: 'absolute', left: 0, top: 0, width: half, height: size, overflow: 'hidden' }}>
+          <View style={{
+            position: 'absolute', left: 0, top: 0,
+            width: size, height: size, borderRadius: half, borderWidth: strokeWidth,
+            borderTopColor: 'transparent', borderRightColor: 'transparent',
+            borderBottomColor: color, borderLeftColor: color,
+            transform: [{ rotate: `${leftRot}deg` }],
+          }} />
         </View>
       )}
-    </View>
-  );
-}
 
-// ── Fertility Window Widget ──────────────────────────────────────────────────
-function FertilityWidget({ lastPeriodDate }) {
-  const { fertileStart, fertileEnd, ovulation } = getFertilityWindow(lastPeriodDate);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const isActive = today >= fertileStart && today <= fertileEnd;
+      {/* Inner white fill to make it a ring */}
+      <View style={{
+        position: 'absolute',
+        top: strokeWidth, left: strokeWidth,
+        width: size - strokeWidth * 2, height: size - strokeWidth * 2,
+        borderRadius: (size - strokeWidth * 2) / 2,
+        backgroundColor: BG,
+      }} />
 
-  return (
-    <View style={[styles.widget, isActive && styles.widgetActive]}>
-      <View style={styles.widgetRow}>
-        <View style={[styles.widgetIconCircle, isActive && { backgroundColor: '#FFF3E0' }]}>
-          <Text style={{ fontSize: 22 }}>🌸</Text>
-        </View>
-        <View style={styles.widgetBody}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Text style={styles.widgetLabel}>Fertility Window</Text>
-            <View style={styles.mockBadge}>
-              <Text style={styles.mockBadgeText}>Mock</Text>
-            </View>
-          </View>
-          <Text style={styles.widgetValue}>
-            {isActive ? 'Active now' : `${fmt(fertileStart)} – ${fmt(fertileEnd)}`}
-          </Text>
-          <Text style={styles.widgetSub}>Est. ovulation: {fmt(ovulation)}</Text>
-        </View>
+      {/* Centre content */}
+      <View style={{ position: 'absolute', width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
+        {children}
       </View>
     </View>
   );
 }
 
-// ── Swipe-left to delete widget ──────────────────────────────────────────────
-const DELETE_WIDTH = 80;
+// ── Animated ring wrapper ─────────────────────────────────────────────────────
+function AnimatedRing({ targetProgress, delay, size, strokeWidth, color, icon, label, status, statusColor, onPress }) {
+  const anim = useRef(new Animated.Value(0)).current;
 
-function SwipeableWidget({ id, label, onDelete, children }) {
-  const translateX = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    Animated.timing(anim, {
+      toValue: targetProgress,
+      duration: 900,
+      delay,
+      useNativeDriver: false,
+    }).start();
+  }, [targetProgress]);
 
-  const panResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, g) =>
-        Math.abs(g.dx) > Math.abs(g.dy) * 1.5 && Math.abs(g.dx) > 8,
-      onPanResponderMove: (_, g) => {
-        translateX.setValue(Math.min(0, Math.max(g.dx, -DELETE_WIDTH)));
-      },
-      onPanResponderRelease: (_, g) => {
-        Animated.spring(translateX, {
-          toValue: g.dx < -40 ? -DELETE_WIDTH : 0,
-          useNativeDriver: true,
-          bounciness: 4,
-        }).start();
-      },
-    })
-  ).current;
-
-  function confirmDelete() {
-    Alert.alert(
-      'Remove Widget',
-      `Remove "${label}" from your dashboard?`,
-      [
-        {
-          text: 'Cancel', style: 'cancel',
-          onPress: () => Animated.spring(translateX, { toValue: 0, useNativeDriver: true }).start(),
-        },
-        { text: 'Remove', style: 'destructive', onPress: () => onDelete(id) },
-      ]
-    );
-  }
+  const [displayProgress, setDisplayProgress] = useState(0);
+  useEffect(() => {
+    const id = anim.addListener(({ value }) => setDisplayProgress(value));
+    return () => anim.removeListener(id);
+  }, []);
 
   return (
-    <View style={styles.swipeWrapper}>
-      <TouchableOpacity style={styles.deleteAction} onPress={confirmDelete} activeOpacity={0.85}>
-        <Text style={styles.deleteText}>Remove</Text>
-      </TouchableOpacity>
-      <Animated.View style={{ transform: [{ translateX }] }} {...panResponder.panHandlers}>
-        {children}
+    <TouchableOpacity style={styles.ringWrapper} onPress={onPress} activeOpacity={0.8}>
+      <RingProgress size={size} strokeWidth={strokeWidth} progress={displayProgress} color={color}>
+        <Text style={styles.ringIcon}>{icon}</Text>
+      </RingProgress>
+      <Text style={styles.ringLabel}>{label}</Text>
+      <Text style={[styles.ringStatus, { color: statusColor }]}>{status}</Text>
+    </TouchableOpacity>
+  );
+}
+
+// ── Horizon card shimmer ──────────────────────────────────────────────────────
+function HorizonCard({ body, onPress }) {
+  const shimmer = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(shimmer, { toValue: 1, duration: 1400, useNativeDriver: true }),
+        Animated.timing(shimmer, { toValue: 0, duration: 1400, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
+  const shimmerOpacity = shimmer.interpolate({ inputRange: [0, 1], outputRange: [0.6, 1] });
+
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.88} style={styles.horizonOuter}>
+      <Animated.View style={[styles.horizonCard, { opacity: shimmerOpacity }]}>
+        <Text style={styles.horizonEyebrow}>WHAT'S ON THE HORIZON</Text>
+        <Text style={styles.horizonBody}>{body}</Text>
       </Animated.View>
+    </TouchableOpacity>
+  );
+}
+
+// ── Recommended topic card ────────────────────────────────────────────────────
+function TopicCard({ title, desc, onPress }) {
+  return (
+    <TouchableOpacity style={styles.topicCard} onPress={onPress} activeOpacity={0.82}>
+      <Text style={styles.topicTitle} numberOfLines={2}>{title}</Text>
+      <Text style={styles.topicDesc} numberOfLines={2}>{desc}</Text>
+      <Text style={styles.topicCta}>Learn more →</Text>
+    </TouchableOpacity>
+  );
+}
+
+// ── Act card (weekly action) ──────────────────────────────────────────────────
+function ActCard({ emoji, title, accentColor, borderColor }) {
+  return (
+    <View style={[styles.actCard, { borderColor }]}>
+      <Text style={styles.actEmoji}>{emoji}</Text>
+      <Text style={styles.actTitle} numberOfLines={3}>{title}</Text>
     </View>
   );
 }
 
-// ── Available widgets catalogue ──────────────────────────────────────────────
-const WIDGET_CATALOGUE = [
-  { id: 'period_tracker',   emoji: '🩸', label: 'Period Tracker',   desc: 'Predicted dates for your next 5 cycles' },
-  { id: 'fertility_window', emoji: '🌸', label: 'Fertility Window', desc: 'Estimated fertile days (mock data)' },
-];
-
-// ── Screen ───────────────────────────────────────────────────────────────────
+// ── Screen ────────────────────────────────────────────────────────────────────
 export default function LearnScreen() {
-  const [points,        setPoints]        = useState(0);
-  const [leaKey,        setLeaKey]        = useState(0);
-  const [activeWidgets, setActiveWidgets] = useState([]);
-  const [showAddModal,  setShowAddModal]  = useState(false);
-  const [lastPeriod,    setLastPeriod]    = useState(defaultLastPeriod());
+  const navigation = useNavigation();
+
+  const [leaName,    setLeaName]    = useState('Lea');
+  const [leaStage,   setLeaStage]   = useState('puppy');
+  const [points,     setPoints]     = useState(0);
+  const [lifeStage,  setLifeStage]  = useState(null);
+  const [conditions, setConditions] = useState([]);
+  const [priorities, setPriorities] = useState([]);
+  const [leaKey,     setLeaKey]     = useState(0);
 
   useEffect(() => {
     async function load() {
-      const p = await Storage.get(Storage.KEYS.USER_POINTS);
-      const w = await Storage.get('active_widgets');
-      const d = await Storage.get('last_period_date');
+      const n  = await Storage.get(Storage.KEYS.LEA_NAME);
+      const s  = await Storage.get(Storage.KEYS.LEA_STAGE);
+      const p  = await Storage.get(Storage.KEYS.USER_POINTS);
+      const ls = await Storage.get(Storage.KEYS.USER_LIFE_STAGE);
+      const c  = await Storage.get(Storage.KEYS.USER_CONDITIONS);
+      const pr = await Storage.get(Storage.KEYS.USER_PRIORITIES);
+      if (n)          setLeaName(n);
+      if (s)          setLeaStage(s);
       if (p !== null) setPoints(p);
-      if (w)          setActiveWidgets(w);
-      if (d)          setLastPeriod(d);
-      else            await Storage.set('last_period_date', defaultLastPeriod());
+      if (ls)         setLifeStage(ls);
+      if (c)          setConditions(c);
+      if (pr)         setPriorities(pr);
     }
     load();
   }, []);
 
-  async function addWidget(id) {
-    const next = [...activeWidgets, id];
-    setActiveWidgets(next);
-    await Storage.set('active_widgets', next);
-    setShowAddModal(false);
-  }
+  // Derived scores
+  const cScore = careerScore(lifeStage, points);
+  const hScore = healthScore(conditions);
+  const fScore = flexScore(points);
 
-  async function removeWidget(id) {
-    const next = activeWidgets.filter(w => w !== id);
-    setActiveWidgets(next);
-    await Storage.set('active_widgets', next);
-  }
+  const cStatus = scoreStatus(cScore);
+  const hStatus = scoreStatus(hScore);
+  const fStatus = scoreStatus(fScore);
 
-  const available = WIDGET_CATALOGUE.filter(w => !activeWidgets.includes(w.id));
+  const lifeMode = getLifeMode(priorities);
+  const { body: horizonBody } = horizonCopy(lifeStage, priorities);
+
+  // Pick 3 nudges (first 3 general ones)
+  const recommendedNudges = nudges.filter(n => !n.conditions || n.conditions.length === 0).slice(0, 3);
+
+  // Pick act cards: prefer priority category, else all
+  const actCategory = priorities.includes('Career growth') ? 'career'
+    : priorities.includes('Personal health') ? 'health'
+    : 'balance';
+  const actCards = (weeklyActions[actCategory]?.actions || []).slice(0, 5);
+  const actMeta  = weeklyActions[actCategory];
 
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
-        {/* Header */}
+        {/* ── SECTION 1: Welcome Header ──────────────────────────────── */}
         <View style={styles.header}>
-          <Text style={styles.sectionLabel}>SECTION 1</Text>
-          <Text style={styles.title}>Learn</Text>
-        </View>
-
-        {/* Lea */}
-        <View style={styles.leaWrapper}>
-          <LeaAvatar key={leaKey} size={200} showName showProgress />
-        </View>
-
-        {/* Points */}
-        <View style={styles.pointsPill}>
-          <Text style={styles.pointsText}>⭐ {points} point{points !== 1 ? 's' : ''} earned</Text>
-        </View>
-
-        {/* Weekly Check-In */}
-        <WeeklyCheckIn />
-
-        {/* My Health */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>My Health</Text>
-            {available.length > 0 && (
-              <TouchableOpacity style={styles.addBtn} onPress={() => setShowAddModal(true)} activeOpacity={0.8}>
-                <Text style={styles.addBtnText}>＋</Text>
-              </TouchableOpacity>
-            )}
+          <View style={styles.headerLeft}>
+            <Text style={styles.welcomeText}>Welcome,</Text>
+            <Text style={styles.tagline}>Learn. Explore. Act.</Text>
+            <View style={styles.taglineUnderline} />
           </View>
-
-          {activeWidgets.length === 0 && (
-            <View style={styles.emptyState}>
-              <Text style={styles.emptyIcon}>📊</Text>
-              <Text style={styles.emptyTitle}>No widgets yet</Text>
-              <Text style={styles.emptyHint}>Tap ＋ to add health widgets</Text>
-            </View>
-          )}
-
-          {activeWidgets.includes('period_tracker') && (
-            <SwipeableWidget id="period_tracker" label="Period Tracker" onDelete={removeWidget}>
-              <PeriodWidget lastPeriodDate={lastPeriod} />
-            </SwipeableWidget>
-          )}
-          {activeWidgets.includes('fertility_window') && (
-            <SwipeableWidget id="fertility_window" label="Fertility Window" onDelete={removeWidget}>
-              <FertilityWidget lastPeriodDate={lastPeriod} />
-            </SwipeableWidget>
-          )}
+          <Text style={styles.floralDecor}>🌸</Text>
         </View>
 
-        {/* Dev stage buttons */}
+        {/* ── SECTION 2: What's on the Horizon ──────────────────────── */}
+        <HorizonCard
+          body={horizonBody}
+          onPress={() => navigation.navigate('Planning')}
+        />
+
+        {/* ── SECTION 3: Power Levels ────────────────────────────────── */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Power Levels</Text>
+          <Text style={styles.sectionSub}>Your three core dimensions</Text>
+
+          <View style={styles.ringsRow}>
+            <AnimatedRing
+              targetProgress={cScore / 100}
+              delay={0}
+              size={80}
+              strokeWidth={8}
+              color="#E65100"
+              icon="🚀"
+              label="Career"
+              status={cStatus.label}
+              statusColor={cStatus.color}
+              onPress={() => navigation.navigate('Planning')}
+            />
+            <AnimatedRing
+              targetProgress={hScore / 100}
+              delay={150}
+              size={80}
+              strokeWidth={8}
+              color={ROSE_D}
+              icon="🌿"
+              label="Health"
+              status={hStatus.label}
+              statusColor={hStatus.color}
+              onPress={() => navigation.navigate('Explore')}
+            />
+            <AnimatedRing
+              targetProgress={fScore / 100}
+              delay={300}
+              size={80}
+              strokeWidth={8}
+              color="#6A1B9A"
+              icon="∞"
+              label="Flex"
+              status={fStatus.label}
+              statusColor={fStatus.color}
+              onPress={() => navigation.navigate('Planning')}
+            />
+          </View>
+        </View>
+
+        {/* ── SECTION 4: Dog Companion ───────────────────────────────── */}
+        <View style={styles.dogSection}>
+          <Image
+            source={STAGE_IMAGES[leaStage] || STAGE_IMAGES.puppy}
+            style={styles.dogImage}
+            resizeMode="contain"
+          />
+          <Text style={styles.dogName}>{leaName}</Text>
+          <Text style={styles.dogStageLabel}>{STAGE_LABELS[leaStage] || 'Puppy'}</Text>
+          <View style={styles.lifeModeTag}>
+            <Text style={styles.lifeModeText}>{lifeMode}</Text>
+          </View>
+        </View>
+
+        {/* ── SECTION 5a: Recommended for You ───────────────────────── */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Recommended for you</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            snapToInterval={TOPIC_CARD_W + 14}
+            decelerationRate="fast"
+            contentContainerStyle={styles.hScrollContent}
+          >
+            {recommendedNudges.map(n => (
+              <TopicCard
+                key={n.id}
+                title={n.title}
+                desc={n.nudge?.slice(0, 80) + '…'}
+                onPress={() => navigation.navigate('Explore')}
+              />
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* ── SECTION 5b: Personalised Act Cards ────────────────────── */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Personalised act cards <Text style={styles.arrowLabel}>→</Text></Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            snapToInterval={ACT_CARD_W + 12}
+            decelerationRate="fast"
+            contentContainerStyle={styles.hScrollContent}
+          >
+            {actCards.map(a => (
+              <ActCard
+                key={a.id}
+                emoji={a.emoji}
+                title={a.title}
+                accentColor={actMeta?.accentColor || ROSE}
+                borderColor={actMeta?.borderColor || '#F5DCE8'}
+              />
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* ── Dev controls (unchanged) ───────────────────────────────── */}
         <View style={styles.devRow}>
           {[
-            { label: '🐶 Puppy', pts: 10 },
-            { label: '🐕 Teen',  pts: 100 },
-            { label: '🦮 Adult', pts: 600 },
-          ].map(({ label, pts }) => (
+            { label: '🐶 Puppy', pts: 10,  stage: 'puppy' },
+            { label: '🐕 Teen',  pts: 100, stage: 'young' },
+            { label: '🦮 Adult', pts: 600, stage: 'adult' },
+          ].map(({ label, pts, stage }) => (
             <TouchableOpacity
               key={label}
               style={styles.devBtn}
               onPress={async () => {
                 await Storage.set(Storage.KEYS.USER_POINTS, pts);
                 await Points.updateLeaStage(pts);
+                await Storage.set(Storage.KEYS.LEA_STAGE, stage);
                 setPoints(pts);
+                setLeaStage(stage);
                 setLeaKey(k => k + 1);
               }}
             >
@@ -314,139 +428,126 @@ export default function LearnScreen() {
 
         <TouchableOpacity
           style={styles.resetBtn}
-          onPress={async () => {
-            await Storage.clearAll();
-            DevSettings.reload();
-          }}
+          onPress={async () => { await Storage.clearAll(); DevSettings.reload(); }}
         >
           <Text style={styles.resetBtnText}>↺ Reset onboarding</Text>
         </TouchableOpacity>
 
       </ScrollView>
-
-      {/* Add Widget bottom sheet */}
-      <Modal visible={showAddModal} animationType="slide" transparent onRequestClose={() => setShowAddModal(false)}>
-        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={() => setShowAddModal(false)}>
-          <View style={styles.sheet}>
-            <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>Add Widget</Text>
-            {available.map(w => (
-              <TouchableOpacity key={w.id} style={styles.sheetOption} onPress={() => addWidget(w.id)} activeOpacity={0.7}>
-                <Text style={styles.sheetEmoji}>{w.emoji}</Text>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.sheetLabel}>{w.label}</Text>
-                  <Text style={styles.sheetDesc}>{w.desc}</Text>
-                </View>
-                <Text style={styles.sheetAdd}>＋</Text>
-              </TouchableOpacity>
-            ))}
-            <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowAddModal(false)}>
-              <Text style={styles.cancelText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
     </SafeAreaView>
   );
 }
 
-// ── Styles ───────────────────────────────────────────────────────────────────
+// ── Dimensions ────────────────────────────────────────────────────────────────
+const TOPIC_CARD_W = 220;
+const ACT_CARD_W   = 160;
+
+// ── Styles ────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
-  safe:   { flex: 1, backgroundColor: '#FFF8F5' },
-  scroll: { paddingHorizontal: 20, paddingBottom: 48 },
+  safe:   { flex: 1, backgroundColor: BG },
+  scroll: { paddingBottom: 56 },
 
-  header: { paddingTop: 20, marginBottom: 4 },
-  sectionLabel: { fontSize: 11, fontWeight: '700', color: '#C2185B', letterSpacing: 1.5, marginBottom: 4 },
-  title:  { fontSize: 32, fontWeight: '800', color: '#3D0C4E' },
-
-  leaWrapper: { alignItems: 'center', marginVertical: 8 },
-
-  pointsPill: {
-    alignSelf: 'center', backgroundColor: '#FCE4EC',
-    borderRadius: 100, paddingHorizontal: 16, paddingVertical: 6, marginBottom: 28,
+  // Section 1 — Header
+  header: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
+    paddingHorizontal: 22, paddingTop: 22, paddingBottom: 8,
   },
-  pointsText: { fontSize: 13, fontWeight: '700', color: '#C2185B' },
+  headerLeft:       { flex: 1 },
+  welcomeText:      { fontSize: 30, fontWeight: '800', color: PLUM, letterSpacing: -0.5 },
+  tagline:          { fontSize: 13, fontWeight: '600', color: ROSE, marginTop: 2 },
+  taglineUnderline: { width: 110, height: 2, backgroundColor: ROSE, borderRadius: 1, marginTop: 4 },
+  floralDecor:      { fontSize: 40, marginTop: -4 },
 
-  // Section
-  section:       { marginBottom: 24 },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
-  sectionTitle:  { fontSize: 20, fontWeight: '700', color: '#3D0C4E' },
-  addBtn: {
-    width: 32, height: 32, borderRadius: 16,
-    backgroundColor: '#C2185B', alignItems: 'center', justifyContent: 'center',
+  // Section 2 — Horizon card
+  horizonOuter: { marginHorizontal: 20, marginBottom: 22 },
+  horizonCard: {
+    backgroundColor: WHITE,
+    borderRadius: 20,
+    padding: 18,
+    borderWidth: 1.5,
+    borderColor: '#E8C9D8',
+    shadowColor: ROSE,
+    shadowOpacity: 0.12,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
   },
-  addBtnText: { color: '#FFFFFF', fontSize: 22, lineHeight: 28, fontWeight: '300' },
-
-  // Empty state
-  emptyState: {
-    backgroundColor: '#FFF8F5', borderRadius: 16, padding: 28,
-    alignItems: 'center', borderWidth: 1, borderColor: '#F5DCE8',
-    borderStyle: 'dashed',
+  horizonEyebrow: {
+    fontSize: 10, fontWeight: '800', color: ROSE, letterSpacing: 1.8,
+    marginBottom: 8,
   },
-  emptyIcon:  { fontSize: 32, marginBottom: 8 },
-  emptyTitle: { fontSize: 15, fontWeight: '600', color: '#546E7A', marginBottom: 4 },
-  emptyHint:  { fontSize: 13, color: '#B39DBC', textAlign: 'center' },
-
-  // Swipe-to-delete wrapper
-  swipeWrapper: { marginBottom: 12 },
-  deleteAction: {
-    position: 'absolute', right: 0, top: 0, bottom: 0, width: DELETE_WIDTH,
-    backgroundColor: '#EF5350', borderRadius: 18,
-    alignItems: 'center', justifyContent: 'center',
+  horizonBody: {
+    fontSize: 14, lineHeight: 21, color: PLUM, fontWeight: '500',
   },
-  deleteText: { fontSize: 13, color: '#FFFFFF', fontWeight: '700' },
 
-  // Widget card
-  widget: {
-    backgroundColor: '#FFFFFF', borderRadius: 18, padding: 16,
-    borderWidth: 1.5, borderColor: '#EDD5E4',
-    shadowColor: '#C2185B', shadowOpacity: 0.08, shadowRadius: 10, shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
+  // Section 3 — Power Levels
+  section: { paddingHorizontal: 20, marginBottom: 24 },
+  sectionTitle: { fontSize: 19, fontWeight: '700', color: PLUM, marginBottom: 2 },
+  sectionSub:   { fontSize: 12, color: MUTED, marginBottom: 16 },
+  arrowLabel:   { fontWeight: '400', color: ROSE },
+
+  ringsRow: {
+    flexDirection: 'row', justifyContent: 'space-around', alignItems: 'flex-start',
+    backgroundColor: WHITE, borderRadius: 20, paddingVertical: 22,
+    borderWidth: 1, borderColor: '#F0E6F0',
+    shadowColor: PLUM, shadowOpacity: 0.06, shadowRadius: 10, elevation: 2,
   },
-  widgetActive: { borderColor: '#FFB300', backgroundColor: '#FFFDE7' },
-  widgetRow:    { flexDirection: 'row', alignItems: 'center' },
-  widgetIconCircle: {
-    width: 48, height: 48, borderRadius: 24,
-    backgroundColor: '#FCE4EC', alignItems: 'center', justifyContent: 'center', marginRight: 14,
+  ringWrapper:  { alignItems: 'center', gap: 8 },
+  ringIcon:     { fontSize: 22 },
+  ringLabel:    { fontSize: 12, fontWeight: '700', color: PLUM, marginTop: 8 },
+  ringStatus:   { fontSize: 11, fontWeight: '600', marginTop: 2 },
+
+  // Section 4 — Dog widget
+  dogSection: {
+    alignItems: 'center', marginBottom: 24,
+    backgroundColor: WHITE, marginHorizontal: 20, borderRadius: 20,
+    paddingVertical: 22, paddingHorizontal: 16,
+    borderWidth: 1, borderColor: '#F0E6F0',
+    shadowColor: PLUM, shadowOpacity: 0.06, shadowRadius: 10, elevation: 2,
   },
-  widgetBody:  { flex: 1 },
-  widgetLabel: { fontSize: 13, fontWeight: '600', color: '#546E7A' },
-  widgetValue: { fontSize: 17, fontWeight: '700', color: '#3D0C4E', marginTop: 2 },
-  widgetSub:   { fontSize: 12, color: '#B39DBC', marginTop: 2 },
-  chevron:     { fontSize: 20, color: '#C2185B', paddingLeft: 8 },
-
-  mockBadge:     { backgroundColor: '#F3E5F5', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
-  mockBadgeText: { fontSize: 10, color: '#9C27B0', fontWeight: '600' },
-
-  // Expanded period list
-  expanded:      { marginTop: 14 },
-  expandDivider: { height: 1, backgroundColor: '#F5DCE8', marginBottom: 12 },
-  expandHeading: { fontSize: 11, fontWeight: '700', color: '#C2185B', letterSpacing: 1.2, marginBottom: 8 },
-  predRow: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: '#FFF0F5',
+  dogImage:      { width: 130, height: 130 },
+  dogName:       { fontSize: 20, fontWeight: '800', color: PLUM, marginTop: 10 },
+  dogStageLabel: { fontSize: 13, color: MUTED, fontWeight: '500', marginTop: 3 },
+  lifeModeTag: {
+    marginTop: 10,
+    backgroundColor: '#F3E5F5',
+    borderRadius: 100, paddingHorizontal: 14, paddingVertical: 5,
+    borderWidth: 1, borderColor: '#CE93D8',
   },
-  predMonth: { fontSize: 14, fontWeight: '600', color: '#3D0C4E' },
-  predRange: { fontSize: 14, color: '#C2185B' },
-  cycleNote: { marginTop: 12, fontSize: 11, color: '#B39DBC', textAlign: 'center' },
+  lifeModeText: { fontSize: 12, fontWeight: '700', color: '#6A1B9A' },
 
-  // Dev
+  // Horizontal scroll
+  hScrollContent: { paddingLeft: 2, paddingRight: 20, gap: 14 },
+
+  // Topic cards
+  topicCard: {
+    width: TOPIC_CARD_W,
+    backgroundColor: WHITE,
+    borderRadius: 18, padding: 16,
+    borderWidth: 1.5, borderColor: '#F5DCE8',
+    shadowColor: ROSE, shadowOpacity: 0.08, shadowRadius: 10, elevation: 2,
+    justifyContent: 'space-between',
+  },
+  topicTitle: { fontSize: 14, fontWeight: '700', color: PLUM, marginBottom: 6, lineHeight: 20 },
+  topicDesc:  { fontSize: 12, color: '#546E7A', lineHeight: 18, marginBottom: 12, flex: 1 },
+  topicCta:   { fontSize: 12, color: ROSE_D, fontWeight: '600', fontStyle: 'italic' },
+
+  // Act cards
+  actCard: {
+    width: ACT_CARD_W,
+    backgroundColor: WHITE,
+    borderRadius: 18, padding: 16,
+    borderWidth: 1.5,
+    shadowColor: PLUM, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2,
+    minHeight: 120, justifyContent: 'flex-start',
+  },
+  actEmoji: { fontSize: 26, marginBottom: 10 },
+  actTitle: { fontSize: 13, fontWeight: '600', color: PLUM, lineHeight: 19 },
+
+  // Dev controls
   devRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', marginTop: 8 },
   devBtn: { backgroundColor: '#FCE4EC', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
-  devBtnText: { fontWeight: '700', fontSize: 12, color: '#C2185B' },
+  devBtnText: { fontWeight: '700', fontSize: 12, color: ROSE_D },
   resetBtn: { alignSelf: 'center', marginTop: 12, paddingVertical: 8, paddingHorizontal: 16 },
-  resetBtnText: { fontSize: 12, color: '#B39DBC', fontWeight: '600' },
-
-  // Bottom sheet
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
-  sheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40 },
-  sheetHandle: { width: 36, height: 4, backgroundColor: '#E0E0E0', borderRadius: 2, alignSelf: 'center', marginBottom: 20 },
-  sheetTitle:  { fontSize: 20, fontWeight: '700', color: '#3D0C4E', marginBottom: 20 },
-  sheetOption: { flexDirection: 'row', alignItems: 'center', paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: '#FFF0F5' },
-  sheetEmoji:  { fontSize: 28, marginRight: 16 },
-  sheetLabel:  { fontSize: 16, fontWeight: '600', color: '#3D0C4E' },
-  sheetDesc:   { fontSize: 13, color: '#546E7A', marginTop: 2 },
-  sheetAdd:    { fontSize: 22, color: '#C2185B', fontWeight: '300' },
-  cancelBtn:   { marginTop: 16, paddingVertical: 14, alignItems: 'center', borderRadius: 14, backgroundColor: '#FFF0F5' },
-  cancelText:  { fontSize: 16, fontWeight: '600', color: '#C2185B' },
+  resetBtnText: { fontSize: 12, color: MUTED, fontWeight: '600' },
 });
