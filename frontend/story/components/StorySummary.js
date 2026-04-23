@@ -1,139 +1,188 @@
 import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import ScorePills from './ScorePills';
+import { SCORE_COLORS, SCORE_LABELS } from '../data/fertilityWindowScenario';
+
+const PLUM   = '#3D0C4E';
+const ROSE   = '#C2185B';
+const MUTED  = '#B39DBC';
+const BORDER = '#EDD5E4';
 
 function buildEndingText(scores) {
-  if (scores.fertility >= 30 && scores.career >= 25) {
+  if (scores.fertility >= 30 && scores.career >= 25)
     return 'You built a path with strong momentum and preserved room to choose later.';
-  }
-
-  if (scores.fertility >= 30) {
+  if (scores.fertility >= 30)
     return 'You repeatedly chose clarity and option-preserving moves, even when they cost momentum.';
-  }
-
-  if (scores.career >= 30) {
+  if (scores.career >= 30)
     return 'Your story leaned hard into acceleration, and the later tradeoffs became more concrete.';
-  }
-
   return 'Your story stayed mixed and human: part planning, part timing, part tradeoff.';
 }
 
-export default function StorySummary({ scenarioTitle, scores, history, onRestart }) {
+function ScoreBar({ label, value, color }) {
+  const clamped = Math.max(0, Math.min(value, 50));
+  const pct = `${(clamped / 50) * 100}%`;
+  return (
+    <View style={ss.barRow}>
+      <Text style={ss.barLabel}>{label}</Text>
+      <View style={ss.barTrack}>
+        <View style={[ss.barFill, { width: pct, backgroundColor: color }]} />
+      </View>
+      <Text style={[ss.barValue, { color }]}>
+        {value >= 0 ? `+${value}` : value}
+      </Text>
+    </View>
+  );
+}
+
+export default function StorySummary({ scenarioTitle, scores, history, onRestart, onExit }) {
   return (
     <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.content}
+      style={ss.screen}
+      contentContainerStyle={ss.content}
       showsVerticalScrollIndicator={false}
     >
-      <Text style={styles.eyebrow}>Scenario Complete</Text>
-      <Text style={styles.title}>{scenarioTitle}</Text>
-      <Text style={styles.body}>{buildEndingText(scores)}</Text>
-
-      <View style={styles.card}>
-        <Text style={styles.cardLabel}>Final Scores</Text>
-        <ScorePills scores={scores} />
+      {/* Hero */}
+      <View style={ss.hero}>
+        <Text style={ss.heroEmoji}>🎉</Text>
+        <Text style={ss.heroEyebrow}>Simulation Complete</Text>
+        <Text style={ss.heroTitle}>{scenarioTitle}</Text>
+        <Text style={ss.heroBody}>{buildEndingText(scores)}</Text>
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.cardLabel}>Choice History</Text>
-        {history.map((entry) => (
-          <View key={entry.id} style={styles.historyItem}>
-            <Text style={styles.historyAge}>Age {entry.age}</Text>
-            <Text style={styles.historyChoice}>{entry.choiceLabel}</Text>
-            <Text style={styles.historyConsequence}>{entry.consequenceSummary}</Text>
+      {/* Score breakdown */}
+      <View style={ss.card}>
+        <Text style={ss.cardLabel}>YOUR SCORES</Text>
+        {Object.entries(scores).map(([key, val]) => (
+          <ScoreBar
+            key={key}
+            label={SCORE_LABELS[key]}
+            value={val}
+            color={SCORE_COLORS[key]}
+          />
+        ))}
+      </View>
+
+      {/* Choice timeline */}
+      <View style={ss.card}>
+        <Text style={ss.cardLabel}>YOUR CHOICES</Text>
+        {history.map((entry, i) => (
+          <View key={entry.id} style={ss.timelineItem}>
+            <View style={ss.timelineDotCol}>
+              <View style={ss.timelineDot} />
+              {i < history.length - 1 && <View style={ss.timelineLine} />}
+            </View>
+            <View style={ss.timelineContent}>
+              <Text style={ss.timelineAge}>Age {entry.age} · {entry.episodeTitle}</Text>
+              <Text style={ss.timelineChoice}>{entry.choiceLabel}</Text>
+              <Text style={ss.timelineConseq}>{entry.consequenceSummary}</Text>
+            </View>
           </View>
         ))}
       </View>
 
-      <Pressable style={styles.restartButton} onPress={onRestart}>
-        <Text style={styles.restartText}>Play Again</Text>
+      {/* Actions */}
+      <Pressable style={ss.primaryBtn} onPress={onRestart}>
+        <Text style={ss.primaryBtnText}>Play Again</Text>
       </Pressable>
+
+      {onExit && (
+        <Pressable style={ss.secondaryBtn} onPress={onExit}>
+          <Text style={ss.secondaryBtnText}>Exit Simulation</Text>
+        </Pressable>
+      )}
+
     </ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: '#F5EFE6',
+const ss = StyleSheet.create({
+  screen:  { flex: 1, backgroundColor: '#FFFFFF' },
+  content: { paddingHorizontal: 20, paddingTop: 40, paddingBottom: 48 },
+
+  // Hero
+  hero: {
+    alignItems: 'center',
+    marginBottom: 24,
+    paddingHorizontal: 8,
   },
-  content: {
-    paddingHorizontal: 20,
-    paddingTop: 72,
-    paddingBottom: 40,
+  heroEmoji:   { fontSize: 48, marginBottom: 12 },
+  heroEyebrow: {
+    fontSize: 11, fontWeight: '800', color: ROSE,
+    textTransform: 'uppercase', letterSpacing: 1.4, marginBottom: 6,
   },
-  eyebrow: {
-    color: '#7E3F37',
-    fontSize: 12,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 1.3,
+  heroTitle: {
+    fontSize: 22, fontWeight: '800', color: PLUM,
+    textAlign: 'center', lineHeight: 30, marginBottom: 10,
   },
-  title: {
-    color: '#211814',
-    fontSize: 30,
-    lineHeight: 36,
-    fontWeight: '800',
-    marginTop: 8,
+  heroBody: {
+    fontSize: 14, color: '#546E7A', textAlign: 'center', lineHeight: 22,
   },
-  body: {
-    color: '#4D433B',
-    fontSize: 16,
-    lineHeight: 24,
-    marginTop: 12,
-    marginBottom: 22,
-  },
+
+  // Card
   card: {
-    backgroundColor: '#FFF9F2',
-    borderRadius: 24,
+    backgroundColor: '#FFF0F5',
+    borderRadius: 20,
     padding: 18,
-    marginBottom: 16,
+    marginBottom: 14,
     borderWidth: 1,
-    borderColor: 'rgba(126, 63, 55, 0.14)',
+    borderColor: BORDER,
   },
   cardLabel: {
-    color: '#7E3F37',
-    fontSize: 12,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: 1.2,
-    marginBottom: 14,
+    fontSize: 10, fontWeight: '800', color: ROSE,
+    textTransform: 'uppercase', letterSpacing: 1.3, marginBottom: 14,
   },
-  historyItem: {
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(126, 63, 55, 0.08)',
+
+  // Score bars
+  barRow:   { flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 8 },
+  barLabel: { width: 88, fontSize: 13, fontWeight: '600', color: PLUM },
+  barTrack: {
+    flex: 1, height: 8, backgroundColor: '#F5DCE8',
+    borderRadius: 4, overflow: 'hidden',
   },
-  historyAge: {
-    color: '#8E7A6B',
-    fontSize: 11,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+  barFill:  { height: '100%', borderRadius: 4 },
+  barValue: { width: 32, fontSize: 12, fontWeight: '800', textAlign: 'right' },
+
+  // Timeline
+  timelineItem: {
+    flexDirection: 'row',
+    gap: 12,
     marginBottom: 4,
   },
-  historyChoice: {
-    color: '#261A15',
-    fontSize: 15,
-    lineHeight: 22,
-    fontWeight: '700',
+  timelineDotCol: { alignItems: 'center', width: 16, paddingTop: 4 },
+  timelineDot: {
+    width: 10, height: 10, borderRadius: 5,
+    backgroundColor: ROSE,
   },
-  historyConsequence: {
-    color: '#5D534C',
-    fontSize: 13,
-    lineHeight: 19,
-    marginTop: 4,
+  timelineLine: {
+    width: 2, flex: 1, backgroundColor: BORDER,
+    marginTop: 4, marginBottom: 4,
   },
-  restartButton: {
-    backgroundColor: '#7E3F37',
-    borderRadius: 18,
+  timelineContent: { flex: 1, paddingBottom: 16 },
+  timelineAge: {
+    fontSize: 10, fontWeight: '700', color: MUTED,
+    textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 3,
+  },
+  timelineChoice: {
+    fontSize: 14, fontWeight: '700', color: PLUM, lineHeight: 20,
+  },
+  timelineConseq: {
+    fontSize: 12, color: '#546E7A', lineHeight: 18, marginTop: 3,
+  },
+
+  // Buttons
+  primaryBtn: {
+    backgroundColor: ROSE,
+    borderRadius: 16,
     paddingVertical: 16,
     alignItems: 'center',
-    marginTop: 8,
+    marginBottom: 12,
   },
-  restartText: {
-    color: '#FFF9F2',
-    fontSize: 16,
-    fontWeight: '700',
+  primaryBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+  secondaryBtn: {
+    borderWidth: 1.5,
+    borderColor: BORDER,
+    borderRadius: 16,
+    paddingVertical: 14,
+    alignItems: 'center',
   },
+  secondaryBtnText: { color: MUTED, fontSize: 15, fontWeight: '600' },
 });

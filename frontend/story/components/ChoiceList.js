@@ -2,6 +2,9 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SCORE_COLORS, SCORE_LABELS } from '../data/fertilityWindowScenario';
 
+const PLUM = '#3D0C4E';
+const ROSE = '#C2185B';
+
 function formatDelta(delta) {
   return delta > 0 ? `+${delta}` : `${delta}`;
 }
@@ -13,10 +16,7 @@ export default function ChoiceList({ choices, onSelect }) {
         <Pressable
           key={choice.id}
           onPress={() => onSelect(choice)}
-          style={({ pressed }) => [
-            styles.choice,
-            pressed && styles.choicePressed,
-          ]}
+          style={({ pressed }) => [styles.choice, pressed && styles.choicePressed]}
         >
           <View style={styles.headerRow}>
             <Text style={styles.letter}>{String.fromCharCode(65 + index)}</Text>
@@ -28,7 +28,7 @@ export default function ChoiceList({ choices, onSelect }) {
                 key={key}
                 style={[
                   styles.effectPill,
-                  { borderColor: SCORE_COLORS[key], backgroundColor: `${SCORE_COLORS[key]}1A` },
+                  { borderColor: SCORE_COLORS[key], backgroundColor: `${SCORE_COLORS[key]}18` },
                 ]}
               >
                 <Text style={[styles.effectText, { color: SCORE_COLORS[key] }]}>
@@ -44,20 +44,17 @@ export default function ChoiceList({ choices, onSelect }) {
 }
 
 const styles = StyleSheet.create({
-  list: {
-    marginTop: 18,
-    gap: 12,
-  },
+  list: { gap: 12 },
   choice: {
-    backgroundColor: '#FFF9F2',
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(126, 63, 55, 0.16)',
+    backgroundColor: '#FFF0F5',
+    borderRadius: 18,
+    borderWidth: 1.5,
+    borderColor: '#EDD5E4',
     padding: 14,
   },
   choicePressed: {
+    backgroundColor: '#FCE4EC',
     transform: [{ scale: 0.99 }],
-    backgroundColor: '#FFF3E8',
   },
   headerRow: {
     flexDirection: 'row',
@@ -65,15 +62,15 @@ const styles = StyleSheet.create({
   },
   letter: {
     width: 24,
-    color: '#7E3F37',
+    color: ROSE,
     fontSize: 16,
     fontWeight: '900',
   },
   label: {
     flex: 1,
-    color: '#261A15',
-    fontSize: 16,
-    lineHeight: 23,
+    color: PLUM,
+    fontSize: 15,
+    lineHeight: 22,
     fontWeight: '600',
   },
   effectRow: {

@@ -1,6 +1,9 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+const PLUM = '#3D0C4E';
+const ROSE = '#C2185B';
+
 export default function EpisodeTitleCard({ title, age, onPress }) {
   return (
     <Pressable style={styles.overlay} onPress={onPress}>
@@ -16,21 +19,27 @@ export default function EpisodeTitleCard({ title, age, onPress }) {
 const styles = StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(11, 12, 18, 0.56)',
+    backgroundColor: 'rgba(255, 240, 248, 0.94)',
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 28,
   },
   card: {
     width: '100%',
-    backgroundColor: 'rgba(32, 23, 19, 0.92)',
+    backgroundColor: '#FFFFFF',
     borderRadius: 28,
     paddingHorizontal: 24,
-    paddingVertical: 28,
+    paddingVertical: 32,
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#EDD5E4',
+    shadowColor: PLUM,
+    shadowOpacity: 0.12,
+    shadowRadius: 20,
+    elevation: 8,
   },
   eyebrow: {
-    color: '#F3D8B6',
+    color: ROSE,
     fontSize: 13,
     fontWeight: '800',
     textTransform: 'uppercase',
@@ -38,15 +47,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   title: {
-    color: '#FFF9F2',
-    fontSize: 28,
-    lineHeight: 34,
+    color: PLUM,
+    fontSize: 26,
+    lineHeight: 32,
     fontWeight: '800',
     textAlign: 'center',
   },
   hint: {
-    marginTop: 16,
-    color: '#D2C3B7',
+    marginTop: 20,
+    color: '#B39DBC',
     fontSize: 13,
     fontWeight: '600',
   },
