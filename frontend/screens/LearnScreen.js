@@ -229,7 +229,7 @@ export default function LearnScreen() {
 
         {/* ── Career section ─────────────────────────────────────────── */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recommended Companies for you</Text>
+          <Text style={styles.sectionTitle}>Career</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}

@@ -420,49 +420,6 @@ export default function ActScreen() {
           </View>
         </View>
 
-        {/* ── 5. Career ──────────────────────────────────────────── */}
-        <View style={styles.section}>
-          <View style={styles.careerHeader}>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('CompanyExplore')}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.careerTitle}>Career →</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setShowPrefs(true)} activeOpacity={0.75}>
-              <Text style={styles.modifyPrefs}>Modify Preferences</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.careerCardRow}>
-            <View
-              style={styles.companyCard}
-            >
-              <View style={styles.companyCardOverlay}>
-                <Text style={styles.companyName}>{matchedCompany.name}</Text>
-                <Text style={styles.companyReason} numberOfLines={2}>
-                  {matchedReason}
-                </Text>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('CompanyDetail', { company: matchedCompany })}
-                  hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
-                >
-                  <Text style={styles.companyLearnMore}>Learn more →</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Lea with thought bubble directly above her */}
-            <View style={styles.leaColumn}>
-              <View style={styles.careerBubble}>
-                <Text style={styles.careerBubbleText}>This one{'\n'}matches{'\n'}your goals!</Text>
-              </View>
-              <View style={styles.careerBubbleArrow} />
-              <Image source={PUPPY} style={styles.leaImg} resizeMode="contain" />
-            </View>
-          </View>
-        </View>
-
         {/* Footer */}
         <Text style={styles.footer}>
           Health data: MOH Singapore, CDC. Benefits data: company public disclosures.
