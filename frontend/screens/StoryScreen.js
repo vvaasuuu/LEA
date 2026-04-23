@@ -211,7 +211,10 @@ export default function StoryScreen({ onExit }) {
       if (pendingCons.nextEpisodeId === fertilityWindowScenario.summaryEpisodeId) {
         setPendingCons(null); setView('summary'); return;
       }
-      setEpisodeId(pendingCons.nextEpisodeId);
+      const nextId = pendingCons.nextEpisodeId;
+      setPendingCons(null);
+      setConsIndex(0);
+      setEpisodeId(nextId);
       return;
     }
 
@@ -276,7 +279,7 @@ export default function StoryScreen({ onExit }) {
           </View>
 
           {/* Narration */}
-          {isNarration && (
+          {isNarration && !showChoices && (
             <View style={styles.narrationArea}>
               <View style={styles.narrationCard}>
                 <Text style={styles.narrationText}>
@@ -288,7 +291,7 @@ export default function StoryScreen({ onExit }) {
           )}
 
           {/* Choices */}
-          {!isNarration && showChoices && (
+          {showChoices && (
             <ScrollView
               style={styles.choiceScroll}
               contentContainerStyle={styles.choiceContent}
