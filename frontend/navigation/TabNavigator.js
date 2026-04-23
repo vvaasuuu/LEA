@@ -17,7 +17,7 @@ export default function TabNavigator() {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
-        tabBarStyle: { backgroundColor: '#FFF8F5', borderTopColor: '#F5DCE8' },
+        tabBarStyle: { backgroundColor: '#FFFFFF', borderTopColor: '#F5DCE8' },
         tabBarActiveTintColor: '#C2185B',
         tabBarInactiveTintColor: '#B39DBC',
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },

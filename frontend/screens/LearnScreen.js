@@ -16,7 +16,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 // ── Palette ───────────────────────────────────────────────────────────────────
-const BG      = '#FAF6F0';
+const BG      = '#FFFFFF';
 const PLUM    = '#3D0C4E';
 const ROSE    = '#C2748A';
 const ROSE_D  = '#C2185B';

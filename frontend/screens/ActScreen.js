@@ -12,10 +12,10 @@ import companies from '../data/company_details.json';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 // ── Palette ───────────────────────────────────────────────────────────────────
-const BG         = '#FFF8F5';
+const BG         = '#FFFFFF';
 const PLUM       = '#6A1B9A';
 const ROSE       = '#C2185B';
-const MUTED      = '#fcfcee';
+const MUTED      = '#B39DBC';
 const HEADING    = '#3D0C4E';
 const DOT_COLORS = { Health: ROSE, Career: PLUM, Others: '#E65100' };
 const CAT_STYLES = {
@@ -112,9 +112,6 @@ function WeekRow({ week, entries, onDayPress }) {
             onPress={() => onDayPress(date)}
             activeOpacity={0.7}
           >
-            <Text style={[styles.dayLabel, isPast && !isToday && styles.dayLabelMuted]}>
-              {WEEK_ABBR[i]}
-            </Text>
             <View style={[styles.dateCircle, isToday && styles.dateCircleToday]}>
               <Text style={[
                 styles.dateNum,
@@ -294,7 +291,33 @@ export default function ActScreen() {
 
   const selectedDayStr = selectedDay ? toDateStr(selectedDay) : null;
   const dayEntries     = selectedDayStr ? (entries[selectedDayStr] || []) : [];
-  const defaultCompany = companies[0];
+  const isPastDay      = selectedDayStr ? selectedDayStr < TODAY_STR : false;
+
+  const BENEFIT_REASONS = {
+    fertility_coverage:   'Covers fertility treatments and family planning',
+    menstrual_leave:      'Provides dedicated menstrual leave',
+    flexible_remote_work: 'Flexible and remote-friendly work culture',
+    mental_health:        'Comprehensive mental health support',
+    women_leadership:     'Active women in leadership programmes',
+    extended_maternity:   'Extended maternity leave beyond the statutory minimum',
+    wellness:             'Wellness subsidies and employee wellbeing support',
+  };
+
+  const matchedCompany = (() => {
+    if (activeFilters.length === 0) return companies[0];
+    const match = companies.find(c => {
+      const regionMatch = region === 'Global' ? true : c.region.includes('Singapore');
+      if (!regionMatch) return false;
+      return activeFilters.some(f => c.benefits && c.benefits[f]);
+    });
+    return match || companies[0];
+  })();
+
+  const matchedReason = (() => {
+    if (activeFilters.length === 0) return 'Strong maternity benefits and flexible work culture';
+    const firstMatch = activeFilters.find(f => matchedCompany.benefits && matchedCompany.benefits[f]);
+    return firstMatch ? BENEFIT_REASONS[firstMatch] : 'Matches your selected preferences';
+  })();
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -313,6 +336,11 @@ export default function ActScreen() {
         {/* ── 2. Calendar strip ──────────────────────────────────── */}
         <View style={styles.calendarSection}>
           <Text style={styles.calMonthYear}>{calMonthYear}</Text>
+          <View style={styles.dayHeaderRow}>
+            {WEEK_ABBR.map(d => (
+              <Text key={d} style={[styles.dayHeaderLabel, { width: SCREEN_WIDTH / 7 }]}>{d}</Text>
+            ))}
+          </View>
           <FlatList
             ref={calendarRef}
             data={WEEKS}
@@ -383,7 +411,7 @@ export default function ActScreen() {
         <View style={styles.section}>
           <View style={styles.careerHeader}>
             <TouchableOpacity
-              onPress={() => navigation.navigate('CompanyDetail', { company: defaultCompany })}
+              onPress={() => navigation.navigate('CompanyExplore')}
               activeOpacity={0.7}
             >
               <Text style={styles.careerTitle}>Career →</Text>
@@ -393,13 +421,7 @@ export default function ActScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Thought bubble above card */}
-          <View style={styles.careerBubble}>
-            <Text style={styles.careerBubbleText}>This one matches your goals!</Text>
-          </View>
-          <View style={styles.careerBubbleArrow} />
-
-          {/* Card + Lea side by side */}
+          {/* Card + Lea column side by side */}
           <View style={styles.careerCardRow}>
             <ImageBackground
               source={PICTURE_BG}
@@ -407,12 +429,12 @@ export default function ActScreen() {
               imageStyle={{ borderRadius: 16 }}
             >
               <View style={styles.companyCardOverlay}>
-                <Text style={styles.companyName}>{defaultCompany.name}</Text>
+                <Text style={styles.companyName}>{matchedCompany.name}</Text>
                 <Text style={styles.companyReason} numberOfLines={2}>
-                  Strong maternity benefits and flexible work culture
+                  {matchedReason}
                 </Text>
                 <TouchableOpacity
-                  onPress={() => navigation.navigate('CompanyDetail', { company: defaultCompany })}
+                  onPress={() => navigation.navigate('CompanyDetail', { company: matchedCompany })}
                   hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                 >
                   <Text style={styles.companyLearnMore}>Learn more →</Text>
@@ -420,8 +442,14 @@ export default function ActScreen() {
               </View>
             </ImageBackground>
 
-            {/* Single Lea instance — beside the card */}
-            <Image source={PUPPY} style={styles.leaImg} resizeMode="contain" />
+            {/* Lea with thought bubble directly above her */}
+            <View style={styles.leaColumn}>
+              <View style={styles.careerBubble}>
+                <Text style={styles.careerBubbleText}>This one{'\n'}matches{'\n'}your goals!</Text>
+              </View>
+              <View style={styles.careerBubbleArrow} />
+              <Image source={PUPPY} style={styles.leaImg} resizeMode="contain" />
+            </View>
           </View>
         </View>
 
@@ -471,42 +499,48 @@ export default function ActScreen() {
                     </View>
                   )}
 
-                  <Text style={styles.addEntryLabel}>Add entry</Text>
-                  <View style={styles.categoryRow}>
-                    {['Health', 'Career', 'Others'].map(cat => {
-                      const cs       = CAT_STYLES[cat];
-                      const isActive = cat === entryCategory;
-                      return (
-                        <TouchableOpacity
-                          key={cat}
-                          style={[
-                            styles.categoryBtn,
-                            { backgroundColor: isActive ? cs.selBg : cs.unselBg, borderColor: cs.color },
-                          ]}
-                          onPress={() => setEntryCategory(cat)}
-                          activeOpacity={0.75}
-                        >
-                          <Text style={[styles.categoryBtnText, { color: isActive ? '#FFFFFF' : cs.color }]}>
-                            {cat}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
+                  {!isPastDay ? (
+                    <>
+                      <Text style={styles.addEntryLabel}>Add entry</Text>
+                      <View style={styles.categoryRow}>
+                        {['Health', 'Career', 'Others'].map(cat => {
+                          const cs       = CAT_STYLES[cat];
+                          const isActive = cat === entryCategory;
+                          return (
+                            <TouchableOpacity
+                              key={cat}
+                              style={[
+                                styles.categoryBtn,
+                                { backgroundColor: isActive ? cs.selBg : cs.unselBg, borderColor: cs.color },
+                              ]}
+                              onPress={() => setEntryCategory(cat)}
+                              activeOpacity={0.75}
+                            >
+                              <Text style={[styles.categoryBtnText, { color: isActive ? '#FFFFFF' : cs.color }]}>
+                                {cat}
+                              </Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
 
-                  <TextInput
-                    style={styles.noteInput}
-                    placeholder="Add a short note (optional)"
-                    placeholderTextColor={MUTED}
-                    value={noteText}
-                    onChangeText={setNoteText}
-                    returnKeyType="done"
-                    onSubmitEditing={addEntry}
-                  />
+                      <TextInput
+                        style={styles.noteInput}
+                        placeholder="Add a short note (optional)"
+                        placeholderTextColor={MUTED}
+                        value={noteText}
+                        onChangeText={setNoteText}
+                        returnKeyType="done"
+                        onSubmitEditing={addEntry}
+                      />
 
-                  <TouchableOpacity style={styles.saveBtn} onPress={addEntry} activeOpacity={0.8}>
-                    <Text style={styles.saveBtnText}>Save entry</Text>
-                  </TouchableOpacity>
+                      <TouchableOpacity style={styles.saveBtn} onPress={addEntry} activeOpacity={0.8}>
+                        <Text style={styles.saveBtnText}>Save entry</Text>
+                      </TouchableOpacity>
+                    </>
+                  ) : (
+                    <Text style={styles.pastDateNote}>This date has passed — entries are view only</Text>
+                  )}
 
                   <TouchableOpacity onPress={closeDaySheet} style={styles.cancelLinkRow}>
                     <Text style={styles.cancelLinkText}>Cancel</Text>
@@ -703,10 +737,10 @@ const styles = StyleSheet.create({
 
   // Calendar
   calendarSection: { marginBottom: 8 },
-  calMonthYear:    { fontSize: 14, fontWeight: '700', color: HEADING, paddingHorizontal: 20, marginBottom: 2 },
+  calMonthYear:    { fontSize: 14, fontWeight: '700', color: HEADING, paddingHorizontal: 20, marginBottom: 4 },
+  dayHeaderRow:    { flexDirection: 'row', paddingHorizontal: 0 },
+  dayHeaderLabel:  { textAlign: 'center', fontSize: 11, fontWeight: '600', color: MUTED, paddingVertical: 4 },
   dayCell:         { alignItems: 'center', paddingHorizontal: 2 },
-  dayLabel:        { fontSize: 10, color: MUTED, marginBottom: 5 },
-  dayLabelMuted:   { opacity: 0.5 },
   dateCircle:{
     width: 36, height: 36, borderRadius: 18,
     alignItems: 'center', justifyContent: 'center', marginBottom: 4,
@@ -789,23 +823,24 @@ const styles = StyleSheet.create({
   careerTitle: { fontSize: 18, fontWeight: '700', color: HEADING },
   modifyPrefs: { fontSize: 13, color: ROSE },
 
-  // Thought bubble
-  careerBubble: {
-    backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1BEE7',
-    borderRadius: 12, padding: 10, alignSelf: 'center', maxWidth: '80%',
-  },
-  careerBubbleText: { fontSize: 13, fontStyle: 'italic', color: PLUM, textAlign: 'center' },
-  careerBubbleArrow:{
-    width: 0, height: 0,
-    borderLeftWidth: 9, borderRightWidth: 9, borderTopWidth: 9,
-    borderLeftColor: 'transparent', borderRightColor: 'transparent',
-    borderTopColor: '#FFFFFF',
-    alignSelf: 'center', marginBottom: 6,
-  },
-
   // Card + Lea row
   careerCardRow:     { flexDirection: 'row', alignItems: 'flex-end', gap: 10 },
   companyCard:       { flex: 1, borderRadius: 16, overflow: 'hidden' },
+
+  // Lea column — thought bubble + arrow + image stacked
+  leaColumn:         { alignItems: 'center', justifyContent: 'flex-end' },
+  careerBubble: {
+    backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E1BEE7',
+    borderRadius: 10, padding: 7, width: 76,
+  },
+  careerBubbleText: { fontSize: 10, fontStyle: 'italic', color: PLUM, textAlign: 'center', lineHeight: 15 },
+  careerBubbleArrow:{
+    width: 0, height: 0,
+    borderLeftWidth: 7, borderRightWidth: 7, borderTopWidth: 8,
+    borderLeftColor: 'transparent', borderRightColor: 'transparent',
+    borderTopColor: '#FFFFFF',
+    alignSelf: 'center', marginBottom: 2,
+  },
   companyCardOverlay:{ backgroundColor: 'rgba(75,10,45,0.58)', borderRadius: 16, padding: 18 },
   companyName:       { fontSize: 16, fontWeight: '700', color: '#FFFFFF', marginBottom: 8 },
   companyReason:     { fontSize: 13, color: '#F8BBD9', lineHeight: 19, marginBottom: 14 },
@@ -845,6 +880,7 @@ const styles = StyleSheet.create({
   existingNoteText: { fontSize: 13, color: MUTED },
   deleteBtnTxt:     { fontSize: 12, color: MUTED },
 
+  pastDateNote:  { fontSize: 13, color: MUTED, textAlign: 'center', paddingVertical: 14, fontStyle: 'italic' },
   addEntryLabel: { fontSize: 13, fontWeight: '700', color: HEADING, marginBottom: 10 },
   categoryRow:   { flexDirection: 'row', gap: 8, marginBottom: 14 },
   categoryBtn:   { flex: 1, paddingVertical: 9, borderRadius: 100, borderWidth: 1.5, alignItems: 'center' },

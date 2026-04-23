@@ -241,7 +241,7 @@ export default function ExploreScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#FFF8F5' },
+  safe: { flex: 1, backgroundColor: '#FFFFFF' },
 
   // Header + search
   top:          { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 12 },

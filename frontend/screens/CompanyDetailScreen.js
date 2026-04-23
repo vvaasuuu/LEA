@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
 const BG1     = require('../assets/Background 1.png');
-const BG      = '#FFF8F5';
+const BG      = '#FFFFFF';
 const PLUM    = '#6A1B9A';
 const ROSE    = '#C2185B';
 const MUTED   = '#B39DBC';

@@ -7,7 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import companies from '../data/company_details.json';
 
-const BG      = '#FAF6F0';
+const BG      = '#FFFFFF';
 const PLUM    = '#6A1B9A';
 const ROSE    = '#C2185B';
 const MUTED   = '#B39DBC';

@@ -7,6 +7,13 @@ import { Storage } from '../utils/storage';
 
 const { width } = Dimensions.get('window');
 
+const PLUM    = '#6A1B9A';
+const ROSE    = '#C2185B';
+const HEADING = '#3D0C4E';
+const MUTED   = '#B39DBC';
+const BORDER  = '#EDD5E4';
+const CHIP_BG = '#FFF0F5';
+
 // ── Breed options for Screen 1 ──────────────────────────────────────────────
 const BREEDS = [
   { id: 'dog', label: 'Dog', emoji: '🐶' },
@@ -60,7 +67,6 @@ export default function OnboardingScreen({ onComplete }) {
   // ── Helpers ────────────────────────────────────────────────────────────────
 
   function toggleCondition(item) {
-    // 'None' and 'Prefer not to say' are exclusive
     if (item === 'None' || item === 'Prefer not to say') {
       setConditions([item]);
       return;
@@ -147,7 +153,7 @@ export default function OnboardingScreen({ onComplete }) {
       <TextInput
         style={styles.input}
         placeholder="e.g. Lea, Mochi, Biscuit..."
-        placeholderTextColor="#90A4AE"
+        placeholderTextColor={MUTED}
         value={leaName}
         onChangeText={setLeaName}
         maxLength={20}
@@ -168,7 +174,7 @@ export default function OnboardingScreen({ onComplete }) {
       <TextInput
         style={[styles.input, { width: 120 }]}
         placeholder="e.g. 23"
-        placeholderTextColor="#90A4AE"
+        placeholderTextColor={MUTED}
         value={age}
         onChangeText={setAge}
         keyboardType="number-pad"
@@ -294,23 +300,23 @@ export default function OnboardingScreen({ onComplete }) {
         </ScrollView>
 
         <View style={styles.footer}>
-        {step > 0 && (
-          <TouchableOpacity style={styles.backBtn} onPress={() => setStep(s => s - 1)}>
-            <Text style={styles.backBtnText}>← Back</Text>
-          </TouchableOpacity>
-        )}
+          {step > 0 && (
+            <TouchableOpacity style={styles.backBtn} onPress={() => setStep(s => s - 1)}>
+              <Text style={styles.backBtnText}>← Back</Text>
+            </TouchableOpacity>
+          )}
 
-        <TouchableOpacity
-          style={[styles.nextBtn, !canAdvance() && styles.nextBtnDisabled]}
-          onPress={step === 4 ? handleFinish : () => setStep(s => s + 1)}
-          disabled={!canAdvance()}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.nextBtnText}>
-            {step === 4 ? "I'm ready — let's go 🐾" : 'Continue'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity
+            style={[styles.nextBtn, !canAdvance() && styles.nextBtnDisabled]}
+            onPress={step === 4 ? handleFinish : () => setStep(s => s + 1)}
+            disabled={!canAdvance()}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.nextBtnText}>
+              {step === 4 ? "I'm ready — let's go 🐾" : 'Continue'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -334,10 +340,10 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#B3E5FC',
+    backgroundColor: BORDER,
   },
   progressDotActive: {
-    backgroundColor: '#0288D1',
+    backgroundColor: ROSE,
     width: 24,
   },
   scroll: {
@@ -355,7 +361,7 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 26,
     fontWeight: '700',
-    color: '#01579B',
+    color: HEADING,
     marginBottom: 8,
     lineHeight: 32,
   },
@@ -367,8 +373,8 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#01579B',
+    fontWeight: '700',
+    color: HEADING,
     textTransform: 'uppercase',
     letterSpacing: 0.8,
     marginBottom: 12,
@@ -388,12 +394,12 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: '#FFFFFF',
     borderWidth: 2,
-    borderColor: '#B3E5FC',
+    borderColor: BORDER,
     alignItems: 'center',
   },
   breedCardSelected: {
-    borderColor: '#0288D1',
-    backgroundColor: '#E1F5FE',
+    borderColor: ROSE,
+    backgroundColor: '#FCE4EC',
   },
   breedEmoji: {
     fontSize: 28,
@@ -406,7 +412,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   breedLabelSelected: {
-    color: '#01579B',
+    color: HEADING,
     fontWeight: '700',
   },
 
@@ -414,12 +420,12 @@ const styles = StyleSheet.create({
   input: {
     backgroundColor: '#FFFFFF',
     borderWidth: 2,
-    borderColor: '#B3E5FC',
+    borderColor: BORDER,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: '#263238',
+    color: HEADING,
     marginBottom: 28,
   },
 
@@ -438,17 +444,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 100,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: '#B3E5FC',
+    backgroundColor: CHIP_BG,
+    borderWidth: 1.5,
+    borderColor: BORDER,
   },
   chipSelected: {
-    backgroundColor: '#0288D1',
-    borderColor: '#0288D1',
+    backgroundColor: ROSE,
+    borderColor: ROSE,
   },
   chipText: {
     fontSize: 14,
-    color: '#546E7A',
+    color: HEADING,
     fontWeight: '500',
   },
   chipTextSelected: {
@@ -463,7 +469,9 @@ const styles = StyleSheet.create({
     padding: 18,
     marginBottom: 14,
     borderLeftWidth: 4,
-    borderLeftColor: '#0288D1',
+    borderLeftColor: ROSE,
+    borderWidth: 1,
+    borderColor: BORDER,
   },
   dataCardText: {
     fontSize: 14,
@@ -483,26 +491,26 @@ const styles = StyleSheet.create({
     gap: 12,
     backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#B3E5FC',
+    borderTopColor: BORDER,
   },
   backBtn: {
     paddingHorizontal: 16,
     paddingVertical: 14,
   },
   backBtnText: {
-    color: '#0288D1',
+    color: ROSE,
     fontSize: 15,
     fontWeight: '600',
   },
   nextBtn: {
     flex: 1,
-    backgroundColor: '#0288D1',
+    backgroundColor: ROSE,
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
   },
   nextBtnDisabled: {
-    backgroundColor: '#B3E5FC',
+    backgroundColor: BORDER,
   },
   nextBtnText: {
     color: '#FFFFFF',
