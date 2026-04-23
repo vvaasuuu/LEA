@@ -78,12 +78,7 @@ export default function CompanyDetailScreen() {
       <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
 
         {/* ── Hero ──────────────────────────────────────────────────────── */}
-        <View style={[styles.hero, { overflow: 'hidden' }]}>
-          <Image
-            source={BG1}
-            style={{ position: 'absolute', top: 0, width: SCREEN_WIDTH, height: SCREEN_WIDTH * 1.6 }}
-            resizeMode="stretch"
-          />
+        <View style={[styles.hero, { backgroundColor: '#FFF0F5' }]}>
           <View style={styles.heroHeader}>
             <TouchableOpacity
               onPress={() => navigation.goBack()}
@@ -97,7 +92,7 @@ export default function CompanyDetailScreen() {
               style={styles.heroIconBtn}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Ionicons name="options-outline" size={22} color="#FFFFFF" />
+              <Ionicons name="options-outline" size={22} color={HEADING} />
             </TouchableOpacity>
           </View>
         </View>
@@ -248,11 +243,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingTop: 16,
   },
   heroIconBtn:    { padding: 6 },
-  heroBackArrow:  { fontSize: 22, color: '#FFFFFF', fontWeight: '600' },
+  heroBackArrow:  { fontSize: 22, color: HEADING, fontWeight: '600' },
 
   // Content
   content: {
-    backgroundColor: BG,
+    backgroundColor: '#FFF0F5',
     borderTopLeftRadius: 0,
     padding: 24,
     paddingBottom: 48,

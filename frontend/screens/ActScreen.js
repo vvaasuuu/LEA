@@ -368,43 +368,47 @@ export default function ActScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Upcoming</Text>
           <Text style={styles.sectionSub}>Next 2 weeks · swipe left to remove</Text>
-          {upcomingEntries.length === 0 ? (
-            <View style={styles.emptyUpcoming}>
-              <Text style={styles.emptyUpcomingText}>Nothing coming up yet</Text>
-              <Text style={styles.emptyUpcomingSub}>Tap any date or add a recommendation below</Text>
-            </View>
-          ) : (
-            <View style={styles.upcomingList}>
-              {upcomingEntries.map((e, i) => (
-                <SwipeableUpcomingRow
-                  key={e.id}
-                  entry={e}
-                  showDivider={i < upcomingEntries.length - 1}
-                  onDelete={() => deleteEntry(e.dateStr, e.id)}
-                />
-              ))}
-            </View>
-          )}
+          <View style={styles.whiteBox}>
+            {upcomingEntries.length === 0 ? (
+              <View style={styles.emptyUpcoming}>
+                <Text style={styles.emptyUpcomingText}>Nothing coming up yet</Text>
+                <Text style={styles.emptyUpcomingSub}>Tap any date or add a recommendation below</Text>
+              </View>
+            ) : (
+              <View style={styles.upcomingList}>
+                {upcomingEntries.map((e, i) => (
+                  <SwipeableUpcomingRow
+                    key={e.id}
+                    entry={e}
+                    showDivider={i < upcomingEntries.length - 1}
+                    onDelete={() => deleteEntry(e.dateStr, e.id)}
+                  />
+                ))}
+              </View>
+            )}
+          </View>
         </View>
 
         {/* ── 4. Recommended ─────────────────────────────────────── */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recommended</Text>
           <Text style={styles.sectionSub}>Next 6 months · tap + to add to upcoming</Text>
-          {recommendations.map(rec => (
-            <RecommendationCard
-              key={rec.id}
-              rec={rec}
-              onLearnMore={() => setLearnMoreRec(rec)}
-              onAdd={() => openDatePicker(rec)}
-            />
-          ))}
-          {recommendations.length === 0 && (
-            <View style={styles.emptyUpcoming}>
-              <Text style={styles.emptyUpcomingText}>All recommended items added</Text>
-              <Text style={styles.emptyUpcomingSub}>You can still add custom entries on any day.</Text>
-            </View>
-          )}
+          <View style={styles.whiteBox}>
+            {recommendations.map(rec => (
+              <RecommendationCard
+                key={rec.id}
+                rec={rec}
+                onLearnMore={() => setLearnMoreRec(rec)}
+                onAdd={() => openDatePicker(rec)}
+              />
+            ))}
+            {recommendations.length === 0 && (
+              <View style={styles.emptyUpcoming}>
+                <Text style={styles.emptyUpcomingText}>All recommended items added</Text>
+                <Text style={styles.emptyUpcomingSub}>You can still add custom entries on any day.</Text>
+              </View>
+            )}
+          </View>
         </View>
 
         {/* ── 5. Career ──────────────────────────────────────────── */}
@@ -421,12 +425,9 @@ export default function ActScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Card + Lea column side by side */}
           <View style={styles.careerCardRow}>
-            <ImageBackground
-              source={PICTURE_BG}
+            <View
               style={styles.companyCard}
-              imageStyle={{ borderRadius: 16 }}
             >
               <View style={styles.companyCardOverlay}>
                 <Text style={styles.companyName}>{matchedCompany.name}</Text>
@@ -440,7 +441,7 @@ export default function ActScreen() {
                   <Text style={styles.companyLearnMore}>Learn more →</Text>
                 </TouchableOpacity>
               </View>
-            </ImageBackground>
+            </View>
 
             {/* Lea with thought bubble directly above her */}
             <View style={styles.leaColumn}>
@@ -760,17 +761,28 @@ const styles = StyleSheet.create({
   section:      { paddingHorizontal: 20, marginBottom: 28 },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: HEADING, marginBottom: 2 },
   sectionSub:   { fontSize: 12, color: MUTED, marginBottom: 14 },
+  whiteBox: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#F5DCE8',
+    shadowColor: '#000',
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
 
   // Upcoming — empty state (no Lea)
   emptyUpcoming: {
-    backgroundColor: '#FFFFFF', borderRadius: 12,
-    padding: 20, alignItems: 'center',
+    alignItems: 'center',
   },
   emptyUpcomingText: { fontSize: 14, fontWeight: '600', color: HEADING, marginBottom: 4 },
   emptyUpcomingSub:  { fontSize: 12, color: MUTED, textAlign: 'center' },
 
   // Upcoming — swipeable list
-  upcomingList:    { borderRadius: 12, backgroundColor: '#FFFFFF', overflow: 'hidden' },
+  upcomingList:    { overflow: 'hidden' },
   upcomingDivider: { borderBottomWidth: 1, borderBottomColor: '#F3E5F5' },
   upcomingDotIcon: { width: 6, height: 6, borderRadius: 3, flexShrink: 0 },
   upcomingNote:    { flex: 1, fontSize: 14, color: HEADING },
@@ -825,7 +837,7 @@ const styles = StyleSheet.create({
 
   // Card + Lea row
   careerCardRow:     { flexDirection: 'row', alignItems: 'flex-end', gap: 10 },
-  companyCard:       { flex: 1, borderRadius: 16, overflow: 'hidden' },
+  companyCard:       { flex: 1, borderRadius: 16, overflow: 'hidden', backgroundColor: '#FFF0F5' },
 
   // Lea column — thought bubble + arrow + image stacked
   leaColumn:         { alignItems: 'center', justifyContent: 'flex-end' },
@@ -842,9 +854,9 @@ const styles = StyleSheet.create({
     alignSelf: 'center', marginBottom: 2,
   },
   companyCardOverlay:{ backgroundColor: 'rgba(75,10,45,0.58)', borderRadius: 16, padding: 18 },
-  companyName:       { fontSize: 16, fontWeight: '700', color: '#FFFFFF', marginBottom: 8 },
-  companyReason:     { fontSize: 13, color: '#F8BBD9', lineHeight: 19, marginBottom: 14 },
-  companyLearnMore:  { fontSize: 13, color: '#FFFFFF', fontStyle: 'italic', fontWeight: '600' },
+  companyName:       { fontSize: 16, fontWeight: '700', color: HEADING, marginBottom: 8 },
+  companyReason:     { fontSize: 13, color: MUTED, lineHeight: 19, marginBottom: 14 },
+  companyLearnMore:  { fontSize: 13, color: HEADING, fontStyle: 'italic', fontWeight: '600' },
 
   // Lea — single instance beside the card
   leaImg: { width: 72, height: 72 },

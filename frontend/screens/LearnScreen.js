@@ -51,7 +51,7 @@ function TopicCard({ nudge, onPress }) {
 }
 
 // ── Nudge detail modal ────────────────────────────────────────────────────────
-function NudgeModal({ nudge, onClose }) {
+function NudgeModal({ nudge, onClose, navigation }) {
   if (!nudge) return null;
   return (
     <Modal
@@ -79,10 +79,10 @@ function NudgeModal({ nudge, onClose }) {
           <Text style={styles.modalBody}>{nudge.nudge}</Text>
 
           {nudge.action ? (
-            <View style={styles.actionCard}>
+            <TouchableOpacity style={styles.actionCard} onPress={() => { onClose(); navigation.navigate('Planning'); }}>
               <Text style={styles.actionLabel}>WHAT TO DO</Text>
               <Text style={styles.actionText}>{nudge.action}</Text>
-            </View>
+            </TouchableOpacity>
           ) : null}
 
           {nudge.source ? (
@@ -154,26 +154,6 @@ export default function LearnScreen() {
           </View>
         </View>
 
-        {/* ── Health cards ───────────────────────────────────────────── */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Recommended for you</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            snapToInterval={TOPIC_CARD_W + 14}
-            decelerationRate="fast"
-            contentContainerStyle={styles.hScrollContent}
-          >
-            {recommendedNudges.map(n => (
-              <TopicCard
-                key={n.id}
-                nudge={n}
-                onPress={() => setSelectedNudge(n)}
-              />
-            ))}
-          </ScrollView>
-        </View>
-
         {/* ── Lea's simulation nudge ──────────────────────────────────── */}
         <View style={styles.section}>
           <TouchableOpacity
@@ -193,6 +173,26 @@ export default function LearnScreen() {
               <Text style={styles.leaSimCta}>Start Simulation →</Text>
             </View>
           </TouchableOpacity>
+        </View>
+
+        {/* ── Health cards ───────────────────────────────────────────── */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Recommended for you</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            snapToInterval={TOPIC_CARD_W + 14}
+            decelerationRate="fast"
+            contentContainerStyle={styles.hScrollContent}
+          >
+            {recommendedNudges.map(n => (
+              <TopicCard
+                key={n.id}
+                nudge={n}
+                onPress={() => setSelectedNudge(n)}
+              />
+            ))}
+          </ScrollView>
         </View>
 
         {/* ── Dev controls ───────────────────────────────────────────── */}
@@ -228,7 +228,7 @@ export default function LearnScreen() {
       </ScrollView>
 
       {/* ── Health info modal ──────────────────────────────────────────── */}
-      <NudgeModal nudge={selectedNudge} onClose={() => setSelectedNudge(null)} />
+      <NudgeModal nudge={selectedNudge} onClose={() => setSelectedNudge(null)} navigation={navigation} />
 
     </SafeAreaView>
   );

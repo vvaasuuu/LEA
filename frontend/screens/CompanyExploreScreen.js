@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   list: { paddingHorizontal: 16, gap: 10 },
   card: {
     borderRadius: 16, padding: 18,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FFF0F5',
     borderWidth: 1.5, borderColor: ROSE,
     shadowColor: ROSE, shadowOpacity: 0.08, shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 }, elevation: 2,
