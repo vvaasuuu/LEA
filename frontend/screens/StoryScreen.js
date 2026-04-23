@@ -21,7 +21,6 @@ const BG     = '#FFF5F8';
 
 const { height: SCREEN_H } = Dimensions.get('window');
 const IMAGE_H       = SCREEN_H * 0.52;
-const TITLE_CARD_MS = 1400;
 const TYPEWRITER_MS = 28;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -31,18 +30,23 @@ function getFirstSpeaker(lines) {
 }
 
 function getCast(episode, pendingLines) {
-  const src = pendingLines ? [...episode.lines, ...pendingLines] : episode.lines;
+  // Use only the current phase's lines — never merge episode + consequence,
+  // which would put all three characters on screen at once.
+  const src = pendingLines ? pendingLines : episode.lines;
   const ids = new Set();
   src.forEach(l => { if (l.character) ids.add(l.character); });
   if (ids.size === 0) ids.add('lea');
   return Array.from(ids);
 }
 
-// When it's just Lea + Mara, put Mara on the left and Lea on the right
 function orderCast(cast) {
-  const onlyLeaAndMara =
-    cast.length === 2 && cast.includes('lea') && cast.includes('mara');
-  if (onlyLeaAndMara) return ['mara', 'lea'];
+  const hasLea  = cast.includes('lea');
+  const hasMara = cast.includes('mara');
+  const hasDoc  = cast.includes('drlin');
+  // Manager left, Lea right
+  if (cast.length === 2 && hasLea && hasMara) return ['mara', 'lea'];
+  // Lea left, Doctor right
+  if (cast.length === 2 && hasLea && hasDoc)  return ['lea', 'drlin'];
   return cast;
 }
 
@@ -87,11 +91,13 @@ export default function StoryScreen({ onExit }) {
   const [activeSpeaker, setActiveSpeaker] = useState(
     getFirstSpeaker(fertilityWindowScenario.episodes[fertilityWindowScenario.initialEpisodeId].lines)
   );
-  const [typedText, setTypedText] = useState('');
-  const [showArrow, setShowArrow] = useState(false);
+  const [typedText,      setTypedText]      = useState('');
+  const [showArrow,      setShowArrow]      = useState(false);
+  const [leaExpression,  setLeaExpression]  = useState('base');
 
-  const episode   = fertilityWindowScenario.episodes[episodeId];
-  const typingRef = useRef(null);
+  const episode          = fertilityWindowScenario.episodes[episodeId];
+  const typingRef        = useRef(null);
+  const pendingLeaExprRef = useRef('base');
 
   useEffect(() => {
     if (!episode) return;
@@ -101,8 +107,11 @@ export default function StoryScreen({ onExit }) {
     setConsIndex(0);
     setShowTitleCard(true);
     setActiveSpeaker(getFirstSpeaker(episode.lines));
-    const t = setTimeout(() => setShowTitleCard(false), TITLE_CARD_MS);
-    return () => clearTimeout(t);
+    // Pre-load lea's first expression while title card is shown (she's off-screen)
+    const firstLea = episode.lines.find(l => l.character === 'lea');
+    const expr = firstLea?.expression || 'base';
+    pendingLeaExprRef.current = expr;
+    setLeaExpression(expr);
   }, [episodeId]);
 
   useEffect(() => {
@@ -117,7 +126,20 @@ export default function StoryScreen({ onExit }) {
   }, [consIndex, episode, lineIndex, pendingCons]);
 
   useEffect(() => {
-    if (activeLine?.character) setActiveSpeaker(activeLine.character);
+    if (!activeLine) return;
+    if (activeLine.character) setActiveSpeaker(activeLine.character);
+    // Track lea's expression in a ref whenever she speaks
+    if (activeLine.character === 'lea' && activeLine.expression) {
+      pendingLeaExprRef.current = activeLine.expression;
+    }
+    // During narration lea is off-screen: safe to commit the expression change.
+    // Look ahead for her next line; fall back to the last expression seen.
+    if (activeLine.type === 'narration') {
+      const lines = pendingCons ? pendingCons.lines : (episode?.lines || []);
+      const idx   = pendingCons ? consIndex : lineIndex;
+      const next  = lines.slice(idx + 1).find(l => l.character === 'lea');
+      setLeaExpression(next?.expression || pendingLeaExprRef.current);
+    }
   }, [activeLine]);
 
   // Typewriter for narration
@@ -230,8 +252,9 @@ export default function StoryScreen({ onExit }) {
     );
   }
 
-  const isNarration = activeLine?.type === 'narration';
-  const orderedCast = orderCast(cast);
+  const isNarration    = activeLine?.type === 'narration';
+  const orderedCast    = orderCast(cast);
+  const leaDisplayExpr = cast.includes('mara') ? 'sideM' : leaExpression;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -287,7 +310,11 @@ export default function StoryScreen({ onExit }) {
                     isActive={id === activeSpeaker}
                     text={id === activeSpeaker ? (activeLine?.text || '') : ''}
                     speaker={id === activeSpeaker ? (activeLine?.speaker || '') : ''}
-                    expression={id === activeSpeaker ? (activeLine?.expression || 'base') : 'base'}
+                    expression={
+                      id === 'lea'
+                        ? leaDisplayExpr
+                        : (id === activeSpeaker ? (activeLine?.expression || 'base') : 'base')
+                    }
                   />
                 ))}
               </View>

@@ -641,38 +641,50 @@ export default function ActScreen() {
               </View>
 
               <Text style={styles.prefLabel}>BENEFITS</Text>
-              <View style={styles.prefChipRow}>
-                {BENEFIT_FILTERS.map(f => {
+              <View style={styles.prefList}>
+                {BENEFIT_FILTERS.map((f, i) => {
                   const active = activeFilters.includes(f.key);
                   return (
                     <TouchableOpacity
                       key={f.key}
-                      style={[styles.prefChip, active && styles.prefChipActive]}
+                      style={[
+                        styles.prefListItem,
+                        i < BENEFIT_FILTERS.length - 1 && styles.prefListItemBorder,
+                        active && styles.prefListItemActive,
+                      ]}
                       onPress={() => toggleFilter(f.key)}
-                      activeOpacity={0.75}
+                      activeOpacity={0.7}
                     >
-                      <Text style={[styles.prefChipText, active && styles.prefChipTextActive]}>
-                        {active ? '✓  ' : ''}{f.label}
+                      {active && <View style={styles.prefListAccent} />}
+                      <Text style={[styles.prefListText, active && styles.prefListTextActive]}>
+                        {f.label}
                       </Text>
+                      {active && <Text style={styles.prefListCheck}>✓</Text>}
                     </TouchableOpacity>
                   );
                 })}
               </View>
 
               <Text style={styles.prefLabel}>CAREER STAGE</Text>
-              <View style={styles.prefChipRow}>
-                {CAREER_STAGES.map(s => {
+              <View style={styles.prefList}>
+                {CAREER_STAGES.map((s, i) => {
                   const active = careerStage === s.key;
                   return (
                     <TouchableOpacity
                       key={s.key}
-                      style={[styles.prefChip, active && styles.prefChipActive]}
+                      style={[
+                        styles.prefListItem,
+                        i < CAREER_STAGES.length - 1 && styles.prefListItemBorder,
+                        active && styles.prefListItemActive,
+                      ]}
                       onPress={() => setCareerStage(prev => prev === s.key ? '' : s.key)}
-                      activeOpacity={0.75}
+                      activeOpacity={0.7}
                     >
-                      <Text style={[styles.prefChipText, active && styles.prefChipTextActive]}>
-                        {active ? '✓  ' : ''}{s.label}
+                      {active && <View style={styles.prefListAccent} />}
+                      <Text style={[styles.prefListText, active && styles.prefListTextActive]}>
+                        {s.label}
                       </Text>
+                      {active && <Text style={styles.prefListCheck}>✓</Text>}
                     </TouchableOpacity>
                   );
                 })}
@@ -885,14 +897,28 @@ const styles = StyleSheet.create({
   prefToggleBtnText:      { fontSize: 14, fontWeight: '600', color: '#888888' },
   prefToggleBtnTextActive:{ color: '#FFFFFF', fontWeight: '700' },
 
-  prefChipRow:{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  prefChip: {
-    paddingHorizontal: 14, paddingVertical: 9, borderRadius: 100,
-    backgroundColor: '#E8E8E8',
+  prefList: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#EDD5E4',
+    overflow: 'hidden',
+    marginBottom: 4,
   },
-  prefChipActive:     { backgroundColor: PLUM },
-  prefChipText:       { fontSize: 13, color: '#555555', fontWeight: '500' },
-  prefChipTextActive: { color: '#FFFFFF', fontWeight: '700' },
+  prefListItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: '#FFFFFF',
+    gap: 10,
+  },
+  prefListItemBorder:  { borderBottomWidth: 1, borderBottomColor: '#EDD5E4' },
+  prefListItemActive:  { backgroundColor: '#FFF0F5' },
+  prefListAccent:      { width: 3, height: 20, borderRadius: 2, backgroundColor: '#C2185B' },
+  prefListText:        { flex: 1, fontSize: 14, color: '#546E7A', fontWeight: '500' },
+  prefListTextActive:  { color: '#3D0C4E', fontWeight: '700' },
+  prefListCheck:       { fontSize: 14, color: '#C2185B', fontWeight: '700' },
 
   applyBtn:     { backgroundColor: ROSE, borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginTop: 24, marginBottom: 8 },
   applyBtnText: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },

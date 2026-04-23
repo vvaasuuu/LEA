@@ -1,8 +1,8 @@
 const LEA_FRONT   = require('../../assets/leaSim/lea front.jpeg');
-const LEA_SIDE    = require('../../assets/leaSim/lea side.jpeg');
-const MARA_FRONT  = require('../../assets/ManagerSim/manager front.png');
-const MARA_SIDE   = require('../../assets/ManagerSim/manager side.png');
-const DOC_SIDE    = require('../../assets/DocSim/DocSideR.png');
+const LEA_SIDE    = require('../../assets/leaSim/lea side.png');
+const LEA_SIDE_M  = require('../../assets/leaSim/Lea Side M.png');
+const MANAGER     = require('../../assets/ManagerSim/Manager.png');
+const DOC_FRONT   = require('../../assets/DocSim/Doc Front.png');
 
 export const CHARACTER_LABELS = {
   lea:   'Lea',
@@ -23,18 +23,19 @@ export const CHARACTER_SPRITES = {
     determined: LEA_FRONT,
     relieved:   LEA_FRONT,
     reflective: LEA_SIDE,
+    sideM:      LEA_SIDE_M,
   },
   mara: {
-    base:       MARA_FRONT,
-    composed:   MARA_FRONT,
-    persuasive: MARA_FRONT,
-    serious:    MARA_SIDE,
+    base:       MANAGER,
+    composed:   MANAGER,
+    persuasive: MANAGER,
+    serious:    MANAGER,
   },
   drlin: {
-    base:        DOC_SIDE,
-    warm:        DOC_SIDE,
-    informative: DOC_SIDE,
-    thoughtful:  DOC_SIDE,
+    base:        DOC_FRONT,
+    warm:        DOC_FRONT,
+    informative: DOC_FRONT,
+    thoughtful:  DOC_FRONT,
   },
 };
 
