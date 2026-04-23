@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Storage } from '../utils/storage';
 import { Points } from '../utils/points';
 import nudges from '../data/nudges.json';
+import companies from '../data/company_details.json';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -21,6 +22,19 @@ const ROSE   = '#C2185B';
 const ROSE_D = '#C2185B';
 const MUTED  = '#B39DBC';
 const BORDER = '#EDD5E4';
+
+// ── Tag labels ───────────────────────────────────────────────────────────────
+const TAG_LABELS = {
+  extended_maternity:   'Maternity Leave',
+  fertility_coverage:   'Fertility Support',
+  menstrual_leave:      'Menstrual Leave',
+  flexible_remote_work: 'Flexible Work',
+  women_leadership:     'Leadership',
+  mental_health:        'Mental Health',
+  menopause_support:    'Menopause',
+  childcare_support:    'Childcare',
+  wellness:             'Wellness',
+};
 
 // ── Dog images ────────────────────────────────────────────────────────────────
 const STAGE_IMAGES = {
@@ -49,7 +63,22 @@ function TopicCard({ nudge, onPress }) {
     </TouchableOpacity>
   );
 }
-
+// ── Company card ─────────────────────────────────────────────────────────────
+function CompanyCard({ company, onPress }) {
+  return (
+    <TouchableOpacity style={styles.companyCard} onPress={onPress} activeOpacity={0.82}>
+      <Text style={styles.companyName} numberOfLines={2}>{company.name}</Text>
+      <View style={styles.companyTags}>
+        {company.tags.slice(0, 2).map(tag => (
+          <View key={tag} style={styles.companyTag}>
+            <Text style={styles.companyTagText}>{TAG_LABELS[tag] || tag}</Text>
+          </View>
+        ))}
+      </View>
+      <Text style={styles.companyCta}>Learn more →</Text>
+    </TouchableOpacity>
+  );
+}
 // ── Nudge detail modal ────────────────────────────────────────────────────────
 function NudgeModal({ nudge, onClose, navigation }) {
   if (!nudge) return null;
@@ -79,10 +108,13 @@ function NudgeModal({ nudge, onClose, navigation }) {
           <Text style={styles.modalBody}>{nudge.nudge}</Text>
 
           {nudge.action ? (
-            <TouchableOpacity style={styles.actionCard} onPress={() => { onClose(); navigation.navigate('Planning'); }}>
+            <View style={styles.actionCard}>
               <Text style={styles.actionLabel}>WHAT TO DO</Text>
               <Text style={styles.actionText}>{nudge.action}</Text>
-            </TouchableOpacity>
+              <TouchableOpacity style={styles.addToUpcomingBtn} onPress={() => { onClose(); navigation.navigate('Planning', { addAction: nudge.action, category: 'Health' }); }}>
+                <Text style={styles.addToUpcomingText}>Add to Upcoming</Text>
+              </TouchableOpacity>
+            </View>
           ) : null}
 
           {nudge.source ? (
@@ -195,6 +227,29 @@ export default function LearnScreen() {
           </ScrollView>
         </View>
 
+        {/* ── Career section ─────────────────────────────────────────── */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Recommended Companies for you</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            snapToInterval={COMPANY_CARD_W + 14}
+            decelerationRate="fast"
+            contentContainerStyle={styles.hScrollContent}
+          >
+            {companies.slice(0, 3).map(c => (
+              <CompanyCard
+                key={c.id}
+                company={c}
+                onPress={() => navigation.navigate('CompanyDetail', { company: c })}
+              />
+            ))}
+            <TouchableOpacity onPress={() => navigation.navigate('CompanyExplore')} style={styles.exploreMoreCard}>
+              <Text style={styles.exploreMoreText}>Explore more →</Text>
+            </TouchableOpacity>
+          </ScrollView>
+        </View>
+
         {/* ── Dev controls ───────────────────────────────────────────── */}
         <View style={styles.devRow}>
           {[
@@ -235,7 +290,8 @@ export default function LearnScreen() {
 }
 
 // ── Dimensions ────────────────────────────────────────────────────────────────
-const TOPIC_CARD_W = 220;
+const TOPIC_CARD_W  = 220;
+const COMPANY_CARD_W = 160;
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
@@ -291,6 +347,35 @@ const styles = StyleSheet.create({
   topicTitle: { fontSize: 14, fontWeight: '700', color: PLUM, marginBottom: 6, lineHeight: 20 },
   topicDesc:  { fontSize: 12, color: '#546E7A', lineHeight: 18, marginBottom: 12, flex: 1 },
   topicCta:   { fontSize: 12, color: ROSE_D, fontWeight: '600' },
+
+  // Company cards
+  companyCard: {
+    width: COMPANY_CARD_W,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12, padding: 12,
+    borderWidth: 1, borderColor: '#F5DCE8',
+    shadowColor: ROSE, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2,
+    justifyContent: 'space-between',
+    minHeight: 100,
+  },
+  companyName: { fontSize: 14, fontWeight: '700', color: PLUM, marginBottom: 6, lineHeight: 18 },
+  companyTags: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginBottom: 8 },
+  companyTag: {
+    backgroundColor: '#FCE4EC', borderRadius: 100,
+    paddingHorizontal: 6, paddingVertical: 2,
+  },
+  companyTagText: { fontSize: 10, color: ROSE, fontWeight: '600' },
+  companyCta: { fontSize: 12, color: ROSE_D, fontWeight: '600' },
+  exploreMoreCard: {
+    width: COMPANY_CARD_W,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12, padding: 12,
+    borderWidth: 1, borderColor: '#FFFFFF',
+    shadowColor: ROSE, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2,
+    justifyContent: 'center', alignItems: 'center',
+    minHeight: 100,
+  },
+  exploreMoreText: { fontSize: 14, color: ROSE, fontWeight: '600' },
 
   // Lea simulation nudge card
   leaSimCard: {
@@ -351,5 +436,14 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 6,
   },
   actionText: { fontSize: 14, color: PLUM, lineHeight: 22 },
+  addToUpcomingBtn: {
+    backgroundColor: ROSE,
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignSelf: 'flex-start',
+    marginTop: 10,
+  },
+  addToUpcomingText: { fontSize: 12, color: '#FFFFFF', fontWeight: '600' },
   sourceText: { fontSize: 12, color: MUTED, fontStyle: 'italic' },
 });

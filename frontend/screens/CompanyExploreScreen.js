@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
   // Search bar
   searchBar: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#FFF0F5', borderRadius: 14,
+    backgroundColor: '#FFFFFF', borderRadius: 14,
     paddingHorizontal: 14, paddingVertical: 10,
     borderWidth: 1, borderColor: '#F5DCE8',
     marginHorizontal: 16, marginBottom: 16,
@@ -303,8 +303,8 @@ const styles = StyleSheet.create({
   list: { paddingHorizontal: 16, gap: 10 },
   card: {
     borderRadius: 16, padding: 18,
-    backgroundColor: '#FFF0F5',
-    borderWidth: 1.5, borderColor: ROSE,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1.5, borderColor: '#F5DCE8',
     shadowColor: ROSE, shadowOpacity: 0.08, shadowRadius: 8,
     shadowOffset: { width: 0, height: 2 }, elevation: 2,
   },

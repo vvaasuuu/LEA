@@ -1,11 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, ScrollView,
   TouchableOpacity, Modal, FlatList, TextInput, Image,
   ImageBackground, Dimensions, Linking, Animated,
   KeyboardAvoidingView, Platform, PanResponder,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import companies from '../data/company_details.json';
 
@@ -209,6 +209,7 @@ function RecommendationCard({ rec, onLearnMore, onAdd }) {
 // ── Main screen ───────────────────────────────────────────────────────────────
 export default function ActScreen() {
   const navigation = useNavigation();
+  const route = useRoute();
 
   const [entries,        setEntries]       = useState({});
   const [selectedDay,    setSelectedDay]   = useState(null);
@@ -229,6 +230,14 @@ export default function ActScreen() {
 
   const visibleWeek  = WEEKS[visibleWeekIdx] || WEEKS[0];
   const calMonthYear = `${MONTHS_LONG[visibleWeek[0].getMonth()]} ${visibleWeek[0].getFullYear()}`;
+
+  useEffect(() => {
+    if (route.params?.addAction) {
+      setRecToAdd({ title: route.params.addAction, category: route.params.category || 'Health' });
+      setPickedDate(TODAY);
+      setShowDatePicker(true);
+    }
+  }, [route.params]);
 
   function openDaySheet(date) {
     setEntryCategory('Health');
