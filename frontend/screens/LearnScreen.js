@@ -2,26 +2,25 @@ import React, { useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, ScrollView, SafeAreaView,
   TouchableOpacity, DevSettings, Platform, UIManager,
-  Image,
+  Image, Modal,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Storage } from '../utils/storage';
 import { Points } from '../utils/points';
 import nudges from '../data/nudges.json';
-import weeklyActions from '../data/weekly_actions.json';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
 // ── Palette ───────────────────────────────────────────────────────────────────
-const BG      = '#FFFFFF';
-const PLUM    = '#3D0C4E';
-const ROSE    = '#C2748A';
-const ROSE_D  = '#C2185B';
-const MUTED   = '#B39DBC';
-const WHITE   = '#FFFFFF';
+const BG     = '#FFFFFF';
+const PLUM   = '#3D0C4E';
+const ROSE   = '#C2185B';
+const ROSE_D = '#C2185B';
+const MUTED  = '#B39DBC';
+const BORDER = '#EDD5E4';
 
 // ── Dog images ────────────────────────────────────────────────────────────────
 const STAGE_IMAGES = {
@@ -31,35 +30,67 @@ const STAGE_IMAGES = {
 };
 const STAGE_LABELS = { puppy: 'Puppy', young: 'Teen', adult: 'Adult' };
 
-// ── Derive Life Mode from priorities ─────────────────────────────────────────
-// need to edit -kavya
 function getLifeMode(priorities = []) {
-  if (priorities.includes('Career growth'))          return 'Hustle Mode';
+  if (priorities.includes('Career growth'))             return 'Hustle Mode';
   if (priorities.includes('Family planning (someday)')) return 'Nesting Mode';
-  if (priorities.includes('Travel'))                 return 'Exploration Mode';
-  if (priorities.includes('Personal health'))        return 'Self-Care Mode';
-  if (priorities.includes('Relationships'))          return 'Connection Mode';
+  if (priorities.includes('Travel'))                    return 'Exploration Mode';
+  if (priorities.includes('Personal health'))           return 'Self-Care Mode';
+  if (priorities.includes('Relationships'))             return 'Connection Mode';
   return 'Discovery Mode';
 }
 
-// ── Recommended topic card ────────────────────────────────────────────────────
-function TopicCard({ title, desc, onPress }) {
+// ── Health card (tappable) ────────────────────────────────────────────────────
+function TopicCard({ nudge, onPress }) {
   return (
     <TouchableOpacity style={styles.topicCard} onPress={onPress} activeOpacity={0.82}>
-      <Text style={styles.topicTitle} numberOfLines={2}>{title}</Text>
-      <Text style={styles.topicDesc} numberOfLines={2}>{desc}</Text>
-      <Text style={styles.topicCta}>Learn more →</Text>
+      <Text style={styles.topicTitle} numberOfLines={2}>{nudge.title}</Text>
+      <Text style={styles.topicDesc} numberOfLines={3}>{nudge.nudge}</Text>
+      <Text style={styles.topicCta}>Read more →</Text>
     </TouchableOpacity>
   );
 }
 
-
-function ActCard({ emoji, title, borderColor }) {
+// ── Nudge detail modal ────────────────────────────────────────────────────────
+function NudgeModal({ nudge, onClose }) {
+  if (!nudge) return null;
   return (
-    <View style={[styles.actCard, { borderColor }]}>
-      <Text style={styles.actEmoji}>{emoji}</Text>
-      <Text style={styles.actTitle} numberOfLines={3}>{title}</Text>
-    </View>
+    <Modal
+      visible={!!nudge}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
+      <SafeAreaView style={styles.modalSafe}>
+        <View style={styles.modalHeader}>
+          <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+            <Text style={styles.closeBtnText}>✕</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView
+          contentContainerStyle={styles.modalScroll}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.modalEyebrow}>HEALTH INFO</Text>
+          <Text style={styles.modalTitle}>{nudge.title}</Text>
+
+          <View style={styles.divider} />
+
+          <Text style={styles.modalBody}>{nudge.nudge}</Text>
+
+          {nudge.action ? (
+            <View style={styles.actionCard}>
+              <Text style={styles.actionLabel}>WHAT TO DO</Text>
+              <Text style={styles.actionText}>{nudge.action}</Text>
+            </View>
+          ) : null}
+
+          {nudge.source ? (
+            <Text style={styles.sourceText}>Source: {nudge.source}</Text>
+          ) : null}
+        </ScrollView>
+      </SafeAreaView>
+    </Modal>
   );
 }
 
@@ -67,10 +98,11 @@ function ActCard({ emoji, title, borderColor }) {
 export default function LearnScreen() {
   const navigation = useNavigation();
 
-  const [leaName,    setLeaName]    = useState('Lea');
-  const [leaStage,   setLeaStage]   = useState('puppy');
-  const [points,     setPoints]     = useState(0);
-  const [priorities, setPriorities] = useState([]);
+  const [leaName,       setLeaName]       = useState('Lea');
+  const [leaStage,      setLeaStage]      = useState('puppy');
+  const [points,        setPoints]        = useState(0);
+  const [priorities,    setPriorities]    = useState([]);
+  const [selectedNudge, setSelectedNudge] = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -87,23 +119,13 @@ export default function LearnScreen() {
   }, []);
 
   const lifeMode = getLifeMode(priorities);
-
-
-  // Pick 3 nudges (first 3 general ones)
-  const recommendedNudges = nudges.filter(n => !n.conditions || n.conditions.length === 0).slice(0, 3);
-
-  // Pick act cards: prefer priority category, else all
-  const actCategory = priorities.includes('Career growth') ? 'career'
-    : priorities.includes('Personal health') ? 'health'
-    : 'balance';
-  const actCards = (weeklyActions[actCategory]?.actions || []).slice(0, 5);
-  const actMeta  = weeklyActions[actCategory];
+  const recommendedNudges = nudges.filter(n => !n.conditions || n.conditions.length === 0).slice(0, 5);
 
   return (
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
 
-        {/* ── SECTION 1: Welcome Header ──────────────────────────────── */}
+        {/* ── Header ─────────────────────────────────────────────────── */}
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Text style={styles.welcomeText}>Welcome,</Text>
@@ -118,8 +140,7 @@ export default function LearnScreen() {
           </View>
         </View>
 
-
-        {/* ── SECTION 4: Dog Companion ───────────────────────────────── */}
+        {/* ── Dog Companion ──────────────────────────────────────────── */}
         <View style={styles.dogSection}>
           <Image
             source={STAGE_IMAGES[leaStage] || STAGE_IMAGES.puppy}
@@ -133,7 +154,7 @@ export default function LearnScreen() {
           </View>
         </View>
 
-        {/* ── SECTION 5a: Recommended for You ───────────────────────── */}
+        {/* ── Health cards ───────────────────────────────────────────── */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recommended for you</Text>
           <ScrollView
@@ -146,37 +167,35 @@ export default function LearnScreen() {
             {recommendedNudges.map(n => (
               <TopicCard
                 key={n.id}
-                title={n.title}
-                desc={n.nudge?.slice(0, 80) + '…'}
-                onPress={() => navigation.navigate('Explore')}
+                nudge={n}
+                onPress={() => setSelectedNudge(n)}
               />
             ))}
           </ScrollView>
         </View>
 
-        {/* ── SECTION 5b: Personalised Act Cards ────────────────────── */}
+        {/* ── Lea's simulation nudge ──────────────────────────────────── */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Personalised act cards <Text style={styles.arrowLabel}>→</Text></Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            snapToInterval={ACT_CARD_W + 12}
-            decelerationRate="fast"
-            contentContainerStyle={styles.hScrollContent}
+          <TouchableOpacity
+            style={styles.leaSimCard}
+            onPress={() => navigation.navigate('Simulation')}
+            activeOpacity={0.85}
           >
-            {actCards.map(a => (
-              <ActCard
-                key={a.id}
-                emoji={a.emoji}
-                title={a.title}
-                accentColor={actMeta?.accentColor || ROSE}
-                borderColor={actMeta?.borderColor || '#F5DCE8'}
-              />
-            ))}
-          </ScrollView>
+            <Image
+              source={STAGE_IMAGES[leaStage] || STAGE_IMAGES.puppy}
+              style={styles.leaSimImage}
+              resizeMode="contain"
+            />
+            <View style={styles.leaSimBubble}>
+              <Text style={styles.leaSimText}>
+                I have a personalised scenario for you — want to try it?
+              </Text>
+              <Text style={styles.leaSimCta}>Start Simulation →</Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
-        {/* ── Dev controls (unchanged) ───────────────────────────────── */}
+        {/* ── Dev controls ───────────────────────────────────────────── */}
         <View style={styles.devRow}>
           {[
             { label: '🐶 Puppy', pts: 10,  stage: 'puppy' },
@@ -207,20 +226,23 @@ export default function LearnScreen() {
         </TouchableOpacity>
 
       </ScrollView>
+
+      {/* ── Health info modal ──────────────────────────────────────────── */}
+      <NudgeModal nudge={selectedNudge} onClose={() => setSelectedNudge(null)} />
+
     </SafeAreaView>
   );
 }
 
 // ── Dimensions ────────────────────────────────────────────────────────────────
 const TOPIC_CARD_W = 220;
-const ACT_CARD_W   = 160;
 
 // ── Styles ────────────────────────────────────────────────────────────────────
 const styles = StyleSheet.create({
   safe:   { flex: 1, backgroundColor: BG },
   scroll: { paddingBottom: 56 },
 
-  // Section 1 — Header
+  // Header
   header: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
     paddingHorizontal: 22, paddingTop: 22, paddingBottom: 8,
@@ -229,16 +251,15 @@ const styles = StyleSheet.create({
   welcomeText:      { fontSize: 30, fontWeight: '800', color: PLUM, letterSpacing: -0.5 },
   tagline:          { fontSize: 13, fontWeight: '600', color: ROSE, marginTop: 2 },
   taglineUnderline: { width: 110, height: 2, backgroundColor: ROSE, borderRadius: 1, marginTop: 4 },
-  section: { paddingHorizontal: 20, marginBottom: 24 },
-  sectionTitle: { fontSize: 19, fontWeight: '700', color: PLUM, marginBottom: 2 },
-  arrowLabel:   { fontWeight: '400', color: ROSE },
 
+  // Section
+  section:      { paddingHorizontal: 20, marginBottom: 24 },
+  sectionTitle: { fontSize: 19, fontWeight: '700', color: PLUM, marginBottom: 12 },
 
-
-  // Section 4 — Dog widget
+  // Dog widget
   dogSection: {
     alignItems: 'center', marginBottom: 24,
-    backgroundColor: WHITE, marginHorizontal: 20, borderRadius: 20,
+    backgroundColor: '#FFFFFF', marginHorizontal: 20, borderRadius: 20,
     paddingVertical: 22, paddingHorizontal: 16,
     borderWidth: 1, borderColor: '#F0E6F0',
     shadowColor: PLUM, shadowOpacity: 0.06, shadowRadius: 10, elevation: 2,
@@ -248,8 +269,8 @@ const styles = StyleSheet.create({
   dogStageLabel: { fontSize: 13, color: MUTED, fontWeight: '500', marginTop: 3 },
   lifeModeTag: {
     marginTop: 10,
-    backgroundColor: '#F3E5F5',
-    borderRadius: 100, paddingHorizontal: 14, paddingVertical: 5,
+    backgroundColor: '#F3E5F5', borderRadius: 100,
+    paddingHorizontal: 14, paddingVertical: 5,
     borderWidth: 1, borderColor: '#CE93D8',
   },
   lifeModeText: { fontSize: 12, fontWeight: '700', color: '#6A1B9A' },
@@ -257,35 +278,78 @@ const styles = StyleSheet.create({
   // Horizontal scroll
   hScrollContent: { paddingLeft: 2, paddingRight: 20, gap: 14 },
 
-  // Topic cards
+  // Topic / health cards
   topicCard: {
     width: TOPIC_CARD_W,
-    backgroundColor: WHITE,
+    backgroundColor: '#FFFFFF',
     borderRadius: 18, padding: 16,
-    borderWidth: 1.5, borderColor: '#F5DCE8',
+    borderWidth: 1.5, borderColor: BORDER,
     shadowColor: ROSE, shadowOpacity: 0.08, shadowRadius: 10, elevation: 2,
     justifyContent: 'space-between',
+    minHeight: 150,
   },
   topicTitle: { fontSize: 14, fontWeight: '700', color: PLUM, marginBottom: 6, lineHeight: 20 },
   topicDesc:  { fontSize: 12, color: '#546E7A', lineHeight: 18, marginBottom: 12, flex: 1 },
-  topicCta:   { fontSize: 12, color: ROSE_D, fontWeight: '600', fontStyle: 'italic' },
+  topicCta:   { fontSize: 12, color: ROSE_D, fontWeight: '600' },
 
-  // Act cards
-  actCard: {
-    width: ACT_CARD_W,
-    backgroundColor: WHITE,
-    borderRadius: 18, padding: 16,
+  // Lea simulation nudge card
+  leaSimCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF0F5',
+    borderRadius: 20,
     borderWidth: 1.5,
-    shadowColor: PLUM, shadowOpacity: 0.06, shadowRadius: 8, elevation: 2,
-    minHeight: 120, justifyContent: 'flex-start',
+    borderColor: BORDER,
+    padding: 16,
+    gap: 14,
+    shadowColor: PLUM, shadowOpacity: 0.06, shadowRadius: 10, elevation: 2,
   },
-  actEmoji: { fontSize: 26, marginBottom: 10 },
-  actTitle: { fontSize: 13, fontWeight: '600', color: PLUM, lineHeight: 19 },
+  leaSimImage: { width: 64, height: 64 },
+  leaSimBubble: { flex: 1 },
+  leaSimText: {
+    fontSize: 14, fontWeight: '600', color: PLUM, lineHeight: 21, marginBottom: 8,
+  },
+  leaSimCta: {
+    fontSize: 13, fontWeight: '700', color: ROSE,
+  },
 
   // Dev controls
-  devRow: { flexDirection: 'row', gap: 8, justifyContent: 'center', marginTop: 8 },
-  devBtn: { backgroundColor: '#FCE4EC', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
+  devRow:     { flexDirection: 'row', gap: 8, justifyContent: 'center', marginTop: 8 },
+  devBtn:     { backgroundColor: '#FCE4EC', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8 },
   devBtnText: { fontWeight: '700', fontSize: 12, color: ROSE_D },
-  resetBtn: { alignSelf: 'center', marginTop: 12, paddingVertical: 8, paddingHorizontal: 16 },
+  resetBtn:   { alignSelf: 'center', marginTop: 12, paddingVertical: 8, paddingHorizontal: 16 },
   resetBtnText: { fontSize: 12, color: MUTED, fontWeight: '600' },
+
+  // Modal
+  modalSafe: { flex: 1, backgroundColor: '#FFFFFF' },
+  modalHeader: {
+    paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8, alignItems: 'flex-end',
+  },
+  closeBtn: {
+    width: 32, height: 32, borderRadius: 16,
+    backgroundColor: '#FFF0F5', alignItems: 'center', justifyContent: 'center',
+  },
+  closeBtnText: { fontSize: 14, color: '#546E7A', fontWeight: '700' },
+  modalScroll:  { paddingHorizontal: 24, paddingBottom: 40 },
+  modalEyebrow: {
+    fontSize: 11, fontWeight: '800', color: ROSE,
+    textTransform: 'uppercase', letterSpacing: 1.4, marginBottom: 8,
+  },
+  modalTitle: {
+    fontSize: 24, fontWeight: '800', color: PLUM, lineHeight: 32, marginBottom: 4,
+  },
+  divider: { height: 1, backgroundColor: BORDER, marginVertical: 16 },
+  modalBody: { fontSize: 15, color: '#263238', lineHeight: 25, marginBottom: 20 },
+  actionCard: {
+    backgroundColor: '#FFF0F5',
+    borderRadius: 14, padding: 16,
+    borderLeftWidth: 4, borderLeftColor: ROSE,
+    marginBottom: 16,
+  },
+  actionLabel: {
+    fontSize: 10, fontWeight: '800', color: ROSE,
+    textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 6,
+  },
+  actionText: { fontSize: 14, color: PLUM, lineHeight: 22 },
+  sourceText: { fontSize: 12, color: MUTED, fontStyle: 'italic' },
 });

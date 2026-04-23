@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { SCORE_COLORS, SCORE_LABELS } from '../data/fertilityWindowScenario';
 
 const PLUM   = '#3D0C4E';
@@ -34,6 +35,8 @@ function ScoreBar({ label, value, color }) {
 }
 
 export default function StorySummary({ scenarioTitle, scores, history, onRestart, onExit }) {
+  const navigation = useNavigation();
+
   return (
     <ScrollView
       style={ss.screen}
@@ -59,6 +62,15 @@ export default function StorySummary({ scenarioTitle, scores, history, onRestart
             color={SCORE_COLORS[key]}
           />
         ))}
+        <TouchableOpacity
+          style={ss.careerLink}
+          onPress={() => navigation.navigate('CompanyExplore')}
+          activeOpacity={0.75}
+        >
+          <Text style={ss.careerLinkText}>
+            Explore companies that support your career  →
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {/* Choice timeline */}
@@ -140,6 +152,18 @@ const ss = StyleSheet.create({
   },
   barFill:  { height: '100%', borderRadius: 4 },
   barValue: { width: 32, fontSize: 12, fontWeight: '800', textAlign: 'right' },
+
+  careerLink: {
+    marginTop: 14,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: BORDER,
+  },
+  careerLinkText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: ROSE,
+  },
 
   // Timeline
   timelineItem: {

@@ -7,7 +7,7 @@ const DOC_SIDE    = require('../../assets/DocSim/DocSideR.png');
 export const CHARACTER_LABELS = {
   lea:   'Lea',
   mara:  'Mara',
-  drlin: 'Dogtor',
+  drlin: 'Doctor',
 };
 
 export const CHARACTER_LAYOUTS = {

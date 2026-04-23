@@ -2,7 +2,6 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import LearnScreen      from '../screens/LearnScreen';
-import ExploreScreen    from '../screens/ExploreScreen';
 import SimulationScreen from '../screens/SimulationScreen';
 import ActScreen        from '../screens/ActScreen';
 
@@ -29,14 +28,6 @@ export default function TabNavigator() {
         options={{
           tabBarIcon: ({ focused, color, size }) =>
             tabIcon(focused, 'home', 'home-outline', color, size),
-        }}
-      />
-      <Tab.Screen
-        name="Explore"
-        component={ExploreScreen}
-        options={{
-          tabBarIcon: ({ focused, color, size }) =>
-            tabIcon(focused, 'search', 'search-outline', color, size),
         }}
       />
       <Tab.Screen

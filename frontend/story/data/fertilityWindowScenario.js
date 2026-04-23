@@ -1,7 +1,7 @@
 function dialogue(character, expression, text, extras = {}) {
   return {
     type: 'dialogue',
-    speaker: character === 'drlin' ? 'Dogtor' : character === 'lea' ? 'Lea' : 'Mara',
+    speaker: character === 'drlin' ? 'Doctor' : character === 'lea' ? 'Lea' : 'Mara',
     character,
     expression,
     text,
