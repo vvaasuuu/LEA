@@ -8,7 +8,6 @@ import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Storage } from '../utils/storage';
 import { Points } from '../utils/points';
-import nudges from '../data/nudges.json';
 import companies from '../data/company_details.json';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -42,16 +41,71 @@ const STAGE_IMAGES = {
   young: require('../assets/dogs/adult dog eyes open.jpeg'),
   adult: require('../assets/dogs/adult dog eyes open.jpeg'),
 };
+const PUPPY_SIDE = require('../assets/dogs/Puppy side.png');
 const STAGE_LABELS = { puppy: 'Puppy', young: 'Teen', adult: 'Adult' };
 
-function getLifeMode(priorities = []) {
-  if (priorities.includes('Career growth'))             return 'Hustle Mode';
-  if (priorities.includes('Family planning (someday)')) return 'Nesting Mode';
-  if (priorities.includes('Travel'))                    return 'Exploration Mode';
-  if (priorities.includes('Personal health'))           return 'Self-Care Mode';
-  if (priorities.includes('Relationships'))             return 'Connection Mode';
-  return 'Discovery Mode';
-}
+// ── Recommended cards ────────────────────────────────────────────────────────
+const RECOMMENDED_CARDS_DEFAULT = [
+  {
+    id: 'pcos_basics',
+    title: 'What Is PCOS?',
+    nudge: 'Polycystic ovary syndrome affects 1 in 10 women of reproductive age. Common signs include irregular periods, acne, excess hair growth, and difficulty managing weight. Many women don\'t know they have it until they try to conceive — but early diagnosis means earlier, easier management.',
+    action: 'Ask your GP for an ultrasound and hormone panel if you have irregular cycles, unexpected weight changes, or persistent acne.',
+  },
+  {
+    id: 'cervical_screening',
+    title: 'Don\'t Skip Your Smear Test',
+    nudge: 'Cervical screening can detect abnormal cells before they become cancer. Women who attend routine screenings are diagnosed 3× more often at early, treatable stages. It takes under 5 minutes and could save your life.',
+    action: 'If you\'re due for a smear test, book it with your GP or women\'s health clinic.',
+  },
+  {
+    id: 'iron_deficiency',
+    title: 'Are You Iron Deficient?',
+    nudge: 'Iron deficiency is the most common nutritional deficiency worldwide, and women with heavy periods are especially at risk. Fatigue, brain fog, and cold hands are often chalked up to stress — but a simple blood test can confirm it.',
+    action: 'Ask your GP for a full blood count including ferritin levels at your next routine visit.',
+  },
+  {
+    id: 'cycle_mood',
+    title: 'Your Cycle Affects Your Mind Too',
+    nudge: 'Hormone fluctuations throughout your cycle affect mood, focus, and energy — not just your body. Tracking your cycle alongside your mood can reveal patterns and flag issues like PMDD, which affects 1 in 20 women.',
+    action: 'Start logging your mood daily for one full cycle to see if patterns emerge.',
+  },
+];
+
+const CERVICAL_FACT_CARD = {
+  id: 'cervical_fact',
+  title: 'Don\'t Skip Your Cervical Screening',
+  nudge: 'Women who attend routine cervical screenings are diagnosed 3× more often at early, treatable stages — before symptoms even appear. The test takes under 5 minutes. Skipping even one round can mean a later, harder diagnosis.',
+  action: 'Book a cervical screening (smear test) with your GP or women\'s health clinic if you\'re overdue.',
+  source: 'NHS, WHO',
+};
+
+const RECOMMENDED_CARDS_FERTILITY = [
+  {
+    id: 'pcos_fertility',
+    title: 'PCOS and Fertility: What to Know',
+    nudge: 'PCOS is one of the most common causes of irregular ovulation. The good news: most people with PCOS can conceive — often with lifestyle changes alone. Tracking ovulation via LH strips is a practical first step.',
+    action: 'Talk to your GP about fertility-focused management if you have PCOS and are planning to conceive in the next 1–2 years.',
+  },
+  {
+    id: 'amh_testing',
+    title: 'What\'s Your Ovarian Reserve?',
+    nudge: 'AMH (anti-Müllerian hormone) is a blood test that gives you a snapshot of your egg supply. It helps fertility specialists plan treatment if needed — and helps you make time-informed decisions.',
+    action: 'Ask your GP or a private fertility clinic about AMH testing if you\'re planning to conceive in the next few years.',
+  },
+  {
+    id: 'fertility_window',
+    title: 'Understanding Your Fertile Window',
+    nudge: 'Your fertile window is typically the 5 days before ovulation plus ovulation day. Knowing when this falls gives you the best chance of timing conception naturally — and cycle length varies more than most people realise.',
+    action: 'Track your cycle for 3 months to identify your ovulation pattern, or use LH predictor strips for precision.',
+  },
+  {
+    id: 'endometriosis',
+    title: 'Could It Be Endometriosis?',
+    nudge: 'Endometriosis affects 1 in 10 women and can impact fertility. The average diagnosis takes 7–8 years because severe period pain is so often dismissed. Don\'t accept it as normal.',
+    action: 'If your period pain significantly disrupts daily life, ask your GP for a referral to a gynaecologist.',
+  },
+];
 
 // ── Health card (tappable) ────────────────────────────────────────────────────
 function TopicCard({ nudge, onPress }) {
@@ -150,8 +204,17 @@ export default function LearnScreen() {
     load();
   }, []);
 
-  const lifeMode = getLifeMode(priorities);
-  const recommendedNudges = nudges.filter(n => !n.conditions || n.conditions.length === 0).slice(0, 5);
+  const hasFertilityPlanning = priorities.includes('Family planning (someday)');
+  const recommendedCards = hasFertilityPlanning ? RECOMMENDED_CARDS_FERTILITY : RECOMMENDED_CARDS_DEFAULT;
+
+  function getSimText() {
+    if (priorities.includes('Family planning (someday)')) return `${leaName} found a scenario built around your family goals.`;
+    if (priorities.includes('Career growth'))             return `${leaName} found a scenario built around your career goals.`;
+    if (priorities.includes('Personal health'))           return `${leaName} found a scenario built around your health goals.`;
+    if (priorities.includes('Relationships'))             return `${leaName} found a scenario built around your relationships.`;
+    if (priorities.includes('Travel'))                    return `${leaName} found a scenario built around your life goals.`;
+    return `${leaName} found a personalised scenario just for you.`;
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -180,9 +243,6 @@ export default function LearnScreen() {
           />
           <Text style={styles.dogName}>{leaName}</Text>
           <Text style={styles.dogStageLabel}>{STAGE_LABELS[leaStage] || 'Puppy'}</Text>
-          <View style={styles.lifeModeTag}>
-            <Text style={styles.lifeModeText}>{lifeMode}</Text>
-          </View>
         </View>
 
         {/* ── Lea's simulation nudge ──────────────────────────────────── */}
@@ -192,15 +252,8 @@ export default function LearnScreen() {
             onPress={() => navigation.navigate('Simulation')}
             activeOpacity={0.85}
           >
-            <Image
-              source={STAGE_IMAGES[leaStage] || STAGE_IMAGES.puppy}
-              style={styles.leaSimImage}
-              resizeMode="contain"
-            />
             <View style={styles.leaSimBubble}>
-              <Text style={styles.leaSimText}>
-                I have a personalised scenario for you — want to try it?
-              </Text>
+              <Text style={styles.leaSimText}>{getSimText()}</Text>
               <Text style={styles.leaSimCta}>Start Simulation →</Text>
             </View>
           </TouchableOpacity>
@@ -208,6 +261,12 @@ export default function LearnScreen() {
 
         {/* ── Health cards ───────────────────────────────────────────── */}
         <View style={styles.section}>
+          <View style={styles.factRow}>
+            <Image source={PUPPY_SIDE} style={styles.factPuppy} resizeMode="contain" />
+            <TouchableOpacity style={styles.factBanner} onPress={() => setSelectedNudge(CERVICAL_FACT_CARD)} activeOpacity={0.82}>
+              <Text style={styles.factText}>"We aren't choosing a path; we're the ones paving it."</Text>
+            </TouchableOpacity>
+          </View>
           <Text style={styles.sectionTitle}>Recommended for you</Text>
           <ScrollView
             horizontal
@@ -216,7 +275,7 @@ export default function LearnScreen() {
             decelerationRate="fast"
             contentContainerStyle={styles.hScrollContent}
           >
-            {recommendedNudges.map(n => (
+            {recommendedCards.map(n => (
               <TopicCard
                 key={n.id}
                 nudge={n}
@@ -322,13 +381,6 @@ const styles = StyleSheet.create({
   dogImage:      { width: 130, height: 130 },
   dogName:       { fontSize: 20, fontWeight: '800', color: PLUM, marginTop: 10 },
   dogStageLabel: { fontSize: 13, color: MUTED, fontWeight: '500', marginTop: 3 },
-  lifeModeTag: {
-    marginTop: 10,
-    backgroundColor: '#F3E5F5', borderRadius: 100,
-    paddingHorizontal: 14, paddingVertical: 5,
-    borderWidth: 1, borderColor: '#CE93D8',
-  },
-  lifeModeText: { fontSize: 12, fontWeight: '700', color: '#6A1B9A' },
 
   // Horizontal scroll
   hScrollContent: { paddingLeft: 2, paddingRight: 20, gap: 14 },
@@ -376,6 +428,39 @@ const styles = StyleSheet.create({
   },
   exploreMoreText: { fontSize: 14, color: ROSE, fontWeight: '600' },
 
+  // Fact banner
+  factRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 0,
+  },
+  factPuppy: {
+    width: 115,
+    height: 115,
+    zIndex: 1,
+  },
+  factBanner: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: BORDER,
+    padding: 14,
+  },
+  factText: {
+    fontSize: 12,
+    color: PLUM,
+    lineHeight: 18,
+    fontWeight: '500',
+    marginBottom: 6,
+  },
+  factCta: {
+    fontSize: 12,
+    color: ROSE,
+    fontWeight: '700',
+  },
+
   // Lea simulation nudge card
   leaSimCard: {
     flexDirection: 'row',
@@ -388,7 +473,6 @@ const styles = StyleSheet.create({
     gap: 14,
     shadowColor: PLUM, shadowOpacity: 0.06, shadowRadius: 10, elevation: 2,
   },
-  leaSimImage: { width: 64, height: 64 },
   leaSimBubble: { flex: 1 },
   leaSimText: {
     fontSize: 14, fontWeight: '600', color: PLUM, lineHeight: 21, marginBottom: 8,
