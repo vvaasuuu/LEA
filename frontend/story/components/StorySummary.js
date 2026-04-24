@@ -40,33 +40,34 @@ export default function StorySummary({ scenarioTitle, scores, history, onRestart
   const navigation = useNavigation();
   const [steps, setSteps] = useState([]);
   const [loadingSteps, setLoadingSteps] = useState(true);
-  const [stepsError, setStepsError] = useState(false);
+  const [stepsError, setStepsError] = useState(null);
 
-  useEffect(() => {
-    async function loadSteps() {
-      try {
-        const [age, conditions, priorities] = await Promise.all([
-          Storage.get(Storage.KEYS.USER_AGE),
-          Storage.get(Storage.KEYS.USER_CONDITIONS),
-          Storage.get(Storage.KEYS.USER_PRIORITIES),
-        ]);
-        const result = await fetchRecommendations({
-          age,
-          conditions: Array.isArray(conditions) ? conditions : [],
-          priorities: Array.isArray(priorities) ? priorities : [],
-          scores,
-          history,
-        });
-        setSteps(result);
-      } catch (err) {
-        console.error('Recommendations error:', err.message);
-        setStepsError(true);
-      } finally {
-        setLoadingSteps(false);
-      }
+  async function loadSteps() {
+    setLoadingSteps(true);
+    setStepsError(null);
+    try {
+      const [age, conditions, priorities] = await Promise.all([
+        Storage.get(Storage.KEYS.USER_AGE),
+        Storage.get(Storage.KEYS.USER_CONDITIONS),
+        Storage.get(Storage.KEYS.USER_PRIORITIES),
+      ]);
+      const result = await fetchRecommendations({
+        age,
+        conditions: Array.isArray(conditions) ? conditions : [],
+        priorities: Array.isArray(priorities) ? priorities : [],
+        scores,
+        history,
+      });
+      setSteps(result);
+    } catch (err) {
+      console.error('Recommendations error:', err.message);
+      setStepsError(err.message);
+    } finally {
+      setLoadingSteps(false);
     }
-    loadSteps();
-  }, []);
+  }
+
+  useEffect(() => { loadSteps(); }, []);
 
   return (
     <ScrollView
@@ -131,9 +132,12 @@ export default function StorySummary({ scenarioTitle, scores, history, onRestart
           </View>
         )}
         {!loadingSteps && stepsError && (
-          <Text style={ss.stepsErrorText}>
-            Could not load recommendations. Make sure the backend is running.
-          </Text>
+          <View>
+            <Text style={ss.stepsErrorText}>{stepsError}</Text>
+            <TouchableOpacity style={ss.retryBtn} onPress={loadSteps} activeOpacity={0.7}>
+              <Text style={ss.retryBtnText}>Try again</Text>
+            </TouchableOpacity>
+          </View>
         )}
         {!loadingSteps && !stepsError && steps.map((step, i) => (
           <View key={i} style={[ss.stepItem, i < steps.length - 1 && ss.stepBorder]}>
@@ -254,7 +258,13 @@ const ss = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8,
   },
   stepsLoadingText: { fontSize: 13, color: MUTED, fontStyle: 'italic' },
-  stepsErrorText:   { fontSize: 13, color: MUTED, fontStyle: 'italic' },
+  stepsErrorText:   { fontSize: 13, color: MUTED, fontStyle: 'italic', marginBottom: 10 },
+  retryBtn: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 14, paddingVertical: 8,
+    borderRadius: 10, borderWidth: 1.5, borderColor: ROSE,
+  },
+  retryBtnText: { fontSize: 13, fontWeight: '700', color: ROSE },
   stepItem: {
     flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 12,
   },

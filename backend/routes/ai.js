@@ -42,7 +42,7 @@ Include exactly 4 steps. Be warm, non-judgmental, practical, and specific to the
       model: 'gpt-4o-mini',
       messages: [{ role: 'user', content: prompt }],
       response_format: { type: 'json_object' },
-      max_tokens: 600,
+      max_tokens: 900,
     });
 
     const parsed = JSON.parse(completion.choices[0].message.content);

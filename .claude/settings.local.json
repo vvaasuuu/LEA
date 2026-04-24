@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install *)",
+      "Bash(node -e \"const o = require\\('openai'\\); console.log\\(typeof o, typeof o.OpenAI, typeof o.default\\)\")"
+    ]
+  }
+}
