@@ -2,7 +2,7 @@ const LEA_FRONT   = require('../../assets/leaSim/lea front.jpeg');
 const LEA_SIDE    = require('../../assets/leaSim/lea side.png');
 const LEA_SIDE_M  = require('../../assets/leaSim/Lea Side M.png');
 const MANAGER     = require('../../assets/ManagerSim/Manager.png');
-const DOC_FRONT   = require('../../assets/DocSim/Doc Front.png');
+const DOC_FRONT   = require('../../assets/DocSim/Doc front.png');
 
 export const CHARACTER_LABELS = {
   lea:   'Lea',

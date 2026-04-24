@@ -5,6 +5,9 @@ import {
 } from 'react-native';
 import { Storage } from '../utils/storage';
 
+import { auth, db } from '../utils/firebase';
+import { doc, setDoc } from 'firebase/firestore';
+
 const { width } = Dimensions.get('window');
 
 const PLUM    = '#6A1B9A';
@@ -46,7 +49,8 @@ const LIFE_STAGES = ['Student', 'Early career', 'Mid-career'];
 // ────────────────────────────────────────────────────────────────────────────
 
 export default function OnboardingScreen({ onComplete }) {
-  const [step, setStep] = useState(0);
+  const [step,   setStep]   = useState(0);
+  const [saving, setSaving] = useState(false);
 
   // Screen 1
   const [selectedBreed, setSelectedBreed] = useState(null);
@@ -116,26 +120,55 @@ export default function OnboardingScreen({ onComplete }) {
     return true;
   }
 
-  async function handleFinish() {
-    await Storage.set(Storage.KEYS.LEA_BREED,      selectedBreed);
-    await Storage.set(Storage.KEYS.LEA_NAME,       leaName.trim());
-    await Storage.set(Storage.KEYS.USER_AGE,       age.trim());
-    await Storage.set(Storage.KEYS.USER_LIFE_STAGE, lifeStage);
+async function handleFinish() {
+  setSaving(true);
 
-    const othersEntries = othersItems
-      .filter(t => t.trim().length > 0)
-      .map(t => `Others: ${t.trim()}`);
-    const conditionsToSave = [
-      ...conditions.filter(c => c !== 'Others'),
-      ...(othersEntries.length > 0 ? othersEntries : conditions.includes('Others') ? ['Others'] : []),
-    ];
-    await Storage.set(Storage.KEYS.USER_CONDITIONS, conditionsToSave);
-    await Storage.set(Storage.KEYS.USER_PRIORITIES, priorities);
-    await Storage.set(Storage.KEYS.USER_POINTS,     0);
-    await Storage.set(Storage.KEYS.LEA_STAGE,       'puppy');
-    await Storage.set(Storage.KEYS.ONBOARDING_COMPLETE, true);
-    onComplete();
+  const othersEntries = othersItems
+    .filter(t => t.trim().length > 0)
+    .map(t => `Others: ${t.trim()}`);
+
+  const conditionsToSave = [
+    ...conditions.filter(c => c !== 'Others'),
+    ...(othersEntries.length > 0
+      ? othersEntries
+      : conditions.includes('Others') ? ['Others'] : []),
+  ];
+
+  // Save locally first — this is what the app reads from
+  await Storage.set(Storage.KEYS.LEA_BREED,           selectedBreed);
+  await Storage.set(Storage.KEYS.LEA_NAME,            leaName.trim());
+  await Storage.set(Storage.KEYS.USER_AGE,            age.trim());
+  await Storage.set(Storage.KEYS.USER_LIFE_STAGE,     lifeStage);
+  await Storage.set(Storage.KEYS.USER_CONDITIONS,     conditionsToSave);
+  await Storage.set(Storage.KEYS.USER_PRIORITIES,     priorities);
+  await Storage.set(Storage.KEYS.USER_POINTS,         0);
+  await Storage.set(Storage.KEYS.LEA_STAGE,           'puppy');
+  await Storage.set(Storage.KEYS.ONBOARDING_COMPLETE, true);
+
+  // Sync to Firestore using the authenticated user's UID
+  const uid = auth.currentUser?.uid;
+  if (uid) {
+    try {
+      await setDoc(doc(db, 'users', uid), {
+        lea_breed:           selectedBreed,
+        lea_name:            leaName.trim(),
+        user_age:            age.trim(),
+        user_life_stage:     lifeStage,
+        user_conditions:     conditionsToSave,
+        user_priorities:     priorities,
+        user_points:         0,
+        lea_stage:           'puppy',
+        onboarding_complete: true,
+        created_at:          new Date().toISOString(),
+      });
+    } catch (e) {
+      console.error('Firestore save error:', e);
+    }
   }
+
+  setSaving(false);
+  onComplete();
+}
 
   // ── Progress bar ──────────────────────────────────────────────────────────
 
@@ -396,13 +429,13 @@ export default function OnboardingScreen({ onComplete }) {
             </TouchableOpacity>
           )}
           <TouchableOpacity
-            style={[styles.nextBtn, !canAdvance() && styles.nextBtnDisabled]}
+            style={[styles.nextBtn, (!canAdvance() || saving) && styles.nextBtnDisabled]}
             onPress={step === 4 ? handleFinish : () => setStep(s => s + 1)}
-            disabled={!canAdvance()}
+            disabled={!canAdvance() || saving}
             activeOpacity={0.8}
           >
             <Text style={styles.nextBtnText}>
-              {step === 4 ? "I'm ready — let's go 🐾" : 'Continue'}
+              {saving ? 'Saving…' : step === 4 ? "I'm ready — let's go 🐾" : 'Continue'}
             </Text>
           </TouchableOpacity>
         </View>

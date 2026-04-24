@@ -16,6 +16,13 @@ config.resolver.extraNodeModules = {
   'react-dom': path.resolve(rootNodeModules, 'react-dom'),
 };
 
+// Firebase ships .cjs files — Metro must recognise that extension.
+config.resolver.sourceExts = [...config.resolver.sourceExts, 'cjs'];
+
+// Disable package-exports resolution: Metro's implementation misreads
+// Firebase's exports map and picks the wrong (browser) entry points.
+config.resolver.unstable_enablePackageExports = false;
+
 // Also block Metro from watching frontend/node_modules so it never
 // accidentally resolves modules from there.
 config.watchFolders = [projectRoot];
