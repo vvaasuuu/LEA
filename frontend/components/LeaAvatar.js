@@ -10,12 +10,12 @@ const STAGE_IMAGES = {
     require('../assets/dogs/puppy eyes closed.png'),
   ],
   young: [
-    require('../assets/dogs/teen1 eyes open.png'),
-    require('../assets/dogs/teen1 eyes closed.png'),
+    require('../assets/dogs/adult dog eyes open.jpeg'),
+    require('../assets/dogs/adult dog eyes closed.jpeg'),
   ],
   adult: [
-    require('../assets/dogs/adult dog eyes open tail up.png'),
-    require('../assets/dogs/adult dog eyes closed tail down.png'),
+    require('../assets/dogs/adult dog eyes open.jpeg'),
+    require('../assets/dogs/adult dog eyes closed.jpeg'),
   ],
 };
 

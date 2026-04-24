@@ -37,9 +37,9 @@ const PRIORITIES_LIST = [
 
 const DOG_IMAGES = {
   puppy: require('../assets/dogs/Puppy open eyes.png'),
-  young: require('../assets/dogs/teen1 eyes open.png'),
-  teen:  require('../assets/dogs/teen1 eyes open.png'),
-  adult: require('../assets/dogs/adult dog eyes open tail up.png'),
+  young: require('../assets/dogs/adult dog eyes open.jpeg'),
+  teen:  require('../assets/dogs/adult dog eyes open.jpeg'),
+  adult: require('../assets/dogs/adult dog eyes open.jpeg'),
 };
 
 const STAGE_LABELS = { puppy: 'Puppy', young: 'Teen', teen: 'Teen', adult: 'Adult' };
