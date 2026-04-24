@@ -41,6 +41,34 @@ function RelevanceBar({ score }) {
   );
 }
 
+function formatScore(value) {
+  if (value > 0) return `+${value}`;
+  if (value < 0) return `${value}`;
+  return '0';
+}
+
+function generateInitialScores(baseScores, age = 22) {
+  const result = {};
+  const base = age >= 26 ? 5 : 4;
+
+  Object.keys(baseScores).forEach((key) => {
+    result[key] = base + Math.floor(Math.random() * 4);
+  });
+
+  return result;
+}
+
+function getScenarioInitialScores(scenario) {
+  const generated = generateInitialScores(
+    scenario.initialScores,
+    scenario.episodes[scenario.initialEpisodeId]?.age
+  );
+
+  return scenario.fixedStartScores
+    ? { ...generated, ...scenario.fixedStartScores }
+    : generated;
+}
+
 function ScenarioCard({ card, index, expanded, onToggle, onStart, isPlayed }) {
   const meta = SCENARIO_META[card.id];
 
@@ -74,6 +102,29 @@ function ScenarioCard({ card, index, expanded, onToggle, onStart, isPlayed }) {
         <View style={styles.cardBottom}>
           <Text style={styles.summaryText}>{meta.summary}</Text>
 
+          <View style={styles.startingScoresWrap}>
+            <Text style={styles.startingScoresLabel}>Starting points</Text>
+            <View style={styles.startingScoresRow}>
+              {Object.entries(card.initialScores).map(([key, value]) => (
+                <View
+                  key={key}
+                  style={[
+                    styles.startingScorePill,
+                    {
+                      borderColor: card.scoreColors[key],
+                      backgroundColor: `${card.scoreColors[key]}14`,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.startingScoreValue, { color: card.scoreColors[key] }]}>
+                    {formatScore(value)}
+                  </Text>
+                  <Text style={styles.startingScoreName}>{card.scoreLabels[key]}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
           <View style={styles.divider} />
 
           <RelevanceBar score={card.relevance} />
@@ -100,6 +151,12 @@ function Tab({ label, active, onPress }) {
 function ScenarioPicker({ onSelect, priorities, completedIds }) {
   const [expandedId, setExpandedId] = useState(null);
   const [activeTab, setActiveTab] = useState('new');
+  const [scenarioPreviews] = useState(() =>
+    STORY_SCENARIOS.reduce((map, scenario) => {
+      map[scenario.id] = getScenarioInitialScores(scenario);
+      return map;
+    }, {})
+  );
 
   const allCards = STORY_SCENARIOS.map((scenario) => {
     const meta = SCENARIO_META[scenario.id];
@@ -108,6 +165,9 @@ function ScenarioPicker({ onSelect, priorities, completedIds }) {
       title: scenario.selectorTitle || scenario.title,
       relevance: meta ? meta.getRelevance(priorities) : 75,
       isPlayed: completedIds.includes(scenario.id),
+      initialScores: scenarioPreviews[scenario.id],
+      scoreLabels: scenario.scoreLabels,
+      scoreColors: scenario.scoreColors,
     };
   });
 
@@ -155,7 +215,7 @@ function ScenarioPicker({ onSelect, priorities, completedIds }) {
                 index={index}
                 expanded={expandedId === card.id}
                 onToggle={() => setExpandedId(expandedId === card.id ? null : card.id)}
-                onStart={() => onSelect(card.id)}
+                onStart={() => onSelect(card.id, card.initialScores)}
                 isPlayed={card.isPlayed}
               />
             ))
@@ -182,6 +242,7 @@ function ScenarioPicker({ onSelect, priorities, completedIds }) {
 
 export default function SimulationScreen() {
   const [selectedScenarioId, setSelectedScenarioId] = useState(null);
+  const [selectedInitialScores, setSelectedInitialScores] = useState(null);
   const [priorities,         setPriorities]         = useState([]);
   const [completedIds,       setCompletedIds]       = useState([]);
 
@@ -207,14 +268,21 @@ export default function SimulationScreen() {
       <StoryScreen
         key={activeScenario.id}
         scenario={activeScenario}
-        onExit={() => setSelectedScenarioId(null)}
+        initialScoresOverride={selectedInitialScores}
+        onExit={() => {
+          setSelectedScenarioId(null);
+          setSelectedInitialScores(null);
+        }}
       />
     );
   }
 
   return (
     <ScenarioPicker
-      onSelect={setSelectedScenarioId}
+      onSelect={(scenarioId, initialScores) => {
+        setSelectedScenarioId(scenarioId);
+        setSelectedInitialScores(initialScores);
+      }}
       priorities={priorities}
       completedIds={completedIds}
     />
@@ -347,6 +415,39 @@ const styles = StyleSheet.create({
     color: '#546E7A',
     lineHeight: 21,
     marginBottom: 16,
+  },
+  startingScoresWrap: {
+    marginBottom: 16,
+  },
+  startingScoresLabel: {
+    marginBottom: 10,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    color: ROSE,
+  },
+  startingScoresRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  startingScorePill: {
+    minWidth: 82,
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  startingScoreValue: {
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  startingScoreName: {
+    marginTop: 2,
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#7B6E7A',
   },
   divider: {
     height: 1,

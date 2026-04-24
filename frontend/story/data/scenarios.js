@@ -8,6 +8,12 @@ import { moneyHabitsScenario } from './moneyHabitsScenario';
 
 fertilityWindowScenario.selectorTitle = 'The Fertility Window\nvs Career Acceleration';
 fertilityWindowScenario.initialScores = DEFAULT_SCORES;
+fertilityWindowScenario.fixedStartScores = {
+  career: 6,
+  health: 4,
+  relationship: 4,
+  fertility: 7,
+};
 fertilityWindowScenario.scoreLabels = fertilityScoreLabels;
 fertilityWindowScenario.scoreColors = fertilityScoreColors;
 fertilityWindowScenario.getEndingText = function getEndingText(scores) {

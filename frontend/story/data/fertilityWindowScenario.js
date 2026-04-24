@@ -75,7 +75,7 @@ export const fertilityWindowScenario = {
         {
           id: 'E1A_ignore',
           label: 'Ignore it for now',
-          effect: { career: 4, health: 0, relationship: 1, fertility: -2 },
+          effect: { career: 4, health: -1, relationship: 1, fertility: -2 },
           consequence: [
             consequenceNarration('You decide it can wait.'),
             consequenceDialogue('lea', 'reflective', "Maybe it's nothing."),
@@ -134,7 +134,7 @@ export const fertilityWindowScenario = {
         {
           id: 'E2DA_ignore',
           label: 'Ignore it for now',
-          effect: { career: 4, health: 0, relationship: 1, fertility: -5 },
+          effect: { career: 4, health: -1, relationship: 1, fertility: -5 },
           consequence: [
             consequenceNarration('You move on and focus on work.'),
             consequenceDialogue('lea', 'reflective', "I'll think about it later."),
@@ -226,7 +226,7 @@ export const fertilityWindowScenario = {
         {
           id: 'E2FA_work',
           label: 'Put it aside and focus on work',
-          effect: { career: 5, health: 0, relationship: 0, fertility: -4 },
+          effect: { career: 5, health: -1, relationship: 0, fertility: -4 },
           consequence: [
             consequenceNarration("You choose not to build your life around it yet."),
             consequenceDialogue('lea', 'reflective', "I have the information. I'm just not acting on it."),
@@ -375,7 +375,7 @@ export const fertilityWindowScenario = {
         {
           id: 'E3IB_wait',
           label: 'Wait strategically and revisit at 28',
-          effect: { career: 6, health: 0, relationship: 0, fertility: -4 },
+          effect: { career: 6, health: -1, relationship: 0, fertility: -4 },
           consequence: [
             consequenceNarration('You choose intentional delay.'),
             consequenceDialogue('lea', 'reflective', "We're sequencing it."),
@@ -466,7 +466,7 @@ export const fertilityWindowScenario = {
         {
           id: 'E4DB_wait',
           label: 'Wait 1-2 more years strategically',
-          effect: { career: 8, health: 0, relationship: 0, fertility: -8 },
+          effect: { career: 8, health: -1, relationship: 0, fertility: -8 },
           consequence: [
             consequenceNarration('You choose a calculated delay.'),
             consequenceDialogue('lea', 'reflective', 'Waiting is still a choice.'),
@@ -690,7 +690,7 @@ export const fertilityWindowScenario = {
         {
           id: 'E5PB_wait',
           label: 'Keep the role and wait',
-          effect: { career: 8, health: 0, relationship: 0, fertility: -7 },
+          effect: { career: 8, health: -1, relationship: 0, fertility: -7 },
           consequence: [
             consequenceNarration('You rely on the supportive setup while delaying again.'),
             consequenceDialogue('lea', 'reflective', 'Waiting feels different when the structure is better.'),

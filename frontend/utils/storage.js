@@ -13,6 +13,7 @@ const KEYS = {
   LEA_BREED: 'lea_breed',
   USER_LIFE_STAGE: 'user_life_stage',
   USER_PRIORITIES: 'user_priorities',
+  COMPANY_PREFERENCES: 'company_preferences',
   ONBOARDING_COMPLETE: 'onboarding_complete',
   RELATIONSHIP_CONTENT_ENABLED: 'relationship_content_enabled',
   COMPLETED_SCENARIOS: 'completed_scenarios',

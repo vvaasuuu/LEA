@@ -37,6 +37,17 @@ function applyScoreEffect(currentScores, effect) {
   }, {});
 }
 
+function getScenarioInitialScores(scenario) {
+  const generated = generateInitialScores(
+    scenario.initialScores,
+    scenario.episodes[scenario.initialEpisodeId]?.age
+  );
+
+  return scenario.fixedStartScores
+    ? { ...generated, ...scenario.fixedStartScores }
+    : generated;
+}
+
 function getFirstSpeaker(lines) {
   return lines.find((line) => line.character)?.character || 'lea';
 }
@@ -95,12 +106,18 @@ function CharacterWithBubble({ characterId, isActive, text, speaker, expression 
   );
 }
 
-export default function StoryScreen({ scenario = STORY_SCENARIOS[0], onExit }) {
+export default function StoryScreen({ scenario = STORY_SCENARIOS[0], onExit, initialScoresOverride = null }) {
+  function getStartingScores() {
+    if (initialScoresOverride) {
+      return { ...initialScoresOverride };
+    }
+
+    return getScenarioInitialScores(scenario);
+  }
+
   const [episodeId, setEpisodeId] = useState(scenario.initialEpisodeId);
   const [lineIndex, setLineIndex] = useState(0);
-  const [scores, setScores] = useState(() =>
-    generateInitialScores(scenario.initialScores, scenario.episodes[scenario.initialEpisodeId]?.age)
-  );
+  const [scores, setScores] = useState(() => getStartingScores());
   const [lowScoreWarning, setLowScoreWarning] = useState(null);
   const [history, setHistory] = useState([]);
   const [showChoices, setShowChoices] = useState(false);
@@ -122,7 +139,7 @@ export default function StoryScreen({ scenario = STORY_SCENARIOS[0], onExit }) {
   useEffect(() => {
     setEpisodeId(scenario.initialEpisodeId);
     setLineIndex(0);
-    setScores(generateInitialScores(scenario.initialScores, scenario.episodes[scenario.initialEpisodeId]?.age));
+    setScores(getStartingScores());
     setHistory([]);
     setShowChoices(false);
     setPendingConsequence(null);
@@ -134,7 +151,7 @@ export default function StoryScreen({ scenario = STORY_SCENARIOS[0], onExit }) {
     setTypedText('');
     setShowArrow(false);
     setLeaExpression('base');
-  }, [scenario]);
+  }, [initialScoresOverride, scenario]);
 
   useEffect(() => {
     if (!episode) return;
@@ -225,7 +242,7 @@ export default function StoryScreen({ scenario = STORY_SCENARIOS[0], onExit }) {
     [episode, pendingConsequence]
   );
 
-  const canAdvance = Boolean(activeLine) && !showChoices;
+  const canAdvance = Boolean(activeLine) && !showChoices && !lowScoreWarning;
   const isNarration = activeLine?.type === 'narration';
   const orderedCast = orderCast(cast);
   const leaDisplayExpression = cast.includes('mara') ? 'sideM' : leaExpression;
@@ -244,10 +261,9 @@ export default function StoryScreen({ scenario = STORY_SCENARIOS[0], onExit }) {
   }
 
   function resetStory() {
-    const initialEpisode = scenario.episodes[scenario.initialEpisodeId];
     setEpisodeId(scenario.initialEpisodeId);
     setLineIndex(0);
-    setScores(generateInitialScores(scenario.initialScores, initialEpisode?.age));
+    setScores(getStartingScores());
     setLowScoreWarning(null);
     setHistory([]);
     setShowChoices(false);
@@ -307,12 +323,11 @@ export default function StoryScreen({ scenario = STORY_SCENARIOS[0], onExit }) {
     setScores((currentScores) => {
       const next = applyScoreEffect(currentScores, choice.effect);
       const lowKey = Object.keys(next).find(
-        (k) => next[k] < 3 && (choice.effect[k] || 0) < 0
+        (k) => next[k] <= 3 && (choice.effect[k] || 0) < 0
       );
       if (lowKey) {
         const label = scenario.scoreLabels?.[lowKey] || lowKey;
         setLowScoreWarning(label);
-        setTimeout(() => setLowScoreWarning(null), 4000);
       }
       return next;
     });
@@ -437,14 +452,22 @@ export default function StoryScreen({ scenario = STORY_SCENARIOS[0], onExit }) {
           ) : null}
 
           {lowScoreWarning ? (
-            <View style={styles.lowScoreBanner}>
-              <Text style={styles.lowScoreTitle}>
-                {lowScoreWarning} needs a little love right now
-              </Text>
-              <Text style={styles.lowScoreBody}>
+            <TouchableOpacity
+              activeOpacity={1}
+              style={styles.lowScoreOverlay}
+              onPress={() => setLowScoreWarning(null)}
+            >
+              <View style={styles.lowScoreBanner}>
+                <Text style={styles.lowScoreEyebrow}>Check In</Text>
+                <Text style={styles.lowScoreTitle}>
+                  {lowScoreWarning} needs a little love right now
+                </Text>
+                <Text style={styles.lowScoreBody}>
                 It's natural — life pulls in all directions. Lea's got this.
-              </Text>
-            </View>
+                </Text>
+                <Text style={styles.lowScoreHint}>Tap anywhere to continue</Text>
+              </View>
+            </TouchableOpacity>
           ) : null}
         </View>
       </TouchableWithoutFeedback>
@@ -600,31 +623,57 @@ const styles = StyleSheet.create({
     width: '100%',
     height: IMAGE_H,
   },
-  lowScoreBanner: {
+  lowScoreOverlay: {
     position: 'absolute',
-    bottom: 24,
-    left: 20,
-    right: 20,
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: 'rgba(61, 12, 78, 0.22)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingBottom: 20,
+  },
+  lowScoreBanner: {
+    width: '100%',
+    maxWidth: 360,
     backgroundColor: '#FFF0F5',
-    borderRadius: 16,
-    borderWidth: 1.5,
-    borderColor: '#EDD5E4',
-    paddingHorizontal: 18,
-    paddingVertical: 14,
+    borderRadius: 26,
+    borderWidth: 2,
+    borderColor: '#E8BED2',
+    paddingHorizontal: 24,
+    paddingVertical: 24,
     shadowColor: PLUM,
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOpacity: 0.16,
+    shadowRadius: 18,
+    elevation: 10,
+  },
+  lowScoreEyebrow: {
+    marginBottom: 10,
+    fontSize: 11,
+    fontWeight: '800',
+    color: ROSE,
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
   },
   lowScoreTitle: {
-    fontSize: 13,
-    fontWeight: '700',
+    fontSize: 22,
+    fontWeight: '800',
     color: ROSE,
-    marginBottom: 4,
+    lineHeight: 30,
+    marginBottom: 10,
   },
   lowScoreBody: {
-    fontSize: 12,
+    fontSize: 15,
     color: PLUM,
-    lineHeight: 18,
+    lineHeight: 23,
+  },
+  lowScoreHint: {
+    marginTop: 16,
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#8A6D7E',
+    textAlign: 'center',
   },
 });

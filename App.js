@@ -9,6 +9,7 @@ import OnboardingScreen    from './frontend/screens/OnboardingScreen';
 import AuthScreen          from './frontend/screens/AuthScreen';
 import TabNavigator        from './frontend/navigation/TabNavigator';
 import CompanyDetailScreen from './frontend/screens/CompanyDetailScreen';
+import CompanyFilterScreen from './frontend/screens/CompanyFilterScreen';
 import CompanyExploreScreen from './frontend/screens/CompanyExploreScreen';
 import ProfileScreen       from './frontend/screens/ProfileScreen';
 import { auth, db }        from './frontend/utils/firebase';
@@ -92,6 +93,7 @@ export default function App() {
             <Stack.Screen name="Main"           component={TabNavigator} />
             <Stack.Screen name="Profile"        component={ProfileScreen} />
             <Stack.Screen name="CompanyDetail"  component={CompanyDetailScreen} />
+            <Stack.Screen name="CompanyFilter"  component={CompanyFilterScreen} />
             <Stack.Screen name="CompanyExplore" component={CompanyExploreScreen} />
           </>
         )}
