@@ -21,6 +21,22 @@ const { height: SCREEN_H } = Dimensions.get('window');
 const IMAGE_H = SCREEN_H * 0.52;
 const TYPEWRITER_MS = 28;
 
+function generateInitialScores(baseScores, age = 22) {
+  const result = {};
+  const base = age >= 26 ? 5 : 4;
+  Object.keys(baseScores).forEach((key) => {
+    result[key] = base + Math.floor(Math.random() * 4); // 4–7 or 5–8 depending on age
+  });
+  return result;
+}
+
+function applyScoreEffect(currentScores, effect) {
+  return Object.keys(currentScores).reduce((nextScores, key) => {
+    nextScores[key] = Math.max(0, (currentScores[key] || 0) + (effect[key] || 0));
+    return nextScores;
+  }, {});
+}
+
 function getFirstSpeaker(lines) {
   return lines.find((line) => line.character)?.character || 'lea';
 }
@@ -58,12 +74,6 @@ function flattenConsequence(choice) {
   return choice.consequence.map((line) => line.text).join(' ');
 }
 
-function applyScoreEffect(currentScores, effect) {
-  return Object.keys(currentScores).reduce((nextScores, key) => {
-    nextScores[key] = (currentScores[key] || 0) + (effect[key] || 0);
-    return nextScores;
-  }, {});
-}
 
 function CharacterWithBubble({ characterId, isActive, text, speaker, expression }) {
   return (
@@ -88,7 +98,10 @@ function CharacterWithBubble({ characterId, isActive, text, speaker, expression 
 export default function StoryScreen({ scenario = STORY_SCENARIOS[0], onExit }) {
   const [episodeId, setEpisodeId] = useState(scenario.initialEpisodeId);
   const [lineIndex, setLineIndex] = useState(0);
-  const [scores, setScores] = useState({ ...scenario.initialScores });
+  const [scores, setScores] = useState(() =>
+    generateInitialScores(scenario.initialScores, scenario.episodes[scenario.initialEpisodeId]?.age)
+  );
+  const [lowScoreWarning, setLowScoreWarning] = useState(null);
   const [history, setHistory] = useState([]);
   const [showChoices, setShowChoices] = useState(false);
   const [pendingConsequence, setPendingConsequence] = useState(null);
@@ -109,13 +122,14 @@ export default function StoryScreen({ scenario = STORY_SCENARIOS[0], onExit }) {
   useEffect(() => {
     setEpisodeId(scenario.initialEpisodeId);
     setLineIndex(0);
-    setScores({ ...scenario.initialScores });
+    setScores(generateInitialScores(scenario.initialScores, scenario.episodes[scenario.initialEpisodeId]?.age));
     setHistory([]);
     setShowChoices(false);
     setPendingConsequence(null);
     setConsequenceIndex(0);
     setShowTitleCard(true);
     setView('story');
+    setLowScoreWarning(null);
     setActiveSpeaker(getFirstSpeaker(scenario.episodes[scenario.initialEpisodeId].lines));
     setTypedText('');
     setShowArrow(false);
@@ -233,7 +247,8 @@ export default function StoryScreen({ scenario = STORY_SCENARIOS[0], onExit }) {
     const initialEpisode = scenario.episodes[scenario.initialEpisodeId];
     setEpisodeId(scenario.initialEpisodeId);
     setLineIndex(0);
-    setScores({ ...scenario.initialScores });
+    setScores(generateInitialScores(scenario.initialScores, initialEpisode?.age));
+    setLowScoreWarning(null);
     setHistory([]);
     setShowChoices(false);
     setPendingConsequence(null);
@@ -289,7 +304,18 @@ export default function StoryScreen({ scenario = STORY_SCENARIOS[0], onExit }) {
   }
 
   function handleChoice(choice) {
-    setScores((currentScores) => applyScoreEffect(currentScores, choice.effect));
+    setScores((currentScores) => {
+      const next = applyScoreEffect(currentScores, choice.effect);
+      const lowKey = Object.keys(next).find(
+        (k) => next[k] < 3 && (choice.effect[k] || 0) < 0
+      );
+      if (lowKey) {
+        const label = scenario.scoreLabels?.[lowKey] || lowKey;
+        setLowScoreWarning(label);
+        setTimeout(() => setLowScoreWarning(null), 4000);
+      }
+      return next;
+    });
     setHistory((currentHistory) => [
       ...currentHistory,
       {
@@ -408,6 +434,17 @@ export default function StoryScreen({ scenario = STORY_SCENARIOS[0], onExit }) {
               age={episode.age}
               onPress={() => setShowTitleCard(false)}
             />
+          ) : null}
+
+          {lowScoreWarning ? (
+            <View style={styles.lowScoreBanner}>
+              <Text style={styles.lowScoreTitle}>
+                {lowScoreWarning} needs a little love right now
+              </Text>
+              <Text style={styles.lowScoreBody}>
+                It's natural — life pulls in all directions. Lea's got this.
+              </Text>
+            </View>
           ) : null}
         </View>
       </TouchableWithoutFeedback>
@@ -562,5 +599,32 @@ const styles = StyleSheet.create({
   charImage: {
     width: '100%',
     height: IMAGE_H,
+  },
+  lowScoreBanner: {
+    position: 'absolute',
+    bottom: 24,
+    left: 20,
+    right: 20,
+    backgroundColor: '#FFF0F5',
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#EDD5E4',
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    shadowColor: PLUM,
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  lowScoreTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: ROSE,
+    marginBottom: 4,
+  },
+  lowScoreBody: {
+    fontSize: 12,
+    color: PLUM,
+    lineHeight: 18,
   },
 });
