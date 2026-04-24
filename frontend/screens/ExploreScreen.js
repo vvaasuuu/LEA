@@ -15,7 +15,6 @@ const PUPPY_IMAGE = require('../assets/dogs/Puppy open eyes.png');
 const CONDITIONS = [
   {
     id: '1',
-    emoji: '🩸',
     name: 'PCOS',
     tagline: 'Polycystic Ovary Syndrome',
     tags: ['Health', 'Career'],
@@ -27,7 +26,6 @@ const CONDITIONS = [
   },
   {
     id: '2',
-    emoji: '🔴',
     name: 'Endometriosis',
     tagline: 'Tissue grows outside the uterus',
     tags: ['Health', 'Balance'],
@@ -39,7 +37,6 @@ const CONDITIONS = [
   },
   {
     id: '3',
-    emoji: '💜',
     name: 'Adenomyosis',
     tagline: 'Uterine lining grows into the muscle wall',
     tags: ['Health', 'Balance'],
@@ -51,7 +48,6 @@ const CONDITIONS = [
   },
   {
     id: '4',
-    emoji: '⚡',
     name: 'PMDD',
     tagline: 'Premenstrual Dysphoric Disorder',
     tags: ['Health'],
@@ -63,7 +59,6 @@ const CONDITIONS = [
   },
   {
     id: '5',
-    emoji: '🦋',
     name: 'Thyroid Disorders',
     tagline: 'Hypothyroidism & Hyperthyroidism',
     tags: ['Health'],
@@ -75,7 +70,6 @@ const CONDITIONS = [
   },
   {
     id: '6',
-    emoji: '🌡️',
     name: 'Fibroids',
     tagline: 'Uterine Leiomyomas',
     tags: ['Health'],
@@ -87,7 +81,6 @@ const CONDITIONS = [
   },
   {
     id: '7',
-    emoji: '🧬',
     name: 'Premature Ovarian Insufficiency',
     tagline: 'Early loss of normal ovarian function',
     tags: ['Health'],
@@ -146,16 +139,12 @@ export default function ExploreScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Text style={styles.emptyIcon}>🔎</Text>
             <Text style={styles.emptyText}>No results for "{query}"</Text>
           </View>
         }
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.card} onPress={() => setSelected(item)} activeOpacity={0.75}>
             <View style={styles.cardTop}>
-              <View style={styles.cardEmojiBubble}>
-                <Text style={styles.cardEmoji}>{item.emoji}</Text>
-              </View>
               <View style={styles.cardMeta}>
                 <Text style={styles.cardName}>{item.name}</Text>
                 <Text style={styles.cardTagline}>{item.tagline}</Text>
@@ -207,7 +196,6 @@ export default function ExploreScreen() {
             </View>
 
             <ScrollView contentContainerStyle={styles.modalScroll} showsVerticalScrollIndicator={false}>
-              <Text style={styles.modalEmoji}>{selected.emoji}</Text>
               <Text style={styles.modalName}>{selected.name}</Text>
               <Text style={styles.modalTagline}>{selected.tagline}</Text>
               <View style={styles.tagRow}>

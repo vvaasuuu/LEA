@@ -228,7 +228,6 @@ export default function OnboardingScreen({ onComplete }) {
     const isOthersOn = conditions.includes('Others');
     return (
       <View style={styles.screenContent}>
-        <Text style={styles.emoji}>🩺</Text>
         <Text style={styles.heading}>Any diagnosed conditions?</Text>
         <Text style={styles.subheading}>
           Select all that apply. This personalises your health timeline — nothing is shared.
@@ -303,7 +302,6 @@ export default function OnboardingScreen({ onComplete }) {
 
   const Screen4 = () => (
     <View style={styles.screenContent}>
-      <Text style={styles.emoji}>✨</Text>
       <Text style={styles.heading}>What matters to you right now?</Text>
       <Text style={styles.subheading}>
         Pick as many as feel true. Family planning is one option among equals — never the default.
@@ -328,7 +326,6 @@ export default function OnboardingScreen({ onComplete }) {
 
   const Screen5 = () => (
     <View style={styles.screenContent}>
-      <Text style={styles.emoji}>🔒</Text>
       <Text style={styles.heading}>Before you begin.</Text>
       <Text style={styles.subheading}>
         A few things worth knowing about how LEA handles your information.
@@ -337,7 +334,6 @@ export default function OnboardingScreen({ onComplete }) {
       <View style={styles.privacyCard}>
 
         <View style={styles.privacyRow}>
-          <Text style={styles.privacyIcon}>📱</Text>
           <View style={styles.privacyTextBlock}>
             <Text style={styles.privacyTitle}>Stored on your device only</Text>
             <Text style={styles.privacyBody}>
@@ -349,7 +345,6 @@ export default function OnboardingScreen({ onComplete }) {
         <View style={styles.privacyDivider} />
 
         <View style={styles.privacyRow}>
-          <Text style={styles.privacyIcon}>📋</Text>
           <View style={styles.privacyTextBlock}>
             <Text style={styles.privacyTitle}>Evidence-based, not medical advice</Text>
             <Text style={styles.privacyBody}>
@@ -361,7 +356,6 @@ export default function OnboardingScreen({ onComplete }) {
         <View style={styles.privacyDivider} />
 
         <View style={styles.privacyRow}>
-          <Text style={styles.privacyIcon}>🗑️</Text>
           <View style={styles.privacyTextBlock}>
             <Text style={styles.privacyTitle}>Delete anytime</Text>
             <Text style={styles.privacyBody}>
