@@ -72,6 +72,27 @@ const WEEK_ABBR   = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 function toDateStr(d) {
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
+function formatDateInput(d) {
+  return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+}
+function autoFormatDate(text) {
+  const digits = text.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+}
+
+function parseUpcomingDate(text) {
+  const parts = text.trim().split('/');
+  if (parts.length < 2) return null;
+  const day   = parseInt(parts[0], 10);
+  const month = parseInt(parts[1], 10) - 1;
+  const year  = parts[2] ? parseInt(parts[2], 10) : TODAY.getFullYear();
+  if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+  const d = new Date(year, month, day);
+  if (d.getFullYear() !== year || d.getMonth() !== month || d.getDate() !== day) return null;
+  return d;
+}
 function formatShortDate(d) { return `${MONTH_SHORT[d.getMonth()]} ${d.getDate()}`; }
 function formatFullDate(d)  { return `${DAYS_LONG[d.getDay()]}, ${d.getDate()} ${MONTHS_LONG[d.getMonth()]}`; }
 function formatTimelineDate(d) {
@@ -225,11 +246,18 @@ export default function ActScreen() {
   const [pickedDate,     setPickedDate]    = useState(TODAY);
   const [showDatePicker, setShowDatePicker]= useState(false);
   const [recommendations, setRecommendations] = useState(RECOMMENDATIONS);
+  const [showAddUpcoming,  setShowAddUpcoming]  = useState(false);
+  const [upcomingNote,     setUpcomingNote]     = useState('');
+  const [upcomingCategory, setUpcomingCategory] = useState('Health');
+  const [upcomingDateText, setUpcomingDateText] = useState(formatDateInput(TODAY));
+  const [upcomingDateError,setUpcomingDateError]= useState('');
+  const upcomingDatePrev   = useRef(formatDateInput(TODAY));
 
   const calendarRef = useRef(null);
 
   const visibleWeek  = WEEKS[visibleWeekIdx] || WEEKS[0];
   const calMonthYear = `${MONTHS_LONG[visibleWeek[0].getMonth()]} ${visibleWeek[0].getFullYear()}`;
+
 
   useEffect(() => {
     if (route.params?.addAction) {
@@ -280,6 +308,19 @@ export default function ActScreen() {
     setRecommendations(prev => prev.filter(r => r.id !== recToAdd.id));
     setShowDatePicker(false);
     setRecToAdd(null);
+  }
+
+  function confirmAddUpcoming() {
+    const parsed = parseUpcomingDate(upcomingDateText);
+    if (!parsed) { setUpcomingDateError('Enter a valid date — DD/MM/YYYY'); return; }
+    const dateStr = toDateStr(parsed);
+    const entry   = { id: String(Date.now()), category: upcomingCategory, note: upcomingNote.trim() };
+    setEntries(prev => ({ ...prev, [dateStr]: [...(prev[dateStr] || []), entry] }));
+    setShowAddUpcoming(false);
+    setUpcomingNote('');
+    setUpcomingCategory('Health');
+    setUpcomingDateText(formatDateInput(TODAY));
+    setUpcomingDateError('');
   }
 
   function toggleFilter(key) {
@@ -375,8 +416,19 @@ export default function ActScreen() {
 
         {/* ── 3. Upcoming ────────────────────────────────────────── */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Upcoming</Text>
-          <Text style={styles.sectionSub}>Next 2 weeks · swipe left to remove</Text>
+          <View style={styles.sectionHeader}>
+            <View>
+              <Text style={styles.sectionTitle}>Upcoming</Text>
+              <Text style={styles.sectionSub}>Next 2 weeks · swipe left to remove</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.addUpcomingBtn}
+              onPress={() => { setUpcomingDateText(formatDateInput(TODAY)); setUpcomingDateError(''); setShowAddUpcoming(true); }}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.addUpcomingBtnText}>+</Text>
+            </TouchableOpacity>
+          </View>
           <View style={styles.whiteBox}>
             {upcomingEntries.length === 0 ? (
               <View style={styles.emptyUpcoming}>
@@ -607,6 +659,74 @@ export default function ActScreen() {
         </View>
       </Modal>
 
+      {/* ══ Add to Upcoming sheet ════════════════════════════════════════ */}
+      <Modal
+        visible={showAddUpcoming}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowAddUpcoming(false)}
+      >
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+          <View style={styles.overlay}>
+            <TouchableOpacity style={styles.overlayDismiss} activeOpacity={1} onPress={() => setShowAddUpcoming(false)} />
+            <View style={[styles.sheet, styles.sheetTall]}>
+              <View style={styles.sheetHandle} />
+              <Text style={styles.sheetTitle}>Add to Upcoming</Text>
+
+              <Text style={styles.addEntryLabel}>Category</Text>
+              <View style={styles.categoryRow}>
+                {['Health', 'Career', 'Others'].map(cat => {
+                  const cs = CAT_STYLES[cat];
+                  const isActive = cat === upcomingCategory;
+                  return (
+                    <TouchableOpacity
+                      key={cat}
+                      style={[styles.categoryBtn, { backgroundColor: isActive ? cs.selBg : cs.unselBg, borderColor: cs.color }]}
+                      onPress={() => setUpcomingCategory(cat)}
+                      activeOpacity={0.75}
+                    >
+                      <Text style={[styles.categoryBtnText, { color: isActive ? '#FFFFFF' : cs.color }]}>{cat}</Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              <TextInput
+                style={styles.noteInput}
+                placeholder="What's coming up?"
+                placeholderTextColor={MUTED}
+                value={upcomingNote}
+                onChangeText={setUpcomingNote}
+                returnKeyType="done"
+              />
+
+              <Text style={styles.addEntryLabel}>Date</Text>
+              <TextInput
+                style={[styles.noteInput, !!upcomingDateError && styles.noteInputError]}
+                placeholder="DD / MM / YYYY"
+                placeholderTextColor={MUTED}
+                value={upcomingDateText}
+                onFocus={() => { upcomingDatePrev.current = upcomingDateText; setUpcomingDateText(''); setUpcomingDateError(''); }}
+                onBlur={() => { if (!upcomingDateText.trim()) setUpcomingDateText(upcomingDatePrev.current); }}
+                onChangeText={t => { setUpcomingDateText(autoFormatDate(t)); setUpcomingDateError(''); }}
+                keyboardType="numeric"
+                returnKeyType="done"
+              />
+              {!!upcomingDateError && (
+                <Text style={styles.dateErrorText}>{upcomingDateError}</Text>
+              )}
+
+              <TouchableOpacity style={styles.applyBtn} onPress={confirmAddUpcoming} activeOpacity={0.8}>
+                <Text style={styles.applyBtnText}>Add to Upcoming</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setShowAddUpcoming(false)} style={styles.cancelLinkRow}>
+                <Text style={styles.cancelLinkText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
       {/* ══ Preferences sheet ═════════════════════════════════════════════ */}
       <Modal
         visible={showPrefs}
@@ -737,8 +857,11 @@ const styles = StyleSheet.create({
 
   // Sections
   section:      { paddingHorizontal: 20, marginBottom: 28 },
+  sectionHeader:{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   sectionTitle: { fontSize: 18, fontWeight: '700', color: HEADING, marginBottom: 2 },
   sectionSub:   { fontSize: 12, color: MUTED, marginBottom: 14 },
+  addUpcomingBtn:    { width: 34, height: 34, borderRadius: 17, backgroundColor: ROSE, alignItems: 'center', justifyContent: 'center' },
+  addUpcomingBtnText:{ color: '#FFFFFF', fontSize: 24, fontWeight: '600', lineHeight: 30 },
   whiteBox: {
     backgroundColor: '#FFFFFF',
     borderRadius: 12,
@@ -879,6 +1002,8 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: '#E1BEE7', borderRadius: 10,
     padding: 10, fontSize: 14, color: HEADING, marginBottom: 16,
   },
+  noteInputError: { borderColor: ROSE },
+  dateErrorText:  { fontSize: 12, color: ROSE, marginTop: -12, marginBottom: 14 },
   saveBtn:        { backgroundColor: ROSE, borderRadius: 12, paddingVertical: 14, alignItems: 'center', marginBottom: 4 },
   saveBtnText:    { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
   cancelLinkRow:  { alignItems: 'center', paddingVertical: 8 },
