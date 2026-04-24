@@ -1,7 +1,9 @@
-import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SCORE_COLORS, SCORE_LABELS } from '../data/fertilityWindowScenario';
+import { Storage } from '../../utils/storage';
+import { fetchRecommendations } from '../../utils/openai';
 
 const PLUM   = '#3D0C4E';
 const ROSE   = '#C2185B';
@@ -36,6 +38,35 @@ function ScoreBar({ label, value, color }) {
 
 export default function StorySummary({ scenarioTitle, scores, history, onRestart, onExit }) {
   const navigation = useNavigation();
+  const [steps, setSteps] = useState([]);
+  const [loadingSteps, setLoadingSteps] = useState(true);
+  const [stepsError, setStepsError] = useState(false);
+
+  useEffect(() => {
+    async function loadSteps() {
+      try {
+        const [age, conditions, priorities] = await Promise.all([
+          Storage.get(Storage.KEYS.USER_AGE),
+          Storage.get(Storage.KEYS.USER_CONDITIONS),
+          Storage.get(Storage.KEYS.USER_PRIORITIES),
+        ]);
+        const result = await fetchRecommendations({
+          age,
+          conditions: Array.isArray(conditions) ? conditions : [],
+          priorities: Array.isArray(priorities) ? priorities : [],
+          scores,
+          history,
+        });
+        setSteps(result);
+      } catch (err) {
+        console.error('Recommendations error:', err.message);
+        setStepsError(true);
+      } finally {
+        setLoadingSteps(false);
+      }
+    }
+    loadSteps();
+  }, []);
 
   return (
     <ScrollView
@@ -86,6 +117,33 @@ export default function StorySummary({ scenarioTitle, scores, history, onRestart
               <Text style={ss.timelineAge}>Age {entry.age} · {entry.episodeTitle}</Text>
               <Text style={ss.timelineChoice}>{entry.choiceLabel}</Text>
               <Text style={ss.timelineConseq}>{entry.consequenceSummary}</Text>
+            </View>
+          </View>
+        ))}
+      </View>
+
+      {/* AI next steps */}
+      <View style={ss.card}>
+        <Text style={ss.cardLabel}>YOUR NEXT STEPS</Text>
+        {loadingSteps && (
+          <View style={ss.stepsLoading}>
+            <ActivityIndicator size="small" color={ROSE} />
+            <Text style={ss.stepsLoadingText}>Personalising your recommendations…</Text>
+          </View>
+        )}
+        {!loadingSteps && stepsError && (
+          <Text style={ss.stepsErrorText}>
+            Could not load recommendations. Make sure the backend is running.
+          </Text>
+        )}
+        {!loadingSteps && !stepsError && steps.map((step, i) => (
+          <View key={i} style={[ss.stepItem, i < steps.length - 1 && ss.stepBorder]}>
+            <View style={ss.stepNumber}>
+              <Text style={ss.stepNumberText}>{i + 1}</Text>
+            </View>
+            <View style={ss.stepBody}>
+              <Text style={ss.stepTitle}>{step.title}</Text>
+              <Text style={ss.stepDesc}>{step.body}</Text>
             </View>
           </View>
         ))}
@@ -191,6 +249,26 @@ const ss = StyleSheet.create({
   timelineConseq: {
     fontSize: 12, color: '#546E7A', lineHeight: 18, marginTop: 3,
   },
+
+  // AI steps
+  stepsLoading: {
+    flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8,
+  },
+  stepsLoadingText: { fontSize: 13, color: MUTED, fontStyle: 'italic' },
+  stepsErrorText:   { fontSize: 13, color: MUTED, fontStyle: 'italic' },
+  stepItem: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 12,
+  },
+  stepBorder: { borderBottomWidth: 1, borderBottomColor: BORDER },
+  stepNumber: {
+    width: 26, height: 26, borderRadius: 13,
+    backgroundColor: ROSE, alignItems: 'center', justifyContent: 'center',
+    marginTop: 1, flexShrink: 0,
+  },
+  stepNumberText: { fontSize: 12, fontWeight: '800', color: '#FFFFFF' },
+  stepBody:       { flex: 1 },
+  stepTitle:      { fontSize: 14, fontWeight: '700', color: PLUM, marginBottom: 3 },
+  stepDesc:       { fontSize: 13, color: '#546E7A', lineHeight: 19 },
 
   // Buttons
   primaryBtn: {
