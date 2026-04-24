@@ -242,9 +242,12 @@ export default function ActScreen() {
   const [activeFilters,  setActiveFilters] = useState([]);
   const [careerStage,    setCareerStage]   = useState('');
   const [visibleWeekIdx, setVisibleWeekIdx]= useState(INIT_WEEK_IDX);
-  const [recToAdd,       setRecToAdd]      = useState(null);
-  const [pickedDate,     setPickedDate]    = useState(TODAY);
-  const [showDatePicker, setShowDatePicker]= useState(false);
+  const [recToAdd,        setRecToAdd]       = useState(null);
+  const [pickedDate,      setPickedDate]     = useState(TODAY);
+  const [showDatePicker,  setShowDatePicker] = useState(false);
+  const [pickedDateText,  setPickedDateText] = useState(formatDateInput(TODAY));
+  const [pickedDateError, setPickedDateError]= useState('');
+  const pickedDatePrev = useRef(formatDateInput(TODAY));
   const [recommendations, setRecommendations] = useState(RECOMMENDATIONS);
   const [showAddUpcoming,  setShowAddUpcoming]  = useState(false);
   const [upcomingNote,     setUpcomingNote]     = useState('');
@@ -297,16 +300,21 @@ export default function ActScreen() {
   function openDatePicker(rec) {
     setRecToAdd(rec);
     setPickedDate(TODAY);
+    setPickedDateText(formatDateInput(TODAY));
+    setPickedDateError('');
     setShowDatePicker(true);
   }
 
   function confirmAddRec() {
     if (!recToAdd) return;
-    const dateStr = toDateStr(pickedDate);
+    const manualParsed = parseUpcomingDate(pickedDateText);
+    if (!manualParsed) { setPickedDateError('Enter a valid date — DD/MM/YYYY'); return; }
+    const dateStr = toDateStr(manualParsed);
     const entry   = { id: String(Date.now()), category: recToAdd.category, note: recToAdd.title };
     setEntries(prev => ({ ...prev, [dateStr]: [...(prev[dateStr] || []), entry] }));
     setRecommendations(prev => prev.filter(r => r.id !== recToAdd.id));
     setShowDatePicker(false);
+    setPickedDateError('');
     setRecToAdd(null);
   }
 
@@ -612,6 +620,7 @@ export default function ActScreen() {
         transparent
         onRequestClose={() => setShowDatePicker(false)}
       >
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <View style={styles.overlay}>
           <TouchableOpacity style={styles.overlayDismiss} activeOpacity={1} onPress={() => setShowDatePicker(false)} />
           <View style={styles.sheet}>
@@ -633,7 +642,11 @@ export default function ActScreen() {
                   <TouchableOpacity
                     key={ds}
                     style={[styles.datePickerCell, isSelected && styles.datePickerCellActive]}
-                    onPress={() => setPickedDate(new Date(d))}
+                    onPress={() => {
+                      setPickedDate(new Date(d));
+                      setPickedDateText(formatDateInput(new Date(d)));
+                      setPickedDateError('');
+                    }}
                     activeOpacity={0.75}
                   >
                     <Text style={[styles.datePickerWeekday, isSelected && { color: '#FFFFFF' }]}>
@@ -649,6 +662,26 @@ export default function ActScreen() {
                 );
               })}
             </ScrollView>
+
+            <TextInput
+              style={[styles.noteInput, !!pickedDateError && styles.noteInputError]}
+              placeholder="Or type a date — DD / MM / YYYY"
+              placeholderTextColor={MUTED}
+              value={pickedDateText}
+              onFocus={() => { pickedDatePrev.current = pickedDateText; setPickedDateText(''); setPickedDateError(''); }}
+              onBlur={() => { if (!pickedDateText.trim()) setPickedDateText(pickedDatePrev.current); }}
+              onChangeText={t => {
+                const formatted = autoFormatDate(t);
+                setPickedDateText(formatted);
+                setPickedDateError('');
+                const parsed = parseUpcomingDate(formatted);
+                if (parsed) setPickedDate(parsed);
+              }}
+              keyboardType="numeric"
+              returnKeyType="done"
+            />
+            {!!pickedDateError && <Text style={styles.dateErrorText}>{pickedDateError}</Text>}
+
             <TouchableOpacity style={styles.applyBtn} onPress={confirmAddRec} activeOpacity={0.8}>
               <Text style={styles.applyBtnText}>Add to Upcoming</Text>
             </TouchableOpacity>
@@ -657,6 +690,7 @@ export default function ActScreen() {
             </TouchableOpacity>
           </View>
         </View>
+        </KeyboardAvoidingView>
       </Modal>
 
       {/* ══ Add to Upcoming sheet ════════════════════════════════════════ */}

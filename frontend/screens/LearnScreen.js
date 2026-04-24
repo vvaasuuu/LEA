@@ -249,7 +249,7 @@ export default function LearnScreen() {
         <View style={styles.section}>
           <TouchableOpacity
             style={styles.leaSimCard}
-            onPress={() => navigation.navigate('Simulation')}
+            onPress={() => navigation.navigate('Simulation', { autoExpand: true })}
             activeOpacity={0.85}
           >
             <View style={styles.leaSimBubble}>

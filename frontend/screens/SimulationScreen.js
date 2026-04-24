@@ -6,6 +6,7 @@ import {
 import StoryScreen from './StoryScreen';
 import { STORY_SCENARIOS, STORY_SCENARIO_MAP } from '../story/data/scenarios';
 import { Storage } from '../utils/storage';
+import { useRoute } from '@react-navigation/native';
 
 const PLUM   = '#3D0C4E';
 const ROSE   = '#C2185B';
@@ -148,8 +149,8 @@ function Tab({ label, active, onPress }) {
   );
 }
 
-function ScenarioPicker({ onSelect, priorities, completedIds }) {
-  const [expandedId, setExpandedId] = useState(null);
+function ScenarioPicker({ onSelect, priorities, completedIds, initialExpandId = null }) {
+  const [expandedId, setExpandedId] = useState(initialExpandId);
   const [activeTab, setActiveTab] = useState('new');
   const [scenarioPreviews] = useState(() =>
     STORY_SCENARIOS.reduce((map, scenario) => {
@@ -241,6 +242,7 @@ function ScenarioPicker({ onSelect, priorities, completedIds }) {
 }
 
 export default function SimulationScreen() {
+  const route = useRoute();
   const [selectedScenarioId, setSelectedScenarioId] = useState(null);
   const [selectedInitialScores, setSelectedInitialScores] = useState(null);
   const [priorities,         setPriorities]         = useState([]);
@@ -277,6 +279,9 @@ export default function SimulationScreen() {
     );
   }
 
+  const firstScenarioId = STORY_SCENARIOS[0]?.id || null;
+  const initialExpandId = route.params?.autoExpand ? firstScenarioId : null;
+
   return (
     <ScenarioPicker
       onSelect={(scenarioId, initialScores) => {
@@ -285,6 +290,7 @@ export default function SimulationScreen() {
       }}
       priorities={priorities}
       completedIds={completedIds}
+      initialExpandId={initialExpandId}
     />
   );
 }
