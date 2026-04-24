@@ -143,6 +143,13 @@ export default function StoryScreen({ scenario = STORY_SCENARIOS[0], onExit }) {
 
     Storage.set(Storage.KEYS.SIMULATION_HISTORY, history);
     Points.add(POINTS.SIMULATION_COMPLETE);
+
+    Storage.get(Storage.KEYS.COMPLETED_SCENARIOS).then((existing) => {
+      const list = existing || [];
+      if (!list.includes(scenario.id)) {
+        Storage.set(Storage.KEYS.COMPLETED_SCENARIOS, [...list, scenario.id]);
+      }
+    });
   }, [history, view]);
 
   const activeLine = useMemo(() => {

@@ -1,61 +1,201 @@
-import React, { useMemo, useState } from 'react';
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  Pressable, SafeAreaView, ScrollView, StyleSheet,
+  Text, TouchableOpacity, View,
+} from 'react-native';
 import StoryScreen from './StoryScreen';
 import { STORY_SCENARIOS, STORY_SCENARIO_MAP } from '../story/data/scenarios';
+import { Storage } from '../utils/storage';
+
+const PLUM   = '#3D0C4E';
+const ROSE   = '#C2185B';
+const MUTED  = '#B39DBC';
+const BORDER = '#EDD5E4';
 
 const COMING_SOON_CARDS = [
-  { id: 'coming_soon_01', title: 'Coming Soon' },
-  { id: 'coming_soon_02', title: 'Coming Soon' },
-  { id: 'coming_soon_03', title: 'Coming Soon' },
+  { id: 'coming_soon_01' },
+  { id: 'coming_soon_02' },
+  { id: 'coming_soon_03' },
 ];
 
-function ScenarioPicker({ onSelect }) {
-  const cards = [
-    ...STORY_SCENARIOS.map((scenario) => ({
+const SCENARIO_META = {
+  fertility_window_vs_career_acceleration: {
+    summary: 'Follow Lea as she navigates the tension between career acceleration and her fertility timeline. Every choice shapes her options — and her future. Will she prioritise her career, her fertility, or somehow hold both?',
+    getRelevance: (priorities) => priorities.includes('Family planning (someday)') ? 91 : 68,
+  },
+  money_habits_and_tradeoffs: {
+    summary: 'Lea lands her first real salary and faces the classic dilemma: save, spend, or invest? From lifestyle creep to financial independence, every decision has a ripple effect on her freedom and future.',
+    getRelevance: () => 82,
+  },
+};
+
+function RelevanceBar({ score }) {
+  return (
+    <View style={styles.relRow}>
+      <Text style={styles.relLabel}>Relevance to your goals</Text>
+      <View style={styles.relTrack}>
+        <View style={[styles.relFill, { width: `${score}%` }]} />
+      </View>
+      <Text style={styles.relScore}>{score}%</Text>
+    </View>
+  );
+}
+
+function ScenarioCard({ card, index, expanded, onToggle, onStart, isPlayed }) {
+  const meta = SCENARIO_META[card.id];
+
+  return (
+    <View style={[styles.card, expanded && styles.cardExpanded]}>
+      {/* ── Title section ──────────────────────────────────────────── */}
+      <Pressable
+        onPress={onToggle}
+        style={[styles.cardTop, expanded ? styles.cardTopExpanded : styles.cardTopCollapsed]}
+      >
+        <View style={styles.cardTopRow}>
+          <Text style={[styles.cardIndex, expanded ? styles.cardIndexExpanded : styles.cardIndexCollapsed]}>
+            Scenario {String(index + 1).padStart(2, '0')}
+          </Text>
+          {isPlayed && (
+            <View style={[styles.playedBadge, expanded && styles.playedBadgeExpanded]}>
+              <Text style={[styles.playedBadgeText, expanded && styles.playedBadgeTextExpanded]}>Played</Text>
+            </View>
+          )}
+        </View>
+        <Text style={[styles.cardTitle, expanded ? styles.cardTitleExpanded : styles.cardTitleCollapsed]}>
+          {card.title}
+        </Text>
+        {!expanded && (
+          <Text style={styles.cardHint}>Tap to explore →</Text>
+        )}
+      </Pressable>
+
+      {/* ── Expanded detail section ─────────────────────────────────── */}
+      {expanded && meta && (
+        <View style={styles.cardBottom}>
+          <Text style={styles.summaryText}>{meta.summary}</Text>
+
+          <View style={styles.divider} />
+
+          <RelevanceBar score={card.relevance} />
+
+          <TouchableOpacity style={styles.startBtn} onPress={onStart} activeOpacity={0.88}>
+            <Text style={styles.startBtnText}>
+              {isPlayed ? 'Play Again →' : 'Start Simulation →'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
+}
+
+function Tab({ label, active, onPress }) {
+  return (
+    <TouchableOpacity onPress={onPress} style={[styles.tab, active && styles.tabActive]} activeOpacity={0.7}>
+      <Text style={[styles.tabText, active && styles.tabTextActive]}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
+function ScenarioPicker({ onSelect, priorities, completedIds }) {
+  const [expandedId, setExpandedId] = useState(null);
+  const [activeTab, setActiveTab] = useState('new');
+
+  const allCards = STORY_SCENARIOS.map((scenario) => {
+    const meta = SCENARIO_META[scenario.id];
+    return {
       id: scenario.id,
       title: scenario.selectorTitle || scenario.title,
-      interactive: true,
-    })),
-    ...COMING_SOON_CARDS.map((card) => ({
-      ...card,
-      interactive: false,
-    })),
-  ];
+      relevance: meta ? meta.getRelevance(priorities) : 75,
+      isPlayed: completedIds.includes(scenario.id),
+    };
+  });
+
+  const newCards    = allCards.filter((c) => !c.isPlayed);
+  const playedCards = allCards.filter((c) => c.isPlayed);
+
+  const visibleCards = activeTab === 'new' ? newCards : playedCards;
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.cardList}
-          showsVerticalScrollIndicator={false}
-        >
-          {cards.map((card, index) => (
-            <Pressable
-              key={card.id}
-              disabled={!card.interactive}
-              onPress={card.interactive ? () => onSelect(card.id) : undefined}
-              style={({ pressed }) => [
-                styles.card,
-                card.interactive && pressed && styles.cardPressed,
-              ]}
-            >
-              <Text style={styles.cardIndex}>Scenario {String(index + 1).padStart(2, '0')}</Text>
-              <Text style={styles.cardTitle}>{card.title}</Text>
-            </Pressable>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ── Header ─────────────────────────────────────────────────── */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>
+            <Text style={styles.headerBold}>Worlds</Text>
+            {' '}to explore
+          </Text>
+          <View style={styles.headerLine} />
+        </View>
+
+        {/* ── Tabs ───────────────────────────────────────────────────── */}
+        <View style={styles.tabRow}>
+          <Tab label="New Scenarios"  active={activeTab === 'new'}    onPress={() => { setActiveTab('new');    setExpandedId(null); }} />
+          <Tab label="Old Scenarios"  active={activeTab === 'played'} onPress={() => { setActiveTab('played'); setExpandedId(null); }} />
+        </View>
+
+        {/* ── Cards ──────────────────────────────────────────────────── */}
+        <View style={styles.cardList}>
+          {visibleCards.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>
+                {activeTab === 'new'
+                  ? 'You\'ve played everything — more worlds coming soon.'
+                  : 'Complete a simulation to see it here.'}
+              </Text>
+            </View>
+          ) : (
+            visibleCards.map((card, index) => (
+              <ScenarioCard
+                key={card.id}
+                card={card}
+                index={index}
+                expanded={expandedId === card.id}
+                onToggle={() => setExpandedId(expandedId === card.id ? null : card.id)}
+                onStart={() => onSelect(card.id)}
+                isPlayed={card.isPlayed}
+              />
+            ))
+          )}
+
+          {/* Coming soon only shown on New tab */}
+          {activeTab === 'new' && COMING_SOON_CARDS.map((card) => (
+            <View key={card.id} style={styles.cardDull}>
+              <View style={styles.comingSoonBadge}>
+                <Text style={styles.comingSoonBadgeText}>Coming Soon</Text>
+              </View>
+              <Text style={styles.cardTitleDull}>New world{'\n'}in the making...</Text>
+            </View>
           ))}
-        </ScrollView>
+        </View>
 
         <Text style={styles.disclaimer}>
-          Scenarios are fictional based on general health research.
+          Scenarios are fictional, based on general health research.
         </Text>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 export default function SimulationScreen() {
   const [selectedScenarioId, setSelectedScenarioId] = useState(null);
+  const [priorities,         setPriorities]         = useState([]);
+  const [completedIds,       setCompletedIds]       = useState([]);
+
+  useEffect(() => {
+    Storage.get(Storage.KEYS.USER_PRIORITIES).then((pr) => { if (pr) setPriorities(pr); });
+    Storage.get(Storage.KEYS.COMPLETED_SCENARIOS).then((ids) => { if (ids) setCompletedIds(ids); });
+  }, []);
+
+  // Refresh completed list when returning from a simulation
+  useEffect(() => {
+    if (!selectedScenarioId) {
+      Storage.get(Storage.KEYS.COMPLETED_SCENARIOS).then((ids) => { if (ids) setCompletedIds(ids); });
+    }
+  }, [selectedScenarioId]);
 
   const activeScenario = useMemo(
     () => (selectedScenarioId ? STORY_SCENARIO_MAP[selectedScenarioId] : null),
@@ -72,56 +212,242 @@ export default function SimulationScreen() {
     );
   }
 
-  return <ScenarioPicker onSelect={setSelectedScenarioId} />;
+  return (
+    <ScenarioPicker
+      onSelect={setSelectedScenarioId}
+      priorities={priorities}
+      completedIds={completedIds}
+    />
+  );
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#FFFDF8',
+  safe:   { flex: 1, backgroundColor: '#FFFFFF' },
+  scroll: { paddingHorizontal: 22, paddingTop: 28, paddingBottom: 40 },
+
+  // Header
+  header:      { marginBottom: 24 },
+  headerTitle: { fontSize: 30, fontWeight: '400', color: PLUM, letterSpacing: -0.5 },
+  headerBold:  { fontWeight: '800' },
+  headerLine:  { marginTop: 8, width: 120, height: 2, backgroundColor: ROSE, borderRadius: 1 },
+
+  // Tabs
+  tabRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 22,
   },
-  container: {
-    flex: 1,
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingTop: 28,
-    paddingBottom: 32,
+  tab: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 100,
+    borderWidth: 1.5,
+    borderColor: BORDER,
+    backgroundColor: '#FFFFFF',
   },
-  scroll: {
-    flex: 1,
+  tabActive: {
+    backgroundColor: ROSE,
+    borderColor: ROSE,
   },
-  cardList: {
-    gap: 16,
-    paddingBottom: 20,
+  tabText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: MUTED,
   },
+  tabTextActive: {
+    color: '#FFFFFF',
+  },
+
+  // Card list
+  cardList: { gap: 16, marginBottom: 32 },
+
+  // Card shell
   card: {
-    minHeight: 138,
-    justifyContent: 'center',
     borderRadius: 24,
-    backgroundColor: '#C2185B',
+    overflow: 'hidden',
+    borderWidth: 1.5,
+    borderColor: ROSE,
+    backgroundColor: '#FFFFFF',
+  },
+  cardExpanded: {
+    borderColor: ROSE,
+  },
+
+  // Title section
+  cardTop: {
     paddingHorizontal: 22,
-    paddingVertical: 18,
+    paddingVertical: 20,
+    minHeight: 120,
+    justifyContent: 'center',
   },
-  cardPressed: {
-    opacity: 0.92,
-    transform: [{ scale: 0.99 }],
+  cardTopCollapsed: { backgroundColor: '#FFFFFF' },
+  cardTopExpanded:  { backgroundColor: ROSE },
+
+  cardTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
   },
+
   cardIndex: {
-    marginBottom: 10,
-    color: '#F6D7E3',
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.2,
     textTransform: 'uppercase',
   },
+  cardIndexCollapsed: { color: ROSE },
+  cardIndexExpanded:  { color: '#F6D7E3' },
+
   cardTitle: {
-    color: '#FFFFFF',
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
-    lineHeight: 31,
+    lineHeight: 29,
+    marginBottom: 10,
   },
+  cardTitleCollapsed: { color: PLUM },
+  cardTitleExpanded:  { color: '#FFFFFF' },
+
+  cardHint: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: MUTED,
+  },
+
+  // Played badge
+  playedBadge: {
+    backgroundColor: '#FCE4EC',
+    borderRadius: 100,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  playedBadgeExpanded: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+  },
+  playedBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: ROSE,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  playedBadgeTextExpanded: {
+    color: '#FFFFFF',
+  },
+
+  // Expanded bottom section
+  cardBottom: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 22,
+    paddingTop: 18,
+    paddingBottom: 20,
+  },
+  summaryText: {
+    fontSize: 13,
+    color: '#546E7A',
+    lineHeight: 21,
+    marginBottom: 16,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: BORDER,
+    marginBottom: 14,
+  },
+
+  // Relevance bar
+  relRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 18,
+  },
+  relLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: MUTED,
+    flex: 1,
+  },
+  relTrack: {
+    width: 80,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#F5DCE8',
+    overflow: 'hidden',
+  },
+  relFill: {
+    height: '100%',
+    borderRadius: 3,
+    backgroundColor: ROSE,
+  },
+  relScore: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: ROSE,
+    width: 36,
+    textAlign: 'right',
+  },
+
+  // Start button
+  startBtn: {
+    backgroundColor: ROSE,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  startBtnText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+
+  // Coming soon cards
+  cardDull: {
+    borderRadius: 24,
+    backgroundColor: '#FAF0F5',
+    borderWidth: 1,
+    borderColor: BORDER,
+    paddingHorizontal: 22,
+    paddingVertical: 20,
+    minHeight: 110,
+    justifyContent: 'center',
+  },
+  comingSoonBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#EDD5E4',
+    borderRadius: 100,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginBottom: 10,
+  },
+  comingSoonBadgeText: {
+    color: MUTED,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  cardTitleDull: {
+    color: '#C4A8BB',
+    fontSize: 18,
+    fontWeight: '600',
+    lineHeight: 26,
+  },
+
+  // Empty state
+  emptyState: {
+    paddingVertical: 32,
+    alignItems: 'center',
+  },
+  emptyText: {
+    fontSize: 14,
+    color: MUTED,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+
+  // Footer
   disclaimer: {
-    color: '#7C6E76',
+    color: MUTED,
     fontSize: 12,
     lineHeight: 18,
     textAlign: 'center',

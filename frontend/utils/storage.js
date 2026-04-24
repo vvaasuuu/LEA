@@ -15,6 +15,7 @@ const KEYS = {
   USER_PRIORITIES: 'user_priorities',
   ONBOARDING_COMPLETE: 'onboarding_complete',
   RELATIONSHIP_CONTENT_ENABLED: 'relationship_content_enabled',
+  COMPLETED_SCENARIOS: 'completed_scenarios',
 };
 
 export const Storage = {
