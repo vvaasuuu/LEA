@@ -11,9 +11,9 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 const PRIORITIES = [
-  { key: 'health',  emoji: '🌿', label: 'Health' },
-  { key: 'career',  emoji: '💼', label: 'Career' },
-  { key: 'balance', emoji: '🌸', label: 'Balance' },
+  { key: 'health',  label: 'Health' },
+  { key: 'career',  label: 'Career' },
+  { key: 'balance', label: 'Balance' },
 ];
 
 // ── Idle / Reminder Card ──────────────────────────────────────────────────────
@@ -34,7 +34,6 @@ function IdleCard({ isReminder, onSelect }) {
             onPress={() => onSelect(opt.key)}
             activeOpacity={0.75}
           >
-            <Text style={styles.optionEmoji}>{opt.emoji}</Text>
             <Text style={styles.optionLabel}>{opt.label}</Text>
           </TouchableOpacity>
         ))}
@@ -49,11 +48,6 @@ function ActionCard({ action, accent, bubbleBg, onComplete, onSkip, onReplace })
 
   return (
     <View style={[styles.actionCard, action.completed && { opacity: 0.65 }]}>
-      {/* Emoji bubble */}
-      <View style={[styles.emojiBubble, { backgroundColor: bubbleBg }]}>
-        <Text style={styles.actionEmoji}>{action.emoji}</Text>
-      </View>
-
       {/* Text */}
       <View style={styles.actionTextWrap}>
         <Text style={[styles.actionTitle, action.completed && styles.actionTitleDone]}>
@@ -98,7 +92,7 @@ function ActiveCard({ state, onComplete, onSkip, onReplace, onChangePriority }) 
       <View style={styles.cardTop}>
         <View style={[styles.priorityPill, { borderColor: data.accentColor + '50' }]}>
           <Text style={[styles.priorityPillText, { color: data.accentColor }]}>
-            {data.emoji}  {data.label}
+            {data.label}
           </Text>
         </View>
         <TouchableOpacity onPress={onChangePriority} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
@@ -118,7 +112,7 @@ function ActiveCard({ state, onComplete, onSkip, onReplace, onChangePriority }) 
             ))}
           </View>
           <Text style={[styles.progressLabel, { color: data.accentColor }]}>
-            {allDone ? 'All done this week 🎉' : done === 0 ? 'Tap to mark done' : `${done} of ${visible.length} done`}
+            {allDone ? 'All done this week!' : done === 0 ? 'Tap to mark done' : `${done} of ${visible.length} done`}
           </Text>
         </View>
       )}
@@ -126,7 +120,7 @@ function ActiveCard({ state, onComplete, onSkip, onReplace, onChangePriority }) 
       {/* Action cards */}
       {visible.length === 0 ? (
         <Text style={[styles.allSkipped, { color: data.accentColor }]}>
-          All skipped — that's okay 🌿
+          All skipped — that's okay
         </Text>
       ) : (
         <View style={styles.actionsList}>
@@ -225,7 +219,7 @@ function CompleteCard({ state }) {
     <View style={[styles.card, { backgroundColor: '#FDF0F7', borderColor: '#EDD5E4' }]}>
       <Text style={styles.eyebrow}>WEEK COMPLETE  ✦</Text>
       <Text style={[styles.priorityTitle, { color: '#3D0C4E' }]}>
-        {data.emoji}  You focused on {data.label}
+        You focused on {data.label}
       </Text>
       {done > 0 && (
         <Text style={styles.completeSub}>

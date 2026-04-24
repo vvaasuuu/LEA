@@ -22,7 +22,7 @@ const STAGE_IMAGES = {
 const STAGE_LABELS = {
   puppy: 'Puppy',
   young: 'Growing up',
-  adult: 'All grown up 🎉',
+  adult: 'All grown up',
 };
 
 const THRESHOLDS = { young: 50, adult: 500 };
@@ -112,7 +112,7 @@ export default function LeaAvatar({ size = 160, showName = true, showProgress = 
           </View>
           {remaining !== null && remaining > 0 && (
             <Text style={styles.progressHint}>
-              {remaining} more point{remaining !== 1 ? 's' : ''} until {stage === 'puppy' ? 'she grows up' : 'fully grown'} ✨
+              {remaining} more point{remaining !== 1 ? 's' : ''} until {stage === 'puppy' ? 'she grows up' : 'fully grown'}
             </Text>
           )}
         </View>

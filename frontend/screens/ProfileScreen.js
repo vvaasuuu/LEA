@@ -6,6 +6,8 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Storage } from '../utils/storage';
+import { auth, db } from '../utils/firebase';
+import { doc, updateDoc } from 'firebase/firestore';
 
 const { width: SW } = Dimensions.get('window');
 
@@ -262,6 +264,11 @@ export default function ProfileScreen({ navigation }) {
   async function toggleRelationship(value) {
     setRelEnabled(value);
     await Storage.set(Storage.KEYS.RELATIONSHIP_CONTENT_ENABLED, value);
+    const uid = auth.currentUser?.uid;
+    if (uid) {
+      try { await updateDoc(doc(db, 'users', uid), { relationship_content_enabled: value }); }
+      catch (e) { console.error('Firestore sync error:', e); }
+    }
   }
 
   function openEdit(type) {
@@ -286,12 +293,21 @@ export default function ProfileScreen({ navigation }) {
   }
 
   async function saveEdit() {
+    const uid = auth.currentUser?.uid;
     if (editModal === 'conditions') {
       setConditions(draftSelection);
       await Storage.set(Storage.KEYS.USER_CONDITIONS, draftSelection);
+      if (uid) {
+        try { await updateDoc(doc(db, 'users', uid), { user_conditions: draftSelection }); }
+        catch (e) { console.error('Firestore sync error:', e); }
+      }
     } else {
       setPriorities(draftSelection);
       await Storage.set(Storage.KEYS.USER_PRIORITIES, draftSelection);
+      if (uid) {
+        try { await updateDoc(doc(db, 'users', uid), { user_priorities: draftSelection }); }
+        catch (e) { console.error('Firestore sync error:', e); }
+      }
     }
     setEditModal(null);
   }

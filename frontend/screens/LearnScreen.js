@@ -165,7 +165,6 @@ export default function LearnScreen() {
             <View style={styles.taglineUnderline} />
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Text style={{ fontSize: 40, marginTop: -4 }}>🌸</Text>
             <TouchableOpacity onPress={() => navigation.navigate('Profile')} activeOpacity={0.7} style={{ padding: 4 }}>
               <Ionicons name="person-circle-outline" size={32} color={ROSE_D} />
             </TouchableOpacity>

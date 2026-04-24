@@ -76,7 +76,6 @@ export default function StorySummary({ scenarioTitle, scores, history, onRestart
     >
       {/* Hero */}
       <View style={ss.hero}>
-        <Text style={ss.heroEmoji}>🎉</Text>
         <Text style={ss.heroEyebrow}>Simulation Complete</Text>
         <Text style={ss.heroTitle}>{scenarioTitle}</Text>
         <Text style={ss.heroBody}>{buildEndingText(scores)}</Text>

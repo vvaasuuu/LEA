@@ -5,6 +5,9 @@ import {
 } from 'react-native';
 import { Storage } from '../utils/storage';
 
+import { auth, db } from '../utils/firebase';
+import { doc, setDoc } from 'firebase/firestore';
+
 const { width } = Dimensions.get('window');
 
 const PLUM    = '#6A1B9A';
@@ -14,25 +17,23 @@ const MUTED   = '#B39DBC';
 const BORDER  = '#EDD5E4';
 const CHIP_BG = '#FFF0F5';
 
-// ── Breed options for Screen 1 ──────────────────────────────────────────────
+// ── Breed options ────────────────────────────────────────────────────────────
 const BREEDS = [
   { id: 'dog', label: 'Dog', emoji: '🐶' },
   { id: 'cat', label: 'Cat', emoji: '🐱' },
 ];
 
-// ── Condition options for Screen 3 ──────────────────────────────────────────
-const CONDITIONS = [
+// ── Condition options (main list) ─────────────────────────────────────────────
+const CONDITION_ITEMS = [
   'PCOS',
   'PCOD',
   'Endometriosis',
   'Irregular cycles',
   'Calcium / Vitamin D deficiency',
   'Thyroid issues',
-  'None',
-  'Prefer not to say',
 ];
 
-// ── Priority options for Screen 4 ───────────────────────────────────────────
+// ── Priority options ─────────────────────────────────────────────────────────
 const PRIORITIES = [
   'Career growth',
   'Personal health',
@@ -42,24 +43,26 @@ const PRIORITIES = [
   "I'm not sure yet",
 ];
 
-// ── Life stage options for Screen 2 ─────────────────────────────────────────
+// ── Life stage options ───────────────────────────────────────────────────────
 const LIFE_STAGES = ['Student', 'Early career', 'Mid-career'];
 
 // ────────────────────────────────────────────────────────────────────────────
 
 export default function OnboardingScreen({ onComplete }) {
-  const [step, setStep] = useState(0); // 0–4
+  const [step,   setStep]   = useState(0);
+  const [saving, setSaving] = useState(false);
 
   // Screen 1
   const [selectedBreed, setSelectedBreed] = useState(null);
-  const [leaName, setLeaName] = useState('');
+  const [leaName,       setLeaName]       = useState('');
 
   // Screen 2
-  const [age, setAge] = useState('');
+  const [age,       setAge]       = useState('');
   const [lifeStage, setLifeStage] = useState(null);
 
-  // Screen 3
-  const [conditions, setConditions] = useState([]);
+  // Screen 3 — conditions + dynamic "Others" inputs
+  const [conditions,  setConditions]  = useState([]);
+  const [othersItems, setOthersItems] = useState(['']);
 
   // Screen 4
   const [priorities, setPriorities] = useState([]);
@@ -69,6 +72,18 @@ export default function OnboardingScreen({ onComplete }) {
   function toggleCondition(item) {
     if (item === 'None' || item === 'Prefer not to say') {
       setConditions([item]);
+      setOthersItems(['']);
+      return;
+    }
+    if (item === 'Others') {
+      setConditions(prev => {
+        const filtered = prev.filter(c => c !== 'None' && c !== 'Prefer not to say');
+        if (filtered.includes('Others')) {
+          setOthersItems(['']);
+          return filtered.filter(c => c !== 'Others');
+        }
+        return [...filtered, 'Others'];
+      });
       return;
     }
     setConditions(prev => {
@@ -76,6 +91,18 @@ export default function OnboardingScreen({ onComplete }) {
       return filtered.includes(item)
         ? filtered.filter(c => c !== item)
         : [...filtered, item];
+    });
+  }
+
+  function updateOthersItem(index, text) {
+    setOthersItems(prev => {
+      const updated = [...prev];
+      updated[index] = text;
+      // When the last slot gets text, open a new empty slot
+      if (index === prev.length - 1 && text.trim().length > 0) {
+        return [...updated, ''];
+      }
+      return updated;
     });
   }
 
@@ -93,36 +120,67 @@ export default function OnboardingScreen({ onComplete }) {
     return true;
   }
 
-  async function handleFinish() {
-    await Storage.set(Storage.KEYS.LEA_BREED, selectedBreed);
-    await Storage.set(Storage.KEYS.LEA_NAME, leaName.trim());
-    await Storage.set(Storage.KEYS.USER_AGE, age.trim());
-    await Storage.set(Storage.KEYS.USER_LIFE_STAGE, lifeStage);
-    await Storage.set(Storage.KEYS.USER_CONDITIONS, conditions);
-    await Storage.set(Storage.KEYS.USER_PRIORITIES, priorities);
-    await Storage.set(Storage.KEYS.USER_POINTS, 0);
-    await Storage.set(Storage.KEYS.LEA_STAGE, 'puppy');
-    await Storage.set(Storage.KEYS.ONBOARDING_COMPLETE, true);
-    onComplete();
+async function handleFinish() {
+  setSaving(true);
+
+  const othersEntries = othersItems
+    .filter(t => t.trim().length > 0)
+    .map(t => `Others: ${t.trim()}`);
+
+  const conditionsToSave = [
+    ...conditions.filter(c => c !== 'Others'),
+    ...(othersEntries.length > 0
+      ? othersEntries
+      : conditions.includes('Others') ? ['Others'] : []),
+  ];
+
+  // Save locally first — this is what the app reads from
+  await Storage.set(Storage.KEYS.LEA_BREED,           selectedBreed);
+  await Storage.set(Storage.KEYS.LEA_NAME,            leaName.trim());
+  await Storage.set(Storage.KEYS.USER_AGE,            age.trim());
+  await Storage.set(Storage.KEYS.USER_LIFE_STAGE,     lifeStage);
+  await Storage.set(Storage.KEYS.USER_CONDITIONS,     conditionsToSave);
+  await Storage.set(Storage.KEYS.USER_PRIORITIES,     priorities);
+  await Storage.set(Storage.KEYS.USER_POINTS,         0);
+  await Storage.set(Storage.KEYS.LEA_STAGE,           'puppy');
+  await Storage.set(Storage.KEYS.ONBOARDING_COMPLETE, true);
+
+  // Sync to Firestore using the authenticated user's UID
+  const uid = auth.currentUser?.uid;
+  if (uid) {
+    try {
+      await setDoc(doc(db, 'users', uid), {
+        lea_breed:           selectedBreed,
+        lea_name:            leaName.trim(),
+        user_age:            age.trim(),
+        user_life_stage:     lifeStage,
+        user_conditions:     conditionsToSave,
+        user_priorities:     priorities,
+        user_points:         0,
+        lea_stage:           'puppy',
+        onboarding_complete: true,
+        created_at:          new Date().toISOString(),
+      });
+    } catch (e) {
+      console.error('Firestore save error:', e);
+    }
   }
+
+  setSaving(false);
+  onComplete();
+}
 
   // ── Progress bar ──────────────────────────────────────────────────────────
 
   const ProgressBar = () => (
     <View style={styles.progressRow}>
       {[0, 1, 2, 3, 4].map(i => (
-        <View
-          key={i}
-          style={[
-            styles.progressDot,
-            i <= step && styles.progressDotActive,
-          ]}
-        />
+        <View key={i} style={[styles.progressDot, i <= step && styles.progressDotActive]} />
       ))}
     </View>
   );
 
-  // ── Screen renderers ───────────────────────────────────────────────────────
+  // ── Screen renderers ──────────────────────────────────────────────────────
 
   const Screen1 = () => (
     <View style={styles.screenContent}>
@@ -199,34 +257,84 @@ export default function OnboardingScreen({ onComplete }) {
     </View>
   );
 
-  const Screen3 = () => (
-    <View style={styles.screenContent}>
-      <Text style={styles.emoji}>🩺</Text>
-      <Text style={styles.heading}>Any diagnosed conditions?</Text>
-      <Text style={styles.subheading}>
-        Select all that apply. This personalises your health timeline — nothing is shared.
-      </Text>
+  const Screen3 = () => {
+    const isOthersOn = conditions.includes('Others');
+    return (
+      <View style={styles.screenContent}>
+        <Text style={styles.heading}>Any diagnosed conditions?</Text>
+        <Text style={styles.subheading}>
+          Select all that apply. This personalises your health timeline — nothing is shared.
+        </Text>
 
-      <View style={styles.chipWrap}>
-        {CONDITIONS.map(item => (
+        {/* Main condition list */}
+        <View style={styles.condList}>
+          {CONDITION_ITEMS.map((item, i) => {
+            const active = conditions.includes(item);
+            return (
+              <TouchableOpacity
+                key={item}
+                style={[styles.condRow, styles.condRowBorder, active && styles.condRowActive]}
+                onPress={() => toggleCondition(item)}
+                activeOpacity={0.7}
+              >
+                {active && <View style={styles.condAccent} />}
+                <Text style={[styles.condText, active && styles.condTextActive]}>{item}</Text>
+                {active && <Text style={styles.condCheck}>✓</Text>}
+              </TouchableOpacity>
+            );
+          })}
+
+          {/* Others row */}
           <TouchableOpacity
-            key={item}
-            style={[styles.chip, conditions.includes(item) && styles.chipSelected]}
-            onPress={() => toggleCondition(item)}
+            style={[styles.condRow, isOthersOn && styles.condRowBorder, isOthersOn && styles.condRowActive]}
+            onPress={() => toggleCondition('Others')}
             activeOpacity={0.7}
           >
-            <Text style={[styles.chipText, conditions.includes(item) && styles.chipTextSelected]}>
-              {item}
-            </Text>
+            {isOthersOn && <View style={styles.condAccent} />}
+            <Text style={[styles.condText, isOthersOn && styles.condTextActive]}>Others</Text>
+            {isOthersOn && <Text style={styles.condCheck}>✓</Text>}
           </TouchableOpacity>
-        ))}
+
+          {/* Dynamic Others text inputs — new slot opens when previous is filled */}
+          {isOthersOn && (
+            <View style={styles.othersInputWrap}>
+              {othersItems.map((val, i) => (
+                <TextInput
+                  key={i}
+                  style={[styles.othersInput, i > 0 && { marginTop: 8 }]}
+                  placeholder={i === 0 ? 'Describe your condition...' : 'Add another...'}
+                  placeholderTextColor={MUTED}
+                  value={val}
+                  onChangeText={text => updateOthersItem(i, text)}
+                  returnKeyType="done"
+                />
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* Exclusive options */}
+        <View style={styles.condExclusiveRow}>
+          {['None', 'Prefer not to say'].map(item => {
+            const active = conditions.includes(item);
+            return (
+              <TouchableOpacity
+                key={item}
+                style={[styles.chip, active && styles.chipSelected]}
+                onPress={() => toggleCondition(item)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.chipText, active && styles.chipTextSelected]}>{item}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
 
   const Screen4 = () => (
     <View style={styles.screenContent}>
-      <Text style={styles.emoji}>✨</Text>
       <Text style={styles.heading}>What matters to you right now?</Text>
       <Text style={styles.subheading}>
         Pick as many as feel true. Family planning is one option among equals — never the default.
@@ -251,36 +359,51 @@ export default function OnboardingScreen({ onComplete }) {
 
   const Screen5 = () => (
     <View style={styles.screenContent}>
-      <Text style={styles.emoji}>🔒</Text>
-      <Text style={styles.heading}>Your data stays with you.</Text>
+      <Text style={styles.heading}>Before you begin.</Text>
+      <Text style={styles.subheading}>
+        A few things worth knowing about how LEA handles your information.
+      </Text>
 
-      <View style={styles.dataCard}>
-        <Text style={styles.dataCardText}>
-          Everything you share with LEA is stored only on your device. It is never sent to a server,
-          never sold, and never used to train any model.
-        </Text>
-      </View>
+      <View style={styles.privacyCard}>
 
-      <View style={styles.dataCard}>
-        <Text style={styles.dataCardText}>
-          LEA provides health education and general guidance. It is{' '}
-          <Text style={styles.bold}>not a substitute for medical advice.</Text>
-          {'\n\n'}All health information is sourced from WHO, ACOG, NHS, and Singapore MOH guidelines.
-          Always consult a healthcare provider for personal medical decisions.
-        </Text>
-      </View>
+        <View style={styles.privacyRow}>
+          <View style={styles.privacyTextBlock}>
+            <Text style={styles.privacyTitle}>Stored on your device only</Text>
+            <Text style={styles.privacyBody}>
+              Everything you share stays on your phone. Nothing is sent to a server, sold, or used to train any model.
+            </Text>
+          </View>
+        </View>
 
-      <View style={styles.dataCard}>
-        <Text style={styles.dataCardText}>
-          You can delete your data at any time from the app settings.
-        </Text>
+        <View style={styles.privacyDivider} />
+
+        <View style={styles.privacyRow}>
+          <View style={styles.privacyTextBlock}>
+            <Text style={styles.privacyTitle}>Evidence-based, not medical advice</Text>
+            <Text style={styles.privacyBody}>
+              Health content in LEA is sourced from WHO, ACOG, NHS, and Singapore MOH guidelines. Always consult a healthcare provider for personal decisions.
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.privacyDivider} />
+
+        <View style={styles.privacyRow}>
+          <View style={styles.privacyTextBlock}>
+            <Text style={styles.privacyTitle}>Delete anytime</Text>
+            <Text style={styles.privacyBody}>
+              You can clear all your data from the app settings at any time.
+            </Text>
+          </View>
+        </View>
+
       </View>
     </View>
   );
 
   const screens = [Screen1, Screen2, Screen3, Screen4, Screen5];
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -305,15 +428,14 @@ export default function OnboardingScreen({ onComplete }) {
               <Text style={styles.backBtnText}>← Back</Text>
             </TouchableOpacity>
           )}
-
           <TouchableOpacity
-            style={[styles.nextBtn, !canAdvance() && styles.nextBtnDisabled]}
+            style={[styles.nextBtn, (!canAdvance() || saving) && styles.nextBtnDisabled]}
             onPress={step === 4 ? handleFinish : () => setStep(s => s + 1)}
-            disabled={!canAdvance()}
+            disabled={!canAdvance() || saving}
             activeOpacity={0.8}
           >
             <Text style={styles.nextBtnText}>
-              {step === 4 ? "I'm ready — let's go 🐾" : 'Continue'}
+              {saving ? 'Saving…' : step === 4 ? "I'm ready — let's go 🐾" : 'Continue'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -325,196 +447,97 @@ export default function OnboardingScreen({ onComplete }) {
 // ── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-  },
+  safe:   { flex: 1, backgroundColor: '#FFFFFF' },
+  scroll: { flexGrow: 1, paddingHorizontal: 24, paddingBottom: 24 },
+
   progressRow: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
-    paddingTop: 16,
-    paddingBottom: 4,
+    flexDirection: 'row', justifyContent: 'center',
+    gap: 8, paddingTop: 16, paddingBottom: 4,
   },
-  progressDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: BORDER,
-  },
-  progressDotActive: {
-    backgroundColor: ROSE,
-    width: 24,
-  },
-  scroll: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-    paddingBottom: 24,
-  },
-  screenContent: {
-    paddingTop: 24,
-  },
-  emoji: {
-    fontSize: 40,
-    marginBottom: 12,
-  },
-  heading: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: HEADING,
-    marginBottom: 8,
-    lineHeight: 32,
-  },
-  subheading: {
-    fontSize: 15,
-    color: '#546E7A',
-    lineHeight: 22,
-    marginBottom: 28,
-  },
+  progressDot:       { width: 8, height: 8, borderRadius: 4, backgroundColor: BORDER },
+  progressDotActive: { backgroundColor: ROSE, width: 24 },
+
+  screenContent: { paddingTop: 24 },
+  emoji:    { fontSize: 40, marginBottom: 12 },
+  heading:  { fontSize: 26, fontWeight: '700', color: HEADING, marginBottom: 8, lineHeight: 32 },
+  subheading: { fontSize: 15, color: '#546E7A', lineHeight: 22, marginBottom: 28 },
   label: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: HEADING,
-    textTransform: 'uppercase',
-    letterSpacing: 0.8,
-    marginBottom: 12,
+    fontSize: 13, fontWeight: '700', color: HEADING,
+    textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 12,
   },
 
   // Breed grid
-  breedGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 28,
-  },
+  breedGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 28 },
   breedCard: {
-    width: (width - 68) / 2,
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    borderRadius: 14,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: BORDER,
-    alignItems: 'center',
+    width: (width - 68) / 2, paddingVertical: 16, paddingHorizontal: 12,
+    borderRadius: 14, backgroundColor: '#FFFFFF', borderWidth: 2,
+    borderColor: BORDER, alignItems: 'center',
   },
-  breedCardSelected: {
-    borderColor: ROSE,
-    backgroundColor: '#FCE4EC',
-  },
-  breedEmoji: {
-    fontSize: 28,
-    marginBottom: 6,
-  },
-  breedLabel: {
-    fontSize: 13,
-    color: '#546E7A',
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  breedLabelSelected: {
-    color: HEADING,
-    fontWeight: '700',
-  },
+  breedCardSelected:  { borderColor: ROSE, backgroundColor: '#FCE4EC' },
+  breedEmoji:         { fontSize: 28, marginBottom: 6 },
+  breedLabel:         { fontSize: 13, color: '#546E7A', fontWeight: '500', textAlign: 'center' },
+  breedLabelSelected: { color: HEADING, fontWeight: '700' },
 
   // Text input
   input: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 2,
-    borderColor: BORDER,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: HEADING,
-    marginBottom: 28,
+    backgroundColor: '#FFFFFF', borderWidth: 2, borderColor: BORDER,
+    borderRadius: 12, paddingHorizontal: 16, paddingVertical: 14,
+    fontSize: 16, color: HEADING, marginBottom: 28,
   },
 
   // Chips
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  chipWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-  },
+  chipRow:  { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   chip: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 100,
-    backgroundColor: CHIP_BG,
-    borderWidth: 1.5,
-    borderColor: BORDER,
+    paddingHorizontal: 16, paddingVertical: 10, borderRadius: 100,
+    backgroundColor: CHIP_BG, borderWidth: 1.5, borderColor: BORDER,
   },
-  chipSelected: {
-    backgroundColor: ROSE,
-    borderColor: ROSE,
-  },
-  chipText: {
-    fontSize: 14,
-    color: HEADING,
-    fontWeight: '500',
-  },
-  chipTextSelected: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-  },
+  chipSelected:     { backgroundColor: ROSE, borderColor: ROSE },
+  chipText:         { fontSize: 14, color: HEADING, fontWeight: '500' },
+  chipTextSelected: { color: '#FFFFFF', fontWeight: '700' },
 
-  // Data privacy cards
-  dataCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    padding: 18,
-    marginBottom: 14,
-    borderLeftWidth: 4,
-    borderLeftColor: ROSE,
-    borderWidth: 1,
-    borderColor: BORDER,
+  // Condition list
+  condList: {
+    backgroundColor: '#FFFFFF', borderRadius: 16,
+    borderWidth: 1.5, borderColor: BORDER, overflow: 'hidden', marginBottom: 14,
   },
-  dataCardText: {
-    fontSize: 14,
-    color: '#263238',
-    lineHeight: 22,
+  condRow:        { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 15, backgroundColor: '#FFFFFF', gap: 10 },
+  condRowBorder:  { borderBottomWidth: 1, borderBottomColor: BORDER },
+  condRowActive:  { backgroundColor: '#FFF0F5' },
+  condAccent:     { width: 3, height: 20, borderRadius: 2, backgroundColor: ROSE },
+  condText:       { flex: 1, fontSize: 15, color: HEADING, fontWeight: '500' },
+  condTextActive: { color: PLUM, fontWeight: '700' },
+  condCheck:      { fontSize: 15, color: ROSE, fontWeight: '700' },
+
+  othersInputWrap: { paddingHorizontal: 14, paddingBottom: 14, paddingTop: 6 },
+  othersInput: {
+    backgroundColor: '#FFF5F8', borderWidth: 1.5, borderColor: BORDER,
+    borderRadius: 10, paddingHorizontal: 14, paddingVertical: 11,
+    fontSize: 14, color: HEADING,
   },
-  bold: {
-    fontWeight: '700',
+  condExclusiveRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 8 },
+
+  // Privacy card
+  privacyCard: {
+    backgroundColor: '#FFFFFF', borderRadius: 16,
+    borderWidth: 1.5, borderColor: BORDER, overflow: 'hidden', marginBottom: 16,
   },
+  privacyRow:       { flexDirection: 'row', alignItems: 'flex-start', padding: 18, gap: 14 },
+  privacyDivider:   { height: 1, backgroundColor: BORDER, marginHorizontal: 18 },
+  privacyIcon:      { fontSize: 22, marginTop: 1 },
+  privacyTextBlock: { flex: 1 },
+  privacyTitle:     { fontSize: 14, fontWeight: '700', color: HEADING, marginBottom: 4 },
+  privacyBody:      { fontSize: 13, color: '#546E7A', lineHeight: 20 },
 
   // Footer
   footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    gap: 12,
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: BORDER,
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 24, paddingVertical: 16, gap: 12,
+    backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: BORDER,
   },
-  backBtn: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  backBtnText: {
-    color: ROSE,
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  nextBtn: {
-    flex: 1,
-    backgroundColor: ROSE,
-    borderRadius: 14,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  nextBtnDisabled: {
-    backgroundColor: BORDER,
-  },
-  nextBtnText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '700',
-  },
+  backBtn:         { paddingHorizontal: 16, paddingVertical: 14 },
+  backBtnText:     { color: ROSE, fontSize: 15, fontWeight: '600' },
+  nextBtn:         { flex: 1, backgroundColor: ROSE, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
+  nextBtnDisabled: { backgroundColor: BORDER },
+  nextBtnText:     { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
 });
