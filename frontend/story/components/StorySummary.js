@@ -1,316 +1,217 @@
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { SCORE_COLORS, SCORE_LABELS } from '../data/fertilityWindowScenario';
-import { Storage } from '../../utils/storage';
-import { fetchRecommendations } from '../../utils/openai';
-
-const PLUM   = '#3D0C4E';
-const ROSE   = '#C2185B';
-const MUTED  = '#B39DBC';
-const BORDER = '#EDD5E4';
-
-function buildEndingText(scores) {
-  if (scores.fertility >= 30 && scores.career >= 25)
-    return 'You built a path with strong momentum and preserved room to choose later.';
-  if (scores.fertility >= 30)
-    return 'You repeatedly chose clarity and option-preserving moves, even when they cost momentum.';
-  if (scores.career >= 30)
-    return 'Your story leaned hard into acceleration, and the later tradeoffs became more concrete.';
-  return 'Your story stayed mixed and human: part planning, part timing, part tradeoff.';
-}
+import React from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 function ScoreBar({ label, value, color }) {
-  const clamped = Math.max(0, Math.min(value, 50));
-  const pct = `${(clamped / 50) * 100}%`;
+  const clamped = Math.max(-10, Math.min(value, 50));
+  const percent = ((clamped + 10) / 60) * 100;
+
   return (
-    <View style={ss.barRow}>
-      <Text style={ss.barLabel}>{label}</Text>
-      <View style={ss.barTrack}>
-        <View style={[ss.barFill, { width: pct, backgroundColor: color }]} />
+    <View style={styles.barRow}>
+      <Text style={styles.barLabel}>{label}</Text>
+      <View style={styles.barTrack}>
+        <View style={[styles.barFill, { width: `${percent}%`, backgroundColor: color }]} />
       </View>
-      <Text style={[ss.barValue, { color }]}>
-        {value >= 0 ? `+${value}` : value}
+      <Text style={[styles.barValue, { color }]}>
+        {value > 0 ? `+${value}` : value}
       </Text>
     </View>
   );
 }
 
-export default function StorySummary({ scenarioTitle, scores, history, onRestart, onExit }) {
-  const navigation = useNavigation();
-  const [steps, setSteps] = useState([]);
-  const [loadingSteps, setLoadingSteps] = useState(true);
-  const [stepsError, setStepsError] = useState(null);
-  const [choicesOpen, setChoicesOpen] = useState(false);
-
-  async function loadSteps() {
-    setLoadingSteps(true);
-    setStepsError(null);
-    try {
-      const [age, conditions, priorities] = await Promise.all([
-        Storage.get(Storage.KEYS.USER_AGE),
-        Storage.get(Storage.KEYS.USER_CONDITIONS),
-        Storage.get(Storage.KEYS.USER_PRIORITIES),
-      ]);
-      const result = await fetchRecommendations({
-        age,
-        conditions: Array.isArray(conditions) ? conditions : [],
-        priorities: Array.isArray(priorities) ? priorities : [],
-        scores,
-        history,
-      });
-      setSteps(result);
-    } catch (err) {
-      console.error('Recommendations error:', err.message);
-      setStepsError(err.message);
-    } finally {
-      setLoadingSteps(false);
-    }
-  }
-
-  useEffect(() => { loadSteps(); }, []);
-
+export default function StorySummary({
+  scenarioTitle,
+  endingText,
+  scores,
+  scoreLabels,
+  scoreColors,
+  history,
+  onRestart,
+  onExit,
+}) {
   return (
     <ScrollView
-      style={ss.screen}
-      contentContainerStyle={ss.content}
+      style={styles.screen}
+      contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-      {/* Hero */}
-      <View style={ss.hero}>
-        <Text style={ss.heroEyebrow}>Simulation Complete</Text>
-        <Text style={ss.heroTitle}>{scenarioTitle}</Text>
-        <Text style={ss.heroBody}>{buildEndingText(scores)}</Text>
+      <View style={styles.hero}>
+        <Text style={styles.heroEyebrow}>Simulation Complete</Text>
+        <Text style={styles.heroTitle}>{scenarioTitle}</Text>
+        <Text style={styles.heroBody}>{endingText}</Text>
       </View>
 
-      {/* Score breakdown */}
-      <View style={ss.card}>
-        <Text style={ss.cardLabel}>YOUR SCORES</Text>
-        {Object.entries(scores).map(([key, val]) => (
+      <View style={styles.card}>
+        <Text style={styles.cardLabel}>Your Scores</Text>
+        {Object.entries(scores).map(([key, value]) => (
           <ScoreBar
             key={key}
-            label={SCORE_LABELS[key]}
-            value={val}
-            color={SCORE_COLORS[key]}
+            label={scoreLabels[key]}
+            value={value}
+            color={scoreColors[key]}
           />
         ))}
-        <TouchableOpacity
-          style={ss.careerLink}
-          onPress={() => navigation.navigate('CompanyExplore')}
-          activeOpacity={0.75}
-        >
-          <Text style={ss.careerLinkText}>
-            Explore companies that support your career  →
-          </Text>
-        </TouchableOpacity>
       </View>
 
-      {/* Choice timeline */}
-      <View style={ss.card}>
-        <TouchableOpacity
-          style={ss.dropdownHeader}
-          onPress={() => setChoicesOpen(o => !o)}
-          activeOpacity={0.7}
-        >
-          <Text style={ss.cardLabel}>YOUR CHOICES</Text>
-          <Text style={ss.dropdownChevron}>{choicesOpen ? '▲' : '▼'}</Text>
-        </TouchableOpacity>
-        {choicesOpen && history.map((entry, i) => (
-          <View key={entry.id} style={ss.timelineItem}>
-            <View style={ss.timelineDotCol}>
-              <View style={ss.timelineDot} />
-              {i < history.length - 1 && <View style={ss.timelineLine} />}
-            </View>
-            <View style={ss.timelineContent}>
-              <Text style={ss.timelineAge}>Age {entry.age} · {entry.episodeTitle}</Text>
-              <Text style={ss.timelineChoice}>{entry.choiceLabel}</Text>
-              <Text style={ss.timelineConseq}>{entry.consequenceSummary}</Text>
-            </View>
+      <View style={styles.card}>
+        <Text style={styles.cardLabel}>Your Choices</Text>
+        {history.map((entry, index) => (
+          <View key={entry.id} style={[styles.timelineItem, index === history.length - 1 && styles.timelineItemLast]}>
+            <Text style={styles.timelineAge}>Age {entry.age} - {entry.episodeTitle}</Text>
+            <Text style={styles.timelineChoice}>{entry.choiceLabel}</Text>
+            <Text style={styles.timelineConsequence}>{entry.consequenceSummary}</Text>
           </View>
         ))}
       </View>
 
-      {/* AI next steps */}
-      <View style={ss.card}>
-        <Text style={ss.cardLabel}>YOUR NEXT STEPS</Text>
-        {loadingSteps && (
-          <View style={ss.stepsLoading}>
-            <ActivityIndicator size="small" color={ROSE} />
-            <Text style={ss.stepsLoadingText}>Personalising your recommendations…</Text>
-          </View>
-        )}
-        {!loadingSteps && stepsError && (
-          <View>
-            <Text style={ss.stepsErrorText}>{stepsError}</Text>
-            <TouchableOpacity style={ss.retryBtn} onPress={loadSteps} activeOpacity={0.7}>
-              <Text style={ss.retryBtnText}>Try again</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-        {!loadingSteps && !stepsError && steps.map((step, i) => (
-          <View key={i} style={[ss.stepItem, i < steps.length - 1 && ss.stepBorder]}>
-            <View style={ss.stepNumber}>
-              <Text style={ss.stepNumberText}>{i + 1}</Text>
-            </View>
-            <View style={ss.stepBody}>
-              <Text style={ss.stepTitle}>{step.title}</Text>
-              <Text style={ss.stepDesc}>{step.body}</Text>
-            </View>
-          </View>
-        ))}
-      </View>
-
-      {/* Actions */}
-      <Pressable style={ss.primaryBtn} onPress={onRestart}>
-        <Text style={ss.primaryBtnText}>Play Again</Text>
+      <Pressable style={styles.primaryButton} onPress={onRestart}>
+        <Text style={styles.primaryButtonText}>Play Again</Text>
       </Pressable>
 
-      {onExit && (
-        <Pressable style={ss.secondaryBtn} onPress={onExit}>
-          <Text style={ss.secondaryBtnText}>Exit Simulation</Text>
+      {onExit ? (
+        <Pressable style={styles.secondaryButton} onPress={onExit}>
+          <Text style={styles.secondaryButtonText}>Back to Scenarios</Text>
         </Pressable>
-      )}
-
+      ) : null}
     </ScrollView>
   );
 }
 
-const ss = StyleSheet.create({
-  screen:  { flex: 1, backgroundColor: '#FFFFFF' },
-  content: { paddingHorizontal: 20, paddingTop: 40, paddingBottom: 48 },
-
-  // Hero
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+  },
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 48,
+  },
   hero: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 22,
     paddingHorizontal: 8,
   },
-  heroEmoji:   { fontSize: 48, marginBottom: 12 },
   heroEyebrow: {
-    fontSize: 11, fontWeight: '800', color: ROSE,
-    textTransform: 'uppercase', letterSpacing: 1.4, marginBottom: 6,
+    marginBottom: 6,
+    color: '#C2185B',
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
   },
   heroTitle: {
-    fontSize: 22, fontWeight: '800', color: PLUM,
-    textAlign: 'center', lineHeight: 30, marginBottom: 10,
+    marginBottom: 10,
+    color: '#3D0C4E',
+    fontSize: 22,
+    fontWeight: '800',
+    lineHeight: 30,
+    textAlign: 'center',
   },
   heroBody: {
-    fontSize: 14, color: '#546E7A', textAlign: 'center', lineHeight: 22,
+    color: '#546E7A',
+    fontSize: 14,
+    lineHeight: 22,
+    textAlign: 'center',
   },
-
-  // Card
   card: {
-    backgroundColor: '#FFF0F5',
-    borderRadius: 20,
-    padding: 18,
     marginBottom: 14,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: BORDER,
+    borderColor: '#EDD5E4',
+    backgroundColor: '#FFF0F5',
+    padding: 18,
   },
   cardLabel: {
-    fontSize: 10, fontWeight: '800', color: ROSE,
-    textTransform: 'uppercase', letterSpacing: 1.3, marginBottom: 0,
-  },
-  dropdownHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: 14,
+    color: '#C2185B',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.3,
+    textTransform: 'uppercase',
   },
-  dropdownChevron: {
-    fontSize: 10, fontWeight: '800', color: ROSE,
-  },
-
-  // Score bars
-  barRow:   { flexDirection: 'row', alignItems: 'center', marginBottom: 12, gap: 8 },
-  barLabel: { width: 88, fontSize: 13, fontWeight: '600', color: PLUM },
-  barTrack: {
-    flex: 1, height: 8, backgroundColor: '#F5DCE8',
-    borderRadius: 4, overflow: 'hidden',
-  },
-  barFill:  { height: '100%', borderRadius: 4 },
-  barValue: { width: 32, fontSize: 12, fontWeight: '800', textAlign: 'right' },
-
-  careerLink: {
-    marginTop: 14,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: BORDER,
-  },
-  careerLinkText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: ROSE,
-  },
-
-  // Timeline
-  timelineItem: {
+  barRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 4,
-  },
-  timelineDotCol: { alignItems: 'center', width: 16, paddingTop: 4 },
-  timelineDot: {
-    width: 10, height: 10, borderRadius: 5,
-    backgroundColor: ROSE,
-  },
-  timelineLine: {
-    width: 2, flex: 1, backgroundColor: BORDER,
-    marginTop: 4, marginBottom: 4,
-  },
-  timelineContent: { flex: 1, paddingBottom: 16 },
-  timelineAge: {
-    fontSize: 10, fontWeight: '700', color: MUTED,
-    textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 3,
-  },
-  timelineChoice: {
-    fontSize: 14, fontWeight: '700', color: PLUM, lineHeight: 20,
-  },
-  timelineConseq: {
-    fontSize: 12, color: '#546E7A', lineHeight: 18, marginTop: 3,
-  },
-
-  // AI steps
-  stepsLoading: {
-    flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8,
-  },
-  stepsLoadingText: { fontSize: 13, color: MUTED, fontStyle: 'italic' },
-  stepsErrorText:   { fontSize: 13, color: MUTED, fontStyle: 'italic', marginBottom: 10 },
-  retryBtn: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: 14, paddingVertical: 8,
-    borderRadius: 10, borderWidth: 1.5, borderColor: ROSE,
-  },
-  retryBtnText: { fontSize: 13, fontWeight: '700', color: ROSE },
-  stepItem: {
-    flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 12,
-  },
-  stepBorder: { borderBottomWidth: 1, borderBottomColor: BORDER },
-  stepNumber: {
-    width: 26, height: 26, borderRadius: 13,
-    backgroundColor: ROSE, alignItems: 'center', justifyContent: 'center',
-    marginTop: 1, flexShrink: 0,
-  },
-  stepNumberText: { fontSize: 12, fontWeight: '800', color: '#FFFFFF' },
-  stepBody:       { flex: 1 },
-  stepTitle:      { fontSize: 14, fontWeight: '700', color: PLUM, marginBottom: 3 },
-  stepDesc:       { fontSize: 13, color: '#546E7A', lineHeight: 19 },
-
-  // Buttons
-  primaryBtn: {
-    backgroundColor: ROSE,
-    borderRadius: 16,
-    paddingVertical: 16,
     alignItems: 'center',
+    gap: 8,
     marginBottom: 12,
   },
-  primaryBtnText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
-  secondaryBtn: {
-    borderWidth: 1.5,
-    borderColor: BORDER,
-    borderRadius: 16,
-    paddingVertical: 14,
-    alignItems: 'center',
+  barLabel: {
+    width: 92,
+    color: '#3D0C4E',
+    fontSize: 13,
+    fontWeight: '600',
   },
-  secondaryBtnText: { color: MUTED, fontSize: 15, fontWeight: '600' },
+  barTrack: {
+    flex: 1,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#F5DCE8',
+    overflow: 'hidden',
+  },
+  barFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  barValue: {
+    width: 36,
+    fontSize: 12,
+    fontWeight: '800',
+    textAlign: 'right',
+  },
+  timelineItem: {
+    marginBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EDD5E4',
+    paddingBottom: 16,
+  },
+  timelineItemLast: {
+    marginBottom: 0,
+    borderBottomWidth: 0,
+    paddingBottom: 0,
+  },
+  timelineAge: {
+    marginBottom: 4,
+    color: '#B39DBC',
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  timelineChoice: {
+    color: '#3D0C4E',
+    fontSize: 14,
+    fontWeight: '700',
+    lineHeight: 20,
+  },
+  timelineConsequence: {
+    marginTop: 4,
+    color: '#546E7A',
+    fontSize: 12,
+    lineHeight: 18,
+  },
+  primaryButton: {
+    marginTop: 6,
+    marginBottom: 12,
+    alignItems: 'center',
+    borderRadius: 16,
+    backgroundColor: '#C2185B',
+    paddingVertical: 16,
+  },
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  secondaryButton: {
+    alignItems: 'center',
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#EDD5E4',
+    paddingVertical: 14,
+  },
+  secondaryButtonText: {
+    color: '#B39DBC',
+    fontSize: 15,
+    fontWeight: '600',
+  },
 });

@@ -1,6 +1,5 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { SCORE_COLORS, SCORE_LABELS } from '../data/fertilityWindowScenario';
 
 const PLUM = '#3D0C4E';
 const ROSE = '#C2185B';
@@ -9,7 +8,7 @@ function formatDelta(delta) {
   return delta > 0 ? `+${delta}` : `${delta}`;
 }
 
-export default function ChoiceList({ choices, onSelect }) {
+export default function ChoiceList({ choices, onSelect, scoreLabels, scoreColors }) {
   return (
     <View style={styles.list}>
       {choices.map((choice, index) => (
@@ -22,17 +21,18 @@ export default function ChoiceList({ choices, onSelect }) {
             <Text style={styles.letter}>{String.fromCharCode(65 + index)}</Text>
             <Text style={styles.label}>{choice.label}</Text>
           </View>
+
           <View style={styles.effectRow}>
             {Object.entries(choice.effect).map(([key, delta]) => (
               <View
                 key={key}
                 style={[
                   styles.effectPill,
-                  { borderColor: SCORE_COLORS[key], backgroundColor: `${SCORE_COLORS[key]}18` },
+                  { borderColor: scoreColors[key], backgroundColor: `${scoreColors[key]}18` },
                 ]}
               >
-                <Text style={[styles.effectText, { color: SCORE_COLORS[key] }]}>
-                  {SCORE_LABELS[key]} {formatDelta(delta)}
+                <Text style={[styles.effectText, { color: scoreColors[key] }]}>
+                  {scoreLabels[key]} {formatDelta(delta)}
                 </Text>
               </View>
             ))}
@@ -44,12 +44,14 @@ export default function ChoiceList({ choices, onSelect }) {
 }
 
 const styles = StyleSheet.create({
-  list: { gap: 12 },
+  list: {
+    gap: 12,
+  },
   choice: {
-    backgroundColor: '#FFF0F5',
     borderRadius: 18,
     borderWidth: 1.5,
     borderColor: '#EDD5E4',
+    backgroundColor: '#FFF0F5',
     padding: 14,
   },
   choicePressed: {
@@ -70,8 +72,8 @@ const styles = StyleSheet.create({
     flex: 1,
     color: PLUM,
     fontSize: 15,
-    lineHeight: 22,
     fontWeight: '600',
+    lineHeight: 22,
   },
   effectRow: {
     flexDirection: 'row',
