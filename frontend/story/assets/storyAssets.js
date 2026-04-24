@@ -2,7 +2,8 @@ const LEA_FRONT   = require('../../assets/leaSim/lea front.jpeg');
 const LEA_SIDE    = require('../../assets/leaSim/lea side.png');
 const LEA_SIDE_M  = require('../../assets/leaSim/Lea Side M.png');
 const MANAGER     = require('../../assets/ManagerSim/Manager.png');
-const DOC_FRONT   = require('../../assets/DocSim/Doc front.png');
+const DOC_FRONT   = require('../../assets/DocSim/Doc Front.png');
+const MUM_FRONT   = require('../../assets/ManagerSim/Manager.png'); // placeholder until mum asset is added
 
 export const CHARACTER_LABELS = {
   lea:   'Lea',
@@ -54,4 +55,8 @@ export function getCharacterSprite(characterId, expression = 'base') {
 
 export function getCharacterLabel(characterId) {
   return CHARACTER_LABELS[characterId] || characterId;
+}
+
+export function getBackgroundAsset(backgroundId) {
+  return null;
 }
