@@ -1,5 +1,7 @@
-import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { fetchRecommendations } from '../../utils/openai';
+import { Storage } from '../../utils/storage';
 
 function ScoreBar({ label, value, color }) {
   const clamped = Math.max(-10, Math.min(value, 50));
@@ -28,6 +30,38 @@ export default function StorySummary({
   onRestart,
   onExit,
 }) {
+  const [recommendations, setRecommendations] = useState(null);
+  const [loadingRecs, setLoadingRecs] = useState(true);
+  const [choicesExpanded, setChoicesExpanded] = useState(false);
+
+  useEffect(() => {
+    async function loadRecs() {
+      try {
+        const [age, conditions, priorities] = await Promise.all([
+          Storage.get(Storage.KEYS.USER_AGE),
+          Storage.get(Storage.KEYS.USER_CONDITIONS),
+          Storage.get(Storage.KEYS.USER_PRIORITIES),
+        ]);
+
+        const recs = await fetchRecommendations({
+          age: age || 22,
+          conditions: conditions || [],
+          priorities: priorities || [],
+          scores,
+          history,
+        });
+        setRecommendations(recs);
+      } catch (e) {
+        console.error('Failed to fetch recommendations:', e);
+        setRecommendations([]);
+      } finally {
+        setLoadingRecs(false);
+      }
+    }
+
+    loadRecs();
+  }, []);
+
   return (
     <ScrollView
       style={styles.screen}
@@ -53,14 +87,52 @@ export default function StorySummary({
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.cardLabel}>Your Choices</Text>
-        {history.map((entry, index) => (
-          <View key={entry.id} style={[styles.timelineItem, index === history.length - 1 && styles.timelineItemLast]}>
-            <Text style={styles.timelineAge}>Age {entry.age} - {entry.episodeTitle}</Text>
-            <Text style={styles.timelineChoice}>{entry.choiceLabel}</Text>
-            <Text style={styles.timelineConsequence}>{entry.consequenceSummary}</Text>
+        <Pressable
+          style={styles.collapsibleHeader}
+          onPress={() => setChoicesExpanded((v) => !v)}
+        >
+          <Text style={styles.cardLabelInline}>Your Choices</Text>
+          <Text style={styles.chevron}>{choicesExpanded ? '▲' : '▼'}</Text>
+        </Pressable>
+        {choicesExpanded
+          ? history.map((entry, index) => (
+              <View
+                key={entry.id}
+                style={[
+                  styles.timelineItem,
+                  index === history.length - 1 && styles.timelineItemLast,
+                ]}
+              >
+                <Text style={styles.timelineAge}>
+                  Age {entry.age} - {entry.episodeTitle}
+                </Text>
+                <Text style={styles.timelineChoice}>{entry.choiceLabel}</Text>
+                <Text style={styles.timelineConsequence}>{entry.consequenceSummary}</Text>
+              </View>
+            ))
+          : null}
+      </View>
+
+      <View style={styles.card}>
+        <Text style={styles.cardLabel}>Your Next Steps</Text>
+        {loadingRecs ? (
+          <View style={styles.loadingWrap}>
+            <ActivityIndicator size="small" color="#C2185B" />
+            <Text style={styles.loadingText}>Personalising your next steps…</Text>
           </View>
-        ))}
+        ) : recommendations && recommendations.length > 0 ? (
+          recommendations.map((rec, i) => (
+            <View
+              key={i}
+              style={[styles.recItem, i === recommendations.length - 1 && styles.recItemLast]}
+            >
+              <Text style={styles.recTitle}>{rec.title}</Text>
+              <Text style={styles.recBody}>{rec.body}</Text>
+            </View>
+          ))
+        ) : (
+          <Text style={styles.loadingText}>Could not load recommendations right now.</Text>
+        )}
       </View>
 
       <Pressable style={styles.primaryButton} onPress={onRestart}>
@@ -129,6 +201,23 @@ const styles = StyleSheet.create({
     letterSpacing: 1.3,
     textTransform: 'uppercase',
   },
+  collapsibleHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  cardLabelInline: {
+    color: '#C2185B',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.3,
+    textTransform: 'uppercase',
+  },
+  chevron: {
+    color: '#C2185B',
+    fontSize: 12,
+    fontWeight: '700',
+  },
   barRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -159,13 +248,13 @@ const styles = StyleSheet.create({
     textAlign: 'right',
   },
   timelineItem: {
-    marginBottom: 16,
+    marginTop: 14,
+    marginBottom: 0,
     borderBottomWidth: 1,
     borderBottomColor: '#EDD5E4',
-    paddingBottom: 16,
+    paddingBottom: 14,
   },
   timelineItemLast: {
-    marginBottom: 0,
     borderBottomWidth: 0,
     paddingBottom: 0,
   },
@@ -188,6 +277,39 @@ const styles = StyleSheet.create({
     color: '#546E7A',
     fontSize: 12,
     lineHeight: 18,
+  },
+  loadingWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  loadingText: {
+    color: '#B39DBC',
+    fontSize: 13,
+    fontStyle: 'italic',
+  },
+  recItem: {
+    marginBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EDD5E4',
+    paddingBottom: 14,
+  },
+  recItemLast: {
+    marginBottom: 0,
+    borderBottomWidth: 0,
+    paddingBottom: 0,
+  },
+  recTitle: {
+    marginBottom: 4,
+    color: '#3D0C4E',
+    fontSize: 14,
+    fontWeight: '700',
+    lineHeight: 20,
+  },
+  recBody: {
+    color: '#546E7A',
+    fontSize: 13,
+    lineHeight: 19,
   },
   primaryButton: {
     marginTop: 6,
