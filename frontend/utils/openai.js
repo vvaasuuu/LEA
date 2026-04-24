@@ -1,35 +1,44 @@
-// Replace with your machine's LAN IP when testing on a physical device
-const API_BASE = 'http://192.168.1.42:3001/api';
-const TIMEOUT_MS = 30000;
+import OpenAI from 'openai';
+
+const client = new OpenAI({
+  apiKey: process.env.EXPO_PUBLIC_OPENAI_API_KEY,
+  dangerouslyAllowBrowser: true,
+});
 
 export async function fetchRecommendations({ age, conditions, priorities, scores, history }) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const prompt = `
+You are a women's health advisor. Based on the user's profile and simulation choices, give 3 personalised next steps.
+
+User profile:
+- Age: ${age}
+- Conditions: ${conditions.join(', ') || 'None'}
+- Priorities: ${priorities.join(', ') || 'Not specified'}
+
+Simulation scores:
+${Object.entries(scores).map(([k, v]) => `- ${k}: ${v}`).join('\n')}
+
+Choices made:
+${history.map(h => `- Age ${h.age}: ${h.choiceLabel} → ${h.consequenceSummary}`).join('\n')}
+
+Respond ONLY with a JSON array of exactly 3 objects, no markdown, no explanation:
+[{"title": "...", "body": "..."}, ...]
+`;
+
+  const response = await client.chat.completions.create({
+    model: 'gpt-4o-mini',
+    messages: [{ role: 'user', content: prompt }],
+    max_tokens: 600,
+  });
+
+  const text = response.choices[0].message.content.trim();
 
   try {
-    const response = await fetch(`${API_BASE}/recommendations`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ age, conditions, priorities, scores, history }),
-      signal: controller.signal,
-    });
-
-    if (!response.ok) {
-      const body = await response.text().catch(() => '');
-      throw new Error(`Server error ${response.status}: ${body}`);
+    const parsed = JSON.parse(text);
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      throw new Error('Invalid response format');
     }
-
-    const data = await response.json();
-    if (!Array.isArray(data.steps) || data.steps.length === 0) {
-      throw new Error('Empty steps returned from server');
-    }
-    return data.steps;
-  } catch (err) {
-    if (err.name === 'AbortError') {
-      throw new Error('Request timed out after 30 seconds — is the backend running?');
-    }
-    throw err;
-  } finally {
-    clearTimeout(timer);
+    return parsed;
+  } catch {
+    throw new Error('Failed to parse AI response');
   }
 }

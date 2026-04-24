@@ -41,6 +41,7 @@ export default function StorySummary({ scenarioTitle, scores, history, onRestart
   const [steps, setSteps] = useState([]);
   const [loadingSteps, setLoadingSteps] = useState(true);
   const [stepsError, setStepsError] = useState(null);
+  const [choicesOpen, setChoicesOpen] = useState(false);
 
   async function loadSteps() {
     setLoadingSteps(true);
@@ -106,8 +107,15 @@ export default function StorySummary({ scenarioTitle, scores, history, onRestart
 
       {/* Choice timeline */}
       <View style={ss.card}>
-        <Text style={ss.cardLabel}>YOUR CHOICES</Text>
-        {history.map((entry, i) => (
+        <TouchableOpacity
+          style={ss.dropdownHeader}
+          onPress={() => setChoicesOpen(o => !o)}
+          activeOpacity={0.7}
+        >
+          <Text style={ss.cardLabel}>YOUR CHOICES</Text>
+          <Text style={ss.dropdownChevron}>{choicesOpen ? '▲' : '▼'}</Text>
+        </TouchableOpacity>
+        {choicesOpen && history.map((entry, i) => (
           <View key={entry.id} style={ss.timelineItem}>
             <View style={ss.timelineDotCol}>
               <View style={ss.timelineDot} />
@@ -201,7 +209,16 @@ const ss = StyleSheet.create({
   },
   cardLabel: {
     fontSize: 10, fontWeight: '800', color: ROSE,
-    textTransform: 'uppercase', letterSpacing: 1.3, marginBottom: 14,
+    textTransform: 'uppercase', letterSpacing: 1.3, marginBottom: 0,
+  },
+  dropdownHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  dropdownChevron: {
+    fontSize: 10, fontWeight: '800', color: ROSE,
   },
 
   // Score bars
